@@ -31,6 +31,10 @@ python evaluation/memweave-cross-agent-v1/score_results.py `
   --predictions outputs/mw-cross-agent-test-run/predictions.jsonl `
   --split test `
   --output outputs/mw-cross-agent-test-run/report.json
+python evaluation/memweave-cross-agent-v1/compare_naive_fts.py `
+  --predictions outputs/mw-cross-agent-test-run/predictions.jsonl `
+  --split test `
+  --output outputs/mw-cross-agent-test-run/noise-comparison.json
 ```
 
 预测文件每行格式：
@@ -48,6 +52,20 @@ python evaluation/memweave-cross-agent-v1/score_results.py `
 本集是受控诊断基准，适合发现“跨 Agent 没找回”“不该用却注入”“旧值盖过新值”“范围串库”等回归。它不能单独证明生产环境的真实成功率提升、长期自学习收益、用户偏好适配能力或总体知识质量。模板结构较规则，模型或算法可能利用表面词汇；发布时应同时给出逐例错误、分组结果和局限，不能只报一个总分。
 
 `LFHV` 场景的标准是：归档知识**不应进入正常输出**，但应出现在独立 shadow probe 的候选中；“影子命中”不自动等于恢复，也不等于任务收益。
+
+## 2026-09-29：抗噪声对照结果
+
+300 条留出 `test` 案例上的 Naive FTS Top-3 对照结果已保存到 [noise-comparison-test-20260929.json](noise-comparison-test-20260929.json)。对照组使用同一套 SQLite FTS5/BM25 和查询分词，但关闭项目、生命周期、证据、版本替代、同会话和最低相关性门禁。
+
+| 指标 | Naive FTS Top-3 | MemWeave |
+|---|---:|---:|
+| 决策准确率 | 54.00% | 77.33% |
+| 正向证据召回率 | 64.00% | 54.67% |
+| 负例误注入率 | 69.33% | 0.00% |
+| 禁止证据注入率 | 50.00% | 0.00% |
+| 无意义上下文体积 | 16,380 UTF-8 bytes | 0 bytes |
+
+这组结果展示的是保守治理的收益与代价：误注入归零，但正向召回也有所下降。UTF-8 bytes 不是模型 Token；Naive 延迟只测内存 FTS 查询，而 MemWeave 延迟包含完整本地 Adapter 路径，因此两者不能直接用于速度优劣结论。
 
 ## 2026-09-29：两种生命周期评测口径（代码已改，尚未运行）
 

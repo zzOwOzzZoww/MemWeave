@@ -1,0 +1,37 @@
+{
+  "dataset_version": "mw-cross-agent-v1.0.0-candidate",
+  "split": "test",
+  "profile": "shadow-v1",
+  "cases": 300,
+  "top_k": 3,
+  "baseline": "SQLite FTS5/BM25 lexical Top-K using MemWeave retrieval tokens, with project, lifecycle, evidence, supersession, same-session, and minimum-relevance gates disabled",
+  "naive_fts": {
+    "cases": 300,
+    "decision_accuracy": 0.54,
+    "positive_evidence_recall": 0.64,
+    "negative_injection_rate": 0.693333,
+    "forbidden_injection_rate": 0.5,
+    "unnecessary_records": 180,
+    "unnecessary_utf8_bytes": 16380,
+    "latency_p50_ms": 0.0883,
+    "latency_p95_ms": 0.1709
+  },
+  "memweave": {
+    "cases": 300,
+    "decision_accuracy": 0.773333,
+    "positive_evidence_recall": 0.546667,
+    "negative_injection_rate": 0.0,
+    "forbidden_injection_rate": 0.0,
+    "unnecessary_records": 0,
+    "unnecessary_utf8_bytes": 0,
+    "latency_p50_ms": 18.7238,
+    "latency_p95_ms": 32.1476
+  },
+  "unnecessary_context_byte_reduction": 1.0,
+  "limitations": [
+    "Fully synthetic controlled cases; not production traffic.",
+    "UTF-8 bytes are deterministic context volume, not model-token counts.",
+    "Naive latency measures only an in-memory FTS query; MemWeave latency is the full local adapter path, so latency columns are not an apples-to-apples speed comparison.",
+    "No LLM calls, final-answer grading, task-success measurement, or safety score."
+  ]
+}
