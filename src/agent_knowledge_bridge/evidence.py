@@ -11,7 +11,9 @@ import json
 import re
 from functools import lru_cache
 from typing import Any, Mapping
-from agent_knowledge_bridge.retrieval_terms import concepts, normalize_word
+from agent_knowledge_bridge.retrieval_terms import (
+    DISTINCTIVE_CONCEPTS, concepts, normalize_word,
+)
 
 
 _STOPWORDS = frozenset({
@@ -26,6 +28,10 @@ _STOPWORDS = frozenset({
 # ``procedure.`` must still match the stored term ``procedure`` while keeping
 # identifiers such as ``project_key`` and ``clb-v2`` intact.
 _WORD = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:[_.:-][A-Za-z0-9]+)*|[一-鿿]{2,}")
+_COMMON_TECH_IDENTIFIERS = frozenset({
+    "api", "cli", "css", "csv", "html", "http", "https", "json", "sql",
+    "ssh", "tcp", "tls", "udp", "ui", "url", "xml",
+})
 _ANSWER_STOPWORDS = _STOPWORDS | frozenset({
     "after", "before", "during", "about", "into", "from", "with", "for",
     "did", "does", "do", "has", "have", "had", "was", "were", "will",
@@ -122,6 +128,31 @@ def _has_distinctive_cjk_phrase(
 ) -> bool:
     """Four contiguous matched characters identify a phrase, even via 2-grams."""
     return any(end - start >= 4 for start, end in _merged_cjk_matches(query, matched_terms))
+
+
+@lru_cache(maxsize=4096)
+def _distinctive_identifiers(value: str) -> frozenset[str]:
+    """Return explicit technical names that can safely carry one-term recall.
+
+    Composite identifiers and uncommon acronyms are closer to entity names than
+    topic words.  Treating ``MCP`` or ``project_key`` like ``HTTP`` caused a
+    complex question to be dropped merely because its surrounding prose used a
+    different language.  Common protocols stay excluded so one generic word
+    still cannot answer an unrelated history or explanation question.
+    """
+    result: set[str] = set()
+    for raw in _WORD.findall(value or ""):
+        if not raw.isascii():
+            continue
+        normalized = raw.casefold()
+        if normalized in _COMMON_TECH_IDENTIFIERS:
+            continue
+        composite = bool(re.search(r"[_.:-]|\d", raw))
+        acronym = raw.isupper() and 3 <= len(raw) <= 16
+        product_name = sum(character.isupper() for character in raw) >= 2
+        if composite or acronym or product_name:
+            result.add(normalized)
+    return frozenset(result)
 
 
 def normalize_subject_terms(value: Any) -> tuple[str, ...]:
@@ -231,6 +262,12 @@ def evidence_support(query: str, row: Mapping[str, Any]) -> tuple[bool, str, flo
     independent_literals = {term for term in body | strong if not concepts(term)}
     if len(shared_concepts) >= 2 or (shared_concepts and independent_literals):
         return True, 'bilingual_evidence', min(0.85, 0.50 + 0.10 * len(shared_concepts))
+    if shared_concepts & DISTINCTIVE_CONCEPTS:
+        return True, 'distinctive_concept', 0.55
+    indexed_text = f"{_value(row, 'title')} {_value(row, 'search_terms')} {body_text}"
+    shared_identifiers = _distinctive_identifiers(query) & _distinctive_identifiers(indexed_text)
+    if shared_identifiers:
+        return True, 'technical_identifier', 0.55
     if body or strong:
         return False, "insufficient_evidence", 0.20
     return False, "generic_term_only", 0.0

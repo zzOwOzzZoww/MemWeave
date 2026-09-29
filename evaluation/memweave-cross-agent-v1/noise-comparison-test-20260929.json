@@ -7,25 +7,25 @@
   "baseline": "SQLite FTS5/BM25 lexical Top-K using MemWeave retrieval tokens, with project, lifecycle, evidence, supersession, same-session, and minimum-relevance gates disabled",
   "naive_fts": {
     "cases": 300,
-    "decision_accuracy": 0.54,
-    "positive_evidence_recall": 0.64,
-    "negative_injection_rate": 0.693333,
-    "forbidden_injection_rate": 0.5,
-    "unnecessary_records": 180,
-    "unnecessary_utf8_bytes": 16380,
-    "latency_p50_ms": 0.0883,
-    "latency_p95_ms": 0.1709
+    "decision_accuracy": 0.543333,
+    "positive_evidence_recall": 0.706667,
+    "negative_injection_rate": 0.766667,
+    "forbidden_injection_rate": 0.556667,
+    "unnecessary_records": 197,
+    "unnecessary_utf8_bytes": 18103,
+    "latency_p50_ms": 0.0925,
+    "latency_p95_ms": 0.1353
   },
   "memweave": {
     "cases": 300,
-    "decision_accuracy": 0.773333,
-    "positive_evidence_recall": 0.546667,
+    "decision_accuracy": 1.0,
+    "positive_evidence_recall": 1.0,
     "negative_injection_rate": 0.0,
     "forbidden_injection_rate": 0.0,
     "unnecessary_records": 0,
     "unnecessary_utf8_bytes": 0,
-    "latency_p50_ms": 18.7238,
-    "latency_p95_ms": 32.1476
+    "latency_p50_ms": 19.975,
+    "latency_p95_ms": 36.8971
   },
   "unnecessary_context_byte_reduction": 1.0,
   "limitations": [

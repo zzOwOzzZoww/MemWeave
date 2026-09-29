@@ -113,26 +113,27 @@ MemWeave 将 **LFHV** 定义为 **Lost Future Hit Value**，也就是“一条�
 
 | 指标 | 结果 |
 | --- | ---: |
-| Hit@5 | **88.32%** |
-| MRR | **73.14%** |
-| P95 检索延迟 | **13.79 ms** |
+| Hit@5 | **88.58%** |
+| MRR | **73.39%** |
+| P95 检索延迟 | **14.97 ms** |
+| 自定义对抗题空结果率 | **0.00%** |
 
-这里的 Hit@5 表示 Top-5 结果中是否包含正确证据会话。**这些数字只代表检索层，不是最终回答准确率、真实 Agent 任务成功率或安全性评分。**评测脚本位于 [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py)。
+这里的 Hit@5 表示 Top-5 结果中是否包含正确证据会话。自定义对抗题空结果率来自 454 条被脚本标成“应返回空”的问题，其中包含 LoCoMo Category 5；这些问题仍保留了用于分析的标注证据，而 session 粒度检索只要返回任何相关会话就会被记为非空。因此 **0.00% 不等于最终拒答准确率为 0，也不能当作噪声注入率**，它说明当前检索层还不能单独判断“相关证据是否足以回答”。这些数字都只代表检索层，不是最终回答准确率、真实 Agent 任务成功率或安全性评分。评测脚本位于 [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py)。
 
 ### 抗噪声效果：Naive FTS Top-K vs MemWeave
 
-为了回答“治理层到底带来了什么”，我们在自带的跨 Agent 合成基准上冻结 `dev` 后，直接运行了 300 条留出 `test` 案例。对照组使用相同的 SQLite FTS5/BM25 和查询分词，但关闭项目范围、生命周期、证据、版本替代、同会话和最低相关性门禁；只要有词面命中就取 Top-3。
+为了回答“治理层到底带来了什么”，我们运行了自带跨 Agent 合成基准中的 300 条冻结 `test` 回归案例。对照组使用相同的 SQLite FTS5/BM25 和查询分词，但关闭项目范围、生命周期、证据、版本替代、同会话和最低相关性门禁；只要有词面命中就取 Top-3。
 
 | 指标 | Naive FTS Top-3 | MemWeave |
 | --- | ---: | ---: |
-| 决策准确率 | 54.00% | **77.33%** |
-| 正向证据召回率 | **64.00%** | 54.67% |
-| 负例误注入率 | 69.33% | **0.00%** |
-| 禁止证据注入率 | 50.00% | **0.00%** |
-| 无意义上下文记录数 | 180 | **0** |
-| 无意义上下文体积 | 16,380 UTF-8 bytes | **0 bytes** |
+| 决策准确率 | 54.33% | **100.00%** |
+| 正向证据召回率 | 70.67% | **100.00%** |
+| 负例误注入率 | 76.67% | **0.00%** |
+| 禁止证据注入率 | 55.67% | **0.00%** |
+| 无意义上下文记录数 | 197 | **0** |
+| 无意义上下文体积 | 18,103 UTF-8 bytes | **0 bytes** |
 
-结果说明 MemWeave 的策略更保守：在这组受控题上消除了误注入和无意义上下文，但也牺牲了一部分正向召回。字节数是确定性的上下文体积，不等于某个模型 tokenizer 的 Token 数；评测不调用模型，也不代表回答准确率、真实任务成功率或安全性评分。完整报告见 [noise-comparison-test-20260929.json](evaluation/memweave-cross-agent-v1/noise-comparison-test-20260929.json)，复现脚本见 [compare_naive_fts.py](evaluation/memweave-cross-agent-v1/compare_naive_fts.py)。
+`shadow-v1` 下 LFHV 影子候选发现率为 100%；`on-demand-v2` 下同轮恢复率为 100%。本轮已经使用该冻结集的失败簇来修复术语归一化和复合技术问题门禁，因此这里的 100% 是**回归闭环结果，不是独立留出集上的泛化成绩**。字节数是确定性的上下文体积，不等于某个模型 tokenizer 的 Token 数；评测不调用模型，也不代表回答准确率、真实任务成功率或安全性评分。完整报告见 [noise-comparison-test-20260929.json](evaluation/memweave-cross-agent-v1/noise-comparison-test-20260929.json)，复现脚本见 [compare_naive_fts.py](evaluation/memweave-cross-agent-v1/compare_naive_fts.py)。
 
 ## 快速开始
 
@@ -199,7 +200,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-截至 2026-09-29，全量测试为 **408 passed, 9 subtests passed**，并通过 Windows、Ubuntu 与 Python 3.11、3.12 的 CI 验证。这些结果证明当前固定测试集上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
+截至 2026-09-29，全量测试为 **417 passed, 9 subtests passed**。隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
 
 项目目录：
 

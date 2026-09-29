@@ -132,7 +132,7 @@ EXPANSION_POOL = 24
 #: vocabulary rather than by the number of sessions ever recorded.
 MAX_EDGES_PER_TERM = 24
 
-SEARCH_INDEX_VERSION = 'concept-markers-v3'
+SEARCH_INDEX_VERSION = 'concept-markers-v4'
 
 
 def cjk_ngrams(value: str) -> list[str]:

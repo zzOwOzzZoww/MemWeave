@@ -55,32 +55,41 @@ python evaluation/memweave-cross-agent-v1/compare_naive_fts.py `
 
 ## 2026-09-29：抗噪声对照结果
 
-300 条留出 `test` 案例上的 Naive FTS Top-3 对照结果已保存到 [noise-comparison-test-20260929.json](noise-comparison-test-20260929.json)。对照组使用同一套 SQLite FTS5/BM25 和查询分词，但关闭项目、生命周期、证据、版本替代、同会话和最低相关性门禁。
+300 条冻结 `test` 回归案例上的 Naive FTS Top-3 对照结果已保存到 [noise-comparison-test-20260929.json](noise-comparison-test-20260929.json)。对照组使用同一套 SQLite FTS5/BM25 和查询分词，但关闭项目、生命周期、证据、版本替代、同会话和最低相关性门禁。
 
 | 指标 | Naive FTS Top-3 | MemWeave |
 |---|---:|---:|
-| 决策准确率 | 54.00% | 77.33% |
-| 正向证据召回率 | 64.00% | 54.67% |
-| 负例误注入率 | 69.33% | 0.00% |
-| 禁止证据注入率 | 50.00% | 0.00% |
-| 无意义上下文体积 | 16,380 UTF-8 bytes | 0 bytes |
+| 决策准确率 | 54.33% | 100.00% |
+| 正向证据召回率 | 70.67% | 100.00% |
+| 负例误注入率 | 76.67% | 0.00% |
+| 禁止证据注入率 | 55.67% | 0.00% |
+| 无意义上下文体积 | 18,103 UTF-8 bytes | 0 bytes |
 
-这组结果展示的是保守治理的收益与代价：误注入归零，但正向召回也有所下降。UTF-8 bytes 不是模型 Token；Naive 延迟只测内存 FTS 查询，而 MemWeave 延迟包含完整本地 Adapter 路径，因此两者不能直接用于速度优劣结论。
+这组结果是术语归一化、技术标识符门禁和复合问题召回修复后的回归闭环。本轮已使用冻结 `test` 的失败簇定位问题，因此 100% 不能作为独立留出泛化成绩。UTF-8 bytes 不是模型 Token；Naive 延迟只测内存 FTS 查询，而 MemWeave 延迟包含完整本地 Adapter 路径，因此两者不能直接用于速度优劣结论。
 
-## 2026-09-29：两种生命周期评测口径（代码已改，尚未运行）
+## 2026-09-29：两种生命周期评测口径验收结果
 
 上面的标准对应冻结的 `shadow-v1`，Runner 默认按此模式显式关闭自动恢复，保留与 v1 标签的兼容性。MemWeave 新默认行为是“按需复用、同步复活”，请用 `--profile on-demand-v2` 单独验收；它只在内存中调整 LFHV 类预期，原 `cases.jsonl` 和历史基线保持不变。
 
 新模式同时检查本轮输出与实际恢复，并报告 `lfhv_same_turn_recovery_rate`。预测行记录 `profile` 和 `restored_evidence_ids`，评分器拒绝混用口径、未知证据引用和没有本轮输出的恢复归功。缺失预测不算正确拒答。
 
-以下命令留待后续执行，本次没有运行：
+最终验收结果：
+
+| profile | 决策准确率 | 正向召回 | 拒答净空率 | 禁止证据注入 | LFHV 指标 |
+|---|---:|---:|---:|---:|---:|
+| `shadow-v1` | 100.00% | 100.00% | 100.00% | 0.00% | 影子候选发现率 100.00% |
+| `on-demand-v2` | 100.00% | 100.00% | 100.00% | 0.00% | 同轮恢复率 100.00% |
+
+复现命令：
 
 ```powershell
-python evaluation/memweave-cross-agent-v1/run_memweave.py --split dev --profile on-demand-v2 --output outputs/mw-demand-v2-dev
-python evaluation/memweave-cross-agent-v1/score_results.py --predictions outputs/mw-demand-v2-dev/predictions.jsonl --split dev --profile on-demand-v2 --output outputs/mw-demand-v2-dev/report.json
+python evaluation/memweave-cross-agent-v1/run_memweave.py --split test --profile shadow-v1 --output outputs/mw-shadow-v1-test
+python evaluation/memweave-cross-agent-v1/score_results.py --predictions outputs/mw-shadow-v1-test/predictions.jsonl --split test --profile shadow-v1 --output outputs/mw-shadow-v1-test/report.json
+python evaluation/memweave-cross-agent-v1/run_memweave.py --split test --profile on-demand-v2 --output outputs/mw-demand-v2-test
+python evaluation/memweave-cross-agent-v1/score_results.py --predictions outputs/mw-demand-v2-test/predictions.jsonl --split test --profile on-demand-v2 --output outputs/mw-demand-v2-test/report.json
 ```
 
-新版 Runner 每例独立数据库，按目标使用 Codex 或 Claude Adapter，标题只取原始内容，不使用场景标签。数据量与真实任务边界不变：500 条仍来自 50 个合成主题。两种 profile 的总分不可直接互换，历史低分没有被改写为“已解决”。
+新版 Runner 每例独立数据库，按目标使用 Codex 或 Claude Adapter，标题只取原始内容，不使用场景标签。数据量与真实任务边界不变：500 条仍来自 50 个合成主题。两种 profile 的总分不可直接互换；[BASELINE.md](BASELINE.md) 继续保留首次运行的历史低分，没有被新结果覆盖。
 
 ## 版本和完整性
 

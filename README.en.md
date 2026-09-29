@@ -113,26 +113,27 @@ As of 2026-09-29, the current code was evaluated on 1,986 questions from the pub
 
 | Metric | Result |
 | --- | ---: |
-| Hit@5 | **88.32%** |
-| MRR | **73.14%** |
-| P95 retrieval latency | **13.79 ms** |
+| Hit@5 | **88.58%** |
+| MRR | **73.39%** |
+| P95 retrieval latency | **14.97 ms** |
+| Custom adversarial empty-result rate | **0.00%** |
 
-Hit@5 means that the correct evidence session appeared in the Top-5 retrieved results. **These numbers describe the retrieval layer only. They are not final-answer accuracy, real-agent task success, or a safety score.** The evaluation script is available at [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py).
+Hit@5 means that the correct evidence session appeared in the Top-5 retrieved results. The custom empty-result rate covers 454 questions that the script labels as abstention cases, including LoCoMo Category 5. Those questions still retain annotated evidence for analysis, and session-level retrieval is counted as non-empty whenever it returns any related session. **A 0.00% empty-result rate therefore does not mean final refusal accuracy is zero, and it is not a noise-injection rate.** It shows that the retrieval layer alone cannot yet decide whether related evidence is sufficient to answer. All numbers in this table describe retrieval only, not final-answer accuracy, real-agent task success, or a safety score. The evaluation script is available at [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py).
 
 ### Noise-control comparison: Naive FTS Top-K vs MemWeave
 
-To measure what the governance layer actually changes, we froze development on the `dev` split and ran the 300 held-out `test` cases from the bundled synthetic cross-agent benchmark. The baseline uses the same SQLite FTS5/BM25 engine and query tokenization, but disables project, lifecycle, evidence, supersession, same-session, and minimum-relevance gates; any lexical match can enter the Top-3.
+To measure what the governance layer changes, we ran the 300 frozen `test` regression cases from the bundled synthetic cross-agent benchmark. The baseline uses the same SQLite FTS5/BM25 engine and query tokenization, but disables project, lifecycle, evidence, supersession, same-session, and minimum-relevance gates; any lexical match can enter the Top-3.
 
 | Metric | Naive FTS Top-3 | MemWeave |
 | --- | ---: | ---: |
-| Decision accuracy | 54.00% | **77.33%** |
-| Positive evidence recall | **64.00%** | 54.67% |
-| Negative-case injection rate | 69.33% | **0.00%** |
-| Forbidden-evidence injection rate | 50.00% | **0.00%** |
-| Unnecessary context records | 180 | **0** |
-| Unnecessary context volume | 16,380 UTF-8 bytes | **0 bytes** |
+| Decision accuracy | 54.33% | **100.00%** |
+| Positive evidence recall | 70.67% | **100.00%** |
+| Negative-case injection rate | 76.67% | **0.00%** |
+| Forbidden-evidence injection rate | 55.67% | **0.00%** |
+| Unnecessary context records | 197 | **0** |
+| Unnecessary context volume | 18,103 UTF-8 bytes | **0 bytes** |
 
-The result shows a deliberate conservative trade-off: on these controlled cases, MemWeave eliminated irrelevant injection and unnecessary context, while losing some positive recall. UTF-8 bytes are a deterministic context-volume measure, not tokens from a particular model tokenizer. The benchmark makes no model calls and does not measure answer accuracy, real task success, or safety. See the [full report](evaluation/memweave-cross-agent-v1/noise-comparison-test-20260929.json) and [reproduction script](evaluation/memweave-cross-agent-v1/compare_naive_fts.py).
+Under `shadow-v1`, LFHV shadow-candidate recall is 100%; under `on-demand-v2`, same-turn restoration is 100%. This release used failure clusters from the frozen suite to repair terminology normalization and compound technical-question gates, so the 100% result is **regression closure, not an unbiased held-out generalization score**. UTF-8 bytes are deterministic context volume, not tokens from a particular model tokenizer. The benchmark makes no model calls and does not measure answer accuracy, real task success, or safety. See the [full report](evaluation/memweave-cross-agent-v1/noise-comparison-test-20260929.json) and [reproduction script](evaluation/memweave-cross-agent-v1/compare_naive_fts.py).
 
 ## Quick start
 
@@ -199,7 +200,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-09-29, the full suite reports **408 passed, 9 subtests passed**, with CI coverage on Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed test suites only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-09-29, the full suite reports **417 passed, 9 subtests passed**. Isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI covers Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 
