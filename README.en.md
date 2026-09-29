@@ -1,12 +1,12 @@
 # MemWeave
 
-[简体中文](README.md) | **English**
+[简体中文](https://github.com/zzOwOzzZoww/MemWeave/blob/main/README.md) | **English**
 
 MemWeave is a local shared-memory layer for coding agents.
 
 It lets agents such as Claude Code and Codex reuse confirmed project knowledge: technical decisions, user preferences, lessons learned, and working agreements. It does not treat every conversation as permanent memory, and it does not inject loosely related content just to make recall numbers look better.
 
-> Current version: 0.5.0a1 (Alpha). The core loop is working, but the project is still being prepared for its first public release and is not on PyPI yet.
+> Current version: 0.5.0a1 (Alpha). The core loop is working and ready for evaluation in test projects.
 
 ## What problem does it solve?
 
@@ -52,24 +52,19 @@ The retrieval hot path does not call a model. It starts with SQLite FTS5/BM25, t
 
 Python 3.11 or newer is required.
 
-### Install from source
+### Install directly from GitHub
 
 ~~~shell
+python -m pip install "git+https://github.com/zzOwOzzZoww/MemWeave.git"
+memweave setup
+~~~
+
+### Install from source (for developers)
+
+~~~shell
+git clone https://github.com/zzOwOzzZoww/MemWeave.git
+cd MemWeave
 python -m pip install -e .
-memweave setup
-~~~
-
-### Install from a local wheel
-
-~~~shell
-python -m pip install ./memweave_runtime-0.5.0a1-py3-none-any.whl
-memweave setup
-~~~
-
-After the PyPI release, installation will look like this:
-
-~~~shell
-python -m pip install --pre memweave-runtime
 memweave setup
 ~~~
 
@@ -118,7 +113,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-09-29, release-focused tests report **67 passed**, and the full test suite reports **407 passed** after installation from a clean wheel. These results validate the fixed test suites only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-09-29, the full suite reports **408 passed, 9 subtests passed**, with CI coverage on Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed test suites only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 
@@ -136,8 +131,7 @@ evaluation/                        Candidate synthetic evaluation dataset
 - This is an Alpha release and has not been validated across every OS and client version.
 - The bilingual term bridge is a small, auditable rule set, not a universal language model.
 - Synthetic evaluations test closed-loop behavior; they do not represent real conversations or real tasks.
-- The package name still needs final confirmation under the publishing account.
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+This project is licensed under the [Apache License 2.0](https://github.com/zzOwOzzZoww/MemWeave/blob/main/LICENSE).
 
-See [docs/](docs/) for detailed design and validation notes.
+See [docs/](https://github.com/zzOwOzzZoww/MemWeave/tree/main/docs) for detailed design and validation notes.

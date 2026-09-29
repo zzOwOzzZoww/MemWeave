@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,8 +7,17 @@ name = "memweave-runtime"
 version = "0.5.0a1"
 description = "A protocol-independent continual-learning runtime for AI agents"
 readme = { file = "README.md", content-type = "text/markdown" }
-license = { file = "LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
+keywords = ["coding-agents", "continual-learning", "local-first", "memory"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
 # The product includes the local UI; Core imports remain stdlib-only.
 dependencies = ["fastapi>=0.115,<1", "pydantic>=2.10,<3", "uvicorn>=0.34,<1"]
 
@@ -43,6 +52,12 @@ all = [
 memweave = "agent_knowledge_bridge.cli:main"
 memweave-daemon = "agent_knowledge_bridge.daemon:main"
 agent-knowledge-mcp = "agent_knowledge_bridge.server:main"
+
+[project.urls]
+Homepage = "https://github.com/zzOwOzzZoww/MemWeave"
+Repository = "https://github.com/zzOwOzzZoww/MemWeave"
+Issues = "https://github.com/zzOwOzzZoww/MemWeave/issues"
+Documentation = "https://github.com/zzOwOzzZoww/MemWeave/tree/main/docs"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -1,12 +1,12 @@
 # MemWeave（织忆）
 
-**简体中文** | [English](README.en.md)
+**简体中文** | [English](https://github.com/zzOwOzzZoww/MemWeave/blob/main/README.en.md)
 
 MemWeave 是一个给 Coding Agent 用的本地共享记忆层。
 
 它让 Claude Code、Codex 等 Agent 在同一个项目里复用已经确认过的知识，比如技术决策、用户偏好、踩坑经验和项目约定。它不会把所有对话都当成“记忆”，也不会为了看起来聪明而硬塞不相关内容。
 
-> 当前版本：0.5.0a1（Alpha）。核心闭环已经可以运行，但还在做发布前整理，暂未发布到 PyPI。
+> 当前版本：0.5.0a1（Alpha）。核心闭环已经可以运行，适合在测试项目中体验和验证。
 
 ## 它解决什么问题
 
@@ -52,24 +52,19 @@ CLI / Web ───────┘       │
 
 要求 Python 3.11 或更高版本。
 
-### 从源码安装
+### 直接从 GitHub 安装
 
 ~~~shell
+python -m pip install "git+https://github.com/zzOwOzzZoww/MemWeave.git"
+memweave setup
+~~~
+
+### 从源码安装（开发者）
+
+~~~shell
+git clone https://github.com/zzOwOzzZoww/MemWeave.git
+cd MemWeave
 python -m pip install -e .
-memweave setup
-~~~
-
-### 从本地 wheel 安装
-
-~~~shell
-python -m pip install ./memweave_runtime-0.5.0a1-py3-none-any.whl
-memweave setup
-~~~
-
-PyPI 发布后可以使用：
-
-~~~shell
-python -m pip install --pre memweave-runtime
 memweave setup
 ~~~
 
@@ -118,7 +113,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-截至 2026-09-29，发布定向测试为 **67 passed**，从干净 wheel 安装后的全量测试为 **407 passed**。这些结果证明当前固定测试集上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
+截至 2026-09-29，全量测试为 **408 passed, 9 subtests passed**，并通过 Windows、Ubuntu 与 Python 3.11、3.12 的 CI 验证。这些结果证明当前固定测试集上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
 
 项目目录：
 
@@ -136,8 +131,7 @@ evaluation/                        合成评测集候选版
 - 目前是 Alpha，还没有完成所有操作系统和客户端版本的实机验证。
 - 术语桥是小型、可审计的规则集，不追求覆盖所有表达方式。
 - 合成评测集用于检查闭环行为，不等同于真实对话或真实任务评测。
-- 当前包名仍需在实际发布账号下做最终确认。
 
-本项目使用 [Apache License 2.0](LICENSE)。
+本项目使用 [Apache License 2.0](https://github.com/zzOwOzzZoww/MemWeave/blob/main/LICENSE)。
 
-更详细的设计与验收记录可以查看 [docs/](docs/) 目录。
+更详细的设计与验收记录可以查看 [docs/](https://github.com/zzOwOzzZoww/MemWeave/tree/main/docs) 目录。
