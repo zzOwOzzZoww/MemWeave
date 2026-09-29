@@ -165,7 +165,26 @@ def test_queue_persists_turn_boundary_and_retries(isolated):
 
 
 @pytest.mark.skipif(os.name!='nt',reason='Windows shortcut')
-def test_shortcut_uses_install_interpreter_and_custom_home(isolated, tmp_path):
+def test_shortcut_uses_install_interpreter_and_custom_home(isolated, tmp_path, monkeypatch):
+    import agent_knowledge_bridge.desktop as desktop
+    scripts=[]
+    monkeypatch.setattr(desktop, '_powershell', lambda script: scripts.append(script) or '')
+    shortcut=desktop.create_shortcut(tmp_path/'desktop')
+    script=scripts[-1]
+    pythonw=Path(sys.executable).with_name('pythonw.exe')
+    launcher=isolated/'launchers'/'open_memweave.pyw'
+    icon=isolated/'launchers'/'memweave-icon.ico'
+    assert shortcut == tmp_path/'desktop'/'MemWeave知识管理.lnk'
+    assert 'TargetPath='+desktop._ps(str(pythonw)) in script
+    assert str(launcher) in script
+    assert repr(str(isolated)) in launcher.read_text(encoding='utf-8')
+    assert 'token' not in script.lower()
+    assert icon.is_file()
+
+
+@pytest.mark.skipif(os.name!='nt' or os.environ.get('GITHUB_ACTIONS')=='true',
+                    reason='requires an interactive Windows COM desktop session')
+def test_shortcut_round_trip_on_windows_desktop(isolated, tmp_path):
     from agent_knowledge_bridge.desktop import create_shortcut, _powershell, _ps
     shortcut=create_shortcut(tmp_path/'desktop')
     data=json.loads(_powershell('[Console]::OutputEncoding=[Text.UTF8Encoding]::new(); '
