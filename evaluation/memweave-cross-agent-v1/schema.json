@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MemWeave Cross-Agent Reuse Benchmark case",
+  "type": "object",
+  "required": ["case_id", "kernel_id", "split", "category", "source_agent", "target_agent", "project_context", "query", "memory_records", "expected", "synthetic"],
+  "properties": {
+    "case_id": {"type": "string"},
+    "kernel_id": {"type": "string", "description": "Group key; all variants must remain in one split."},
+    "split": {"enum": ["calibration", "dev", "test"]},
+    "category": {"type": "string"},
+    "source_agent": {"enum": ["codex", "claude-code"]},
+    "target_agent": {"enum": ["codex", "claude-code"]},
+    "project_context": {"type": "string"},
+    "query": {"type": "string"},
+    "memory_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source_agent", "scope", "project_key", "status", "source_session", "content"],
+        "properties": {
+          "id": {"type": "string"},
+          "source_agent": {"enum": ["codex", "claude-code"]},
+          "scope": {"enum": ["project", "user"]},
+          "project_key": {"type": "string"},
+          "status": {"enum": ["active", "stale", "archived", "quarantined"]},
+          "superseded_by": {"type": "string", "description": "Optional tombstone reference; superseded memories remain archived."},
+          "source_session": {"type": "string"},
+          "content": {"type": "string"}
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "required": ["decision", "evidence_ids", "forbidden_ids", "answer", "answer_rubric", "shadow_probe"],
+      "properties": {
+        "decision": {"enum": ["inject", "abstain"]},
+        "evidence_ids": {"type": "array", "items": {"type": "string"}},
+        "forbidden_ids": {"type": "array", "items": {"type": "string"}},
+        "answer": {"type": "string"},
+        "answer_rubric": {"type": "string"},
+        "shadow_probe": {"enum": ["none", "shadow_candidate", "must_not_recover"]}
+      }
+    },
+    "synthetic": {"const": true}
+  }
+}

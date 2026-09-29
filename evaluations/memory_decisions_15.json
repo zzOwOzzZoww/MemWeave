@@ -1,0 +1,21 @@
+{
+  "version": "memory-decisions-15-v1",
+  "purpose": "Exploratory diagnostic baseline; labels authored before execution, not independently human-validated or a held-out generalization benchmark.",
+  "cases": [
+    {"id":"A1","layer":"admission","title":"明确的长期页面偏好","user":"请记住：今后给我设计页面时，默认采用浅色主题。这个偏好适用于我的各个项目。","assistant":"明白，你的页面设计长期偏好是默认浅色主题。","expected":"保存为用户级偏好；目标自动采纳，当前保留候选也算成功提取，但自动化未支持。","desired_action":"auto_accept","expected_scope":"user","evidence":"用户明确说明长期、跨项目、要求保存。"},
+    {"id":"A2","layer":"admission","title":"明确的项目决策","user":"青岚项目的知识候选审核期限正式定为创建后24小时。请记住这个项目决策，不适用于其他项目。","assistant":"青岚项目采用创建后24小时的候选审核期限，其他项目保持各自配置。","expected":"保存为项目级决策；目标自动采纳，当前仅候选属于能力缺口。","desired_action":"auto_accept","expected_scope":"project","evidence":"用户明确确认项目决策及边界。"},
+    {"id":"A3","layer":"admission","title":"一次性演示要求","user":"只在今天这次演示里把页面改成深色，不代表我的长期偏好，也不用记住这次安排。","assistant":"本次演示使用深色，不作为后续页面的默认设置。","expected":"不产生长期知识候选。","desired_action":"skip","evidence":"用户明确限定一次性且要求不记住。"},
+    {"id":"A4","layer":"admission","title":"问题不是决定","user":"你觉得要不要把所有知识候选都自动批准？这只是问你意见，我还没有决定，不要记录成我的偏好或项目决策。","assistant":"可以讨论取舍，目前没有确定自动批准政策。","expected":"不产生长期知识候选，不把问题或讨论变成已确认政策。","desired_action":"skip","evidence":"明确未决定并要求不记录。"},
+    {"id":"A5","layer":"admission","title":"助手猜测不能成为根因","user":"青岚服务刚刚有一次请求超时，可能是什么原因？","assistant":"可能是SQLite索引损坏，但我没有检查日志、没有执行命令，也没有任何证据，以上只是猜测。","expected":"不把超时事件或猜测的根因保存为可复用知识；不应生成持久候选。","desired_action":"skip","evidence":"一次性事件且助手承认没有证据。"},
+    {"id":"B1","layer":"injection","title":"相关偏好应该注入","query":"请按我的长期偏好设计一个设置页面，默认主题应该是什么？","fixture":"preference","expected_aliases":["theme"],"expected":"注入已确认的浅色主题偏好。"},
+    {"id":"B2","layer":"injection","title":"同词但不需要个人偏好","query":"解释浅色和深色物体吸收太阳辐射的物理差异，这道物理题与我的页面主题偏好无关，不需要任何个性化建议。","fixture":"preference","expected_aliases":[],"expected":"不注入页面设计偏好，即使出现相同词。"},
+    {"id":"B3","layer":"injection","title":"跨项目不得套用决策","query":"另一个项目的知识候选审核期限应该是多少小时？不要引用青岚项目的配置。","fixture":"other_project","expected_aliases":[],"expected":"青岚项目的决策不对另一个项目开放。"},
+    {"id":"B4","layer":"injection","title":"明确更新后不能注入旧值","query":"青岚项目现在的候选审核期限是多少？请只使用2026年9月26日生效的最新决定，旧的72小时已被明确废止。","fixture":"conflict","expected_aliases":["current"],"expected":"仅注入当前24小时；旧72小时仍在active时也不应作为本轮依据。"},
+    {"id":"B5","layer":"injection","title":"已知事实不应重复注入","query":"当前上下文已经明确：青岚项目候选审核期限是创建后24小时。这条事实不用重复，也不需要帮我设计审核流程；现在只解释SQLite WAL与回滚日志在并发读写方面的区别。","fixture":"decision","expected_aliases":[],"expected":"不注入已完整给出的期限事实，当前问题不需要它。"},
+    {"id":"C1","layer":"archive","title":"仍有效且缺失的归档知识恢复","query":"青岚项目的候选审核期限是多久？","fixture":"valid_archive","expected_restored":["retired"],"expected":"影子命中、显式恢复后能够召回；这只是机制验证，不证明任务收益。"},
+    {"id":"C2","layer":"archive","title":"重复无关命中不应驱动恢复","query":"解释浅色和深色物体吸收太阳辐射的物理差异，这道物理题与我的页面主题偏好无关，不需要任何个性化建议。","fixture":"irrelevant_archive","expected_restored":[],"probe_repeats":3,"expected":"即使词面相关，也不应恢复页面偏好；重复同一句查询不构成多个独立用途证据。"},
+    {"id":"C3","layer":"archive","title":"被新决策替代的旧值不应复活","query":"青岚项目现在的候选审核期限是多少？旧的72小时已废止，当前决定为24小时。","fixture":"superseded_archive","expected_restored":[],"expected":"不恢复已被替代的72小时；当前24小时足以回答。"},
+    {"id":"C4","layer":"archive","title":"明确驳回隔离不得复活","query":"青岚项目的候选审核期限是多少小时？","fixture":"rejected","expected_restored":[],"expected":"quarantined 不进入LFHV恢复，即使词面完全匹配。"},
+    {"id":"C5","layer":"archive","title":"无使用机会不能证明无用","query":null,"fixture":"unobserved_archive","expected_restored":[],"expected":"一年未查询的归档知识保持未知，不因缺乏命中认定错误；另检查物理保留策略是否存在。","capability_probe":"长期归档容量/期限淘汰策略是否有可执行判定，未支持应单列。"}
+  ]
+}

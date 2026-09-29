@@ -1,0 +1,82 @@
+{
+  "version": "memweave-answerability-v1",
+  "description": "Small hand-labelled contract set for checking whether retrieved evidence is sufficient to answer a question.",
+  "knowledge": [
+    {
+      "alias": "caroline-plan",
+      "title": "Caroline career plan",
+      "content": "Caroline planned to pursue marine biology after volunteering at the aquarium.",
+      "search_terms": "Caroline plan marine biology aquarium",
+      "subject_terms": ["Caroline"],
+      "source_session": "case-01:session-a:turn-1"
+    },
+    {
+      "alias": "caroline-topic-only",
+      "title": "Caroline aquarium notes",
+      "content": "Caroline talked about the aquarium and marine biology.",
+      "search_terms": "Caroline aquarium marine biology",
+      "subject_terms": ["Caroline"],
+      "source_session": "case-01:session-a:turn-2"
+    },
+    {
+      "alias": "melanie-plan",
+      "title": "Melanie career plan",
+      "content": "Melanie planned to study product design after the workshop.",
+      "search_terms": "Melanie plan product design workshop",
+      "subject_terms": ["Melanie"],
+      "source_session": "case-01:session-b:turn-1"
+    },
+    {
+      "alias": "david-preference",
+      "title": "David editor preference",
+      "content": "David prefers a lightweight editor for small scripts.",
+      "search_terms": "David prefers lightweight editor scripts",
+      "subject_terms": ["David"],
+      "source_session": "case-02:session-a:turn-1"
+    },
+    {
+      "alias": "david-reason",
+      "title": "David editor reason",
+      "content": "David chose the lightweight editor because it starts quickly.",
+      "search_terms": "David chose lightweight editor starts quickly",
+      "subject_terms": ["David"],
+      "source_session": "case-02:session-a:turn-2"
+    },
+    {
+      "alias": "david-unrelated-session",
+      "title": "David editor discussion",
+      "content": "David chose the editor after comparing several tools.",
+      "search_terms": "David chose editor comparing tools",
+      "subject_terms": ["David"],
+      "source_session": "case-02:session-b:turn-1"
+    },
+    {
+      "alias": "sqlite-topic-only",
+      "title": "SQLite notes",
+      "content": "SQLite and WAL are useful topics for local applications.",
+      "search_terms": "SQLite WAL local applications",
+      "subject_terms": ["SQLite"],
+      "source_session": "case-03:session-a:turn-1"
+    },
+    {
+      "alias": "sqlite-answer",
+      "title": "SQLite concurrency decision",
+      "content": "The project chose WAL mode because it allows concurrent readers.",
+      "search_terms": "SQLite chose WAL concurrent readers",
+      "subject_terms": ["SQLite"],
+      "source_session": "case-03:session-a:turn-2"
+    }
+  ],
+  "cases": [
+    {"id": "a01", "query": "What did Caroline plan after volunteering at the aquarium?", "expected": ["caroline-plan"], "decision": "answerable"},
+    {"id": "a02", "query": "What did Caroline realize about the aquarium?", "expected": [], "decision": "abstain"},
+    {"id": "a03", "query": "What did Caroline plan for marine biology?", "expected": ["caroline-plan"], "decision": "answerable"},
+    {"id": "a04", "query": "What did Melanie plan after the workshop?", "expected": ["melanie-plan"], "decision": "answerable"},
+    {"id": "a05", "query": "What did Melanie plan about the aquarium?", "expected": [], "decision": "abstain"},
+    {"id": "a06", "query": "What did David choose because it starts quickly?", "expected": ["david-reason"], "decision": "answerable"},
+    {"id": "a07", "query": "What did David choose about the lightweight editor?", "expected": ["david-reason"], "decision": "answerable"},
+    {"id": "a08", "query": "What did the project choose about SQLite WAL?", "expected": ["sqlite-answer"], "decision": "answerable"},
+    {"id": "a09", "query": "What did the project realize about SQLite?", "expected": [], "decision": "abstain"},
+    {"id": "a10", "query": "Tell me about the weather today.", "expected": [], "decision": "unresolved"}
+  ]
+}

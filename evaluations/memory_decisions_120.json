@@ -1,0 +1,1755 @@
+{
+  "version": "decision-matrix-120-v1",
+  "label_author": "assistant; not independently adjudicated",
+  "sampling": "80 injection template/subject combinations, 20 archive combinations, 20 dialogues; developmental synthetic set",
+  "cases": [
+    {
+      "id": "R01-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚页面主题怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "解释计算机内存，不要引用青岚页面主题。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "有人说“不要引用青岚页面主题”，但我想知道青岚页面主题怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "背景：青岚页面主题是默认浅色；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "我的界面配色应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。此决定已废止，被新决定替代。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "查看历史决定：青岚页面主题以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。此决定已废止，被新决定替代。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚页面主题当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R01-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚页面主题",
+        "content": "青岚页面主题当前正式设置：默认浅色。",
+        "search_terms": "页面主题 界面配色 默认浅色",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "另外项目的页面主题怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R02-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚编辑器字体怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "解释计算机内存，不要引用青岚编辑器字体。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "有人说“不要引用青岚编辑器字体”，但我想知道青岚编辑器字体怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "背景：青岚编辑器字体是等宽字体；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "我的代码显示字体应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。此决定已废止，被新决定替代。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "查看历史决定：青岚编辑器字体以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。此决定已废止，被新决定替代。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚编辑器字体当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R02-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚编辑器字体",
+        "content": "青岚编辑器字体当前正式设置：等宽字体。",
+        "search_terms": "编辑器字体 代码显示字体 等宽字体",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "另外项目的编辑器字体怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R03-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚通知方式怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "解释计算机内存，不要引用青岚通知方式。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "有人说“不要引用青岚通知方式”，但我想知道青岚通知方式怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "背景：青岚通知方式是静默提醒；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "我的消息提醒应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。此决定已废止，被新决定替代。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "查看历史决定：青岚通知方式以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。此决定已废止，被新决定替代。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚通知方式当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R03-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚通知方式",
+        "content": "青岚通知方式当前正式设置：静默提醒。",
+        "search_terms": "通知方式 消息提醒 静默提醒",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "另外项目的通知方式怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R04-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚回答语言怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "解释计算机内存，不要引用青岚回答语言。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "有人说“不要引用青岚回答语言”，但我想知道青岚回答语言怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "背景：青岚回答语言是简体中文；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "我的回复用语应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。此决定已废止，被新决定替代。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "查看历史决定：青岚回答语言以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。此决定已废止，被新决定替代。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚回答语言当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R04-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚回答语言",
+        "content": "青岚回答语言当前正式设置：简体中文。",
+        "search_terms": "回答语言 回复用语 简体中文",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "另外项目的回答语言怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R05-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚日期格式怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "解释计算机内存，不要引用青岚日期格式。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "有人说“不要引用青岚日期格式”，但我想知道青岚日期格式怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "背景：青岚日期格式是年-月-日；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "我的时间日期展示应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。此决定已废止，被新决定替代。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "查看历史决定：青岚日期格式以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。此决定已废止，被新决定替代。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "青岚日期格式当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R05-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚日期格式",
+        "content": "青岚日期格式当前正式设置：年-月-日。",
+        "search_terms": "日期格式 时间日期展示 年-月-日",
+        "knowledge_type": "preference",
+        "scope": "user"
+      },
+      "query": "另外项目的日期格式怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R06-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "解释计算机内存，不要引用青岚重试策略。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "有人说“不要引用青岚重试策略”，但我想知道青岚重试策略怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "背景：青岚重试策略是退避三次；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "我的失败重试应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。此决定已废止，被新决定替代。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "查看历史决定：青岚重试策略以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。此决定已废止，被新决定替代。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R06-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前正式设置：退避三次。",
+        "search_terms": "重试策略 失败重试 退避三次",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "另外项目的重试策略怎么设置？",
+      "expected": [],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R07-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "解释计算机内存，不要引用青岚审核期限。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "有人说“不要引用青岚审核期限”，但我想知道青岚审核期限怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "背景：青岚审核期限是24小时；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "我的候选审批时限应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。此决定已废止，被新决定替代。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "查看历史决定：青岚审核期限以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。此决定已废止，被新决定替代。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R07-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前正式设置：24小时。",
+        "search_terms": "审核期限 候选审批时限 24小时",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "另外项目的审核期限怎么设置？",
+      "expected": [],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R08-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "解释计算机内存，不要引用青岚日志保留。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "有人说“不要引用青岚日志保留”，但我想知道青岚日志保留怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "背景：青岚日志保留是七天；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "我的日志保存时间应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。此决定已废止，被新决定替代。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "查看历史决定：青岚日志保留以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。此决定已废止，被新决定替代。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R08-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前正式设置：七天。",
+        "search_terms": "日志保留 日志保存时间 七天",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "另外项目的日志保留怎么设置？",
+      "expected": [],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R09-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "解释计算机内存，不要引用青岚构建命令。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "有人说“不要引用青岚构建命令”，但我想知道青岚构建命令怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "背景：青岚构建命令是python build.py；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "我的打包构建步骤应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。此决定已废止，被新决定替代。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "查看历史决定：青岚构建命令以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。此决定已废止，被新决定替代。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R09-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前正式设置：python build.py。",
+        "search_terms": "构建命令 打包构建步骤 python build.py",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "另外项目的构建命令怎么设置？",
+      "expected": [],
+      "target_project": "other-project"
+    },
+    {
+      "id": "R10-related",
+      "layer": "injection",
+      "pattern": "related",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚缓存容量怎么设置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-excluded",
+      "layer": "injection",
+      "pattern": "excluded",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "解释计算机内存，不要引用青岚缓存容量。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-quoted_exclusion",
+      "layer": "injection",
+      "pattern": "quoted_exclusion",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "有人说“不要引用青岚缓存容量”，但我想知道青岚缓存容量怎么设置。",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-topic_switch",
+      "layer": "injection",
+      "pattern": "topic_switch",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "背景：青岚缓存容量是128MB；现在只解释太阳辐射的物理原理。",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-alias",
+      "layer": "injection",
+      "pattern": "alias",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "我的缓存大小上限应该如何配置？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-historical",
+      "layer": "injection",
+      "pattern": "historical",
+      "fixture": {
+        "title": "旧青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。此决定已废止，被新决定替代。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "查看历史决定：青岚缓存容量以前是什么？",
+      "expected": [
+        "memory"
+      ],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-obsolete",
+      "layer": "injection",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。此决定已废止，被新决定替代。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚缓存容量当前设置是什么？",
+      "expected": [],
+      "target_project": "qinglan"
+    },
+    {
+      "id": "R10-other_project",
+      "layer": "injection",
+      "pattern": "other_project",
+      "fixture": {
+        "title": "青岚缓存容量",
+        "content": "青岚缓存容量当前正式设置：128MB。",
+        "search_terms": "缓存容量 缓存大小上限 128MB",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "另外项目的缓存容量怎么设置？",
+      "expected": [],
+      "target_project": "other-project"
+    },
+    {
+      "id": "G01-valid",
+      "layer": "archive",
+      "pattern": "valid",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前设置为退避三次。",
+        "search_terms": "重试策略 失败重试",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略是什么？",
+      "expected": [
+        "memory"
+      ]
+    },
+    {
+      "id": "G01-obsolete",
+      "layer": "archive",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚重试策略",
+        "content": "青岚重试策略当前设置为退避三次。此决定已废止。",
+        "search_terms": "重试策略 失败重试",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略是什么？",
+      "expected": []
+    },
+    {
+      "id": "G01-rejected",
+      "layer": "archive",
+      "pattern": "rejected",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前设置为退避三次。",
+        "search_terms": "重试策略 失败重试",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略是什么？",
+      "expected": []
+    },
+    {
+      "id": "G01-duplicate",
+      "layer": "archive",
+      "pattern": "duplicate",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前设置为退避三次。",
+        "search_terms": "重试策略 失败重试",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略是什么？",
+      "expected": []
+    },
+    {
+      "id": "G01-changed",
+      "layer": "archive",
+      "pattern": "changed",
+      "fixture": {
+        "title": "青岚重试策略",
+        "content": "青岚重试策略当前设置为退避三次。",
+        "search_terms": "重试策略 失败重试",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚重试策略是什么？",
+      "expected": []
+    },
+    {
+      "id": "G02-valid",
+      "layer": "archive",
+      "pattern": "valid",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前设置为24小时。",
+        "search_terms": "审核期限 候选审批时限",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限是什么？",
+      "expected": [
+        "memory"
+      ]
+    },
+    {
+      "id": "G02-obsolete",
+      "layer": "archive",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚审核期限",
+        "content": "青岚审核期限当前设置为24小时。此决定已废止。",
+        "search_terms": "审核期限 候选审批时限",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限是什么？",
+      "expected": []
+    },
+    {
+      "id": "G02-rejected",
+      "layer": "archive",
+      "pattern": "rejected",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前设置为24小时。",
+        "search_terms": "审核期限 候选审批时限",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限是什么？",
+      "expected": []
+    },
+    {
+      "id": "G02-duplicate",
+      "layer": "archive",
+      "pattern": "duplicate",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前设置为24小时。",
+        "search_terms": "审核期限 候选审批时限",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限是什么？",
+      "expected": []
+    },
+    {
+      "id": "G02-changed",
+      "layer": "archive",
+      "pattern": "changed",
+      "fixture": {
+        "title": "青岚审核期限",
+        "content": "青岚审核期限当前设置为24小时。",
+        "search_terms": "审核期限 候选审批时限",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚审核期限是什么？",
+      "expected": []
+    },
+    {
+      "id": "G03-valid",
+      "layer": "archive",
+      "pattern": "valid",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前设置为七天。",
+        "search_terms": "日志保留 日志保存时间",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留是什么？",
+      "expected": [
+        "memory"
+      ]
+    },
+    {
+      "id": "G03-obsolete",
+      "layer": "archive",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚日志保留",
+        "content": "青岚日志保留当前设置为七天。此决定已废止。",
+        "search_terms": "日志保留 日志保存时间",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留是什么？",
+      "expected": []
+    },
+    {
+      "id": "G03-rejected",
+      "layer": "archive",
+      "pattern": "rejected",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前设置为七天。",
+        "search_terms": "日志保留 日志保存时间",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留是什么？",
+      "expected": []
+    },
+    {
+      "id": "G03-duplicate",
+      "layer": "archive",
+      "pattern": "duplicate",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前设置为七天。",
+        "search_terms": "日志保留 日志保存时间",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留是什么？",
+      "expected": []
+    },
+    {
+      "id": "G03-changed",
+      "layer": "archive",
+      "pattern": "changed",
+      "fixture": {
+        "title": "青岚日志保留",
+        "content": "青岚日志保留当前设置为七天。",
+        "search_terms": "日志保留 日志保存时间",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚日志保留是什么？",
+      "expected": []
+    },
+    {
+      "id": "G04-valid",
+      "layer": "archive",
+      "pattern": "valid",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前设置为python build.py。",
+        "search_terms": "构建命令 打包构建步骤",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令是什么？",
+      "expected": [
+        "memory"
+      ]
+    },
+    {
+      "id": "G04-obsolete",
+      "layer": "archive",
+      "pattern": "obsolete",
+      "fixture": {
+        "title": "旧青岚构建命令",
+        "content": "青岚构建命令当前设置为python build.py。此决定已废止。",
+        "search_terms": "构建命令 打包构建步骤",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令是什么？",
+      "expected": []
+    },
+    {
+      "id": "G04-rejected",
+      "layer": "archive",
+      "pattern": "rejected",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前设置为python build.py。",
+        "search_terms": "构建命令 打包构建步骤",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令是什么？",
+      "expected": []
+    },
+    {
+      "id": "G04-duplicate",
+      "layer": "archive",
+      "pattern": "duplicate",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前设置为python build.py。",
+        "search_terms": "构建命令 打包构建步骤",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令是什么？",
+      "expected": []
+    },
+    {
+      "id": "G04-changed",
+      "layer": "archive",
+      "pattern": "changed",
+      "fixture": {
+        "title": "青岚构建命令",
+        "content": "青岚构建命令当前设置为python build.py。",
+        "search_terms": "构建命令 打包构建步骤",
+        "knowledge_type": "decision",
+        "scope": "project"
+      },
+      "query": "青岚构建命令是什么？",
+      "expected": []
+    },
+    {
+      "id": "A01",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住：今后各个项目的页面主题默认采用默认浅色。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "user"
+    },
+    {
+      "id": "A02",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住：今后各个项目的编辑器字体默认采用等宽字体。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "user"
+    },
+    {
+      "id": "A03",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住：今后各个项目的通知方式默认采用静默提醒。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "user"
+    },
+    {
+      "id": "A04",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住：今后各个项目的回答语言默认采用简体中文。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "user"
+    },
+    {
+      "id": "A05",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住：今后各个项目的日期格式默认采用年-月-日。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "user"
+    },
+    {
+      "id": "A06",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住这个项目决策：青岚项目的重试策略正式定为退避三次。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "project"
+    },
+    {
+      "id": "A07",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住这个项目决策：青岚项目的审核期限正式定为24小时。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "project"
+    },
+    {
+      "id": "A08",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住这个项目决策：青岚项目的日志保留正式定为七天。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "project"
+    },
+    {
+      "id": "A09",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住这个项目决策：青岚项目的构建命令正式定为python build.py。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "project"
+    },
+    {
+      "id": "A10",
+      "layer": "admission",
+      "pattern": "explicit",
+      "user": "请记住这个项目决策：青岚项目的缓存容量正式定为128MB。",
+      "assistant": "明白，将遵循你明确的设置。",
+      "expected": "active",
+      "expected_scope": "project"
+    },
+    {
+      "id": "A11",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "只在今天演示里使用深色主题，不要记住。",
+      "assistant": "本次演示用深色。",
+      "expected": "skip"
+    },
+    {
+      "id": "A12",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "这次报告用英文，不要记录成长期偏好。",
+      "assistant": "仅本次用英文。",
+      "expected": "skip"
+    },
+    {
+      "id": "A13",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "今天临时设置缓存为64MB，不用保存。",
+      "assistant": "这是临时安排。",
+      "expected": "skip"
+    },
+    {
+      "id": "A14",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "这次重试五次，以后仍按原配置，不要保存本次安排。",
+      "assistant": "本次临时重试五次。",
+      "expected": "skip"
+    },
+    {
+      "id": "A15",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "只为本次调试保留日志，不要记录新的保留政策。",
+      "assistant": "没有更改长期政策。",
+      "expected": "skip"
+    },
+    {
+      "id": "A16",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "要不要把候选自动批准？我还没有决定。",
+      "assistant": "可以先讨论风险。",
+      "expected": "skip"
+    },
+    {
+      "id": "A17",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "你觉得默认深色好不好？只是问意见，不要记住。",
+      "assistant": "这取决于需求，目前没有决定。",
+      "expected": "skip"
+    },
+    {
+      "id": "A18",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "是否把审核期改为48小时？尚未决定，不要保存。",
+      "assistant": "目前不形成新决定。",
+      "expected": "skip"
+    },
+    {
+      "id": "A19",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "青岚服务为什么超时？",
+      "assistant": "可能网络拥堵，但没有日志也没有证据，只是猜测。",
+      "expected": "skip"
+    },
+    {
+      "id": "A20",
+      "layer": "admission",
+      "pattern": "skip",
+      "user": "构建为什么失败？",
+      "assistant": "可能是内存不足，但没有验证，没有证据。",
+      "expected": "skip"
+    }
+  ]
+}

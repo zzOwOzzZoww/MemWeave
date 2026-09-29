@@ -1,0 +1,1 @@
+Create `outputs/beta.widget.json` with name `beta`, mode `fast`, and retry `5`, using the validated project procedure you already know. Do not inspect `domain/` or `tools/`; run the known verifier and fix the file until it passes.

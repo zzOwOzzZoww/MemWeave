@@ -1,0 +1,12 @@
+include pyproject.toml
+include README.md
+recursive-include src/agent_knowledge_bridge *.py *.html *.ico *.png
+prune tests
+prune outputs
+prune data
+prune demo
+prune evaluation
+prune scripts
+prune docs
+prune .workbuddy
+global-exclude *.pyc __pycache__ *.db *.db-wal *.db-shm *.bak .env

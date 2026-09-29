@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memweave-runtime"
+version = "0.5.0a1"
+description = "A protocol-independent continual-learning runtime for AI agents"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+# The product includes the local UI; Core imports remain stdlib-only.
+dependencies = ["fastapi>=0.115,<1", "pydantic>=2.10,<3", "uvicorn>=0.34,<1"]
+
+[project.optional-dependencies]
+# Compatibility alias for existing install commands.
+runtime = [
+    "fastapi>=0.115,<1",
+    "pydantic>=2.10,<3",
+    "uvicorn>=0.34,<1",
+]
+mcp = ["mcp>=1.28,<2"]
+# The Runtime API tests import fastapi/uvicorn themselves, so a bare
+# `pip install -e ".[test]"` used to fail at collection time.
+test = [
+    "httpx>=0.27,<1",
+    "pytest>=8,<9",
+    "fastapi>=0.115,<1",
+    "pydantic>=2.10,<3",
+    "uvicorn>=0.34,<1",
+]
+# `all` is meant to be the union of every extra above; keep it that way.
+all = [
+    "fastapi>=0.115,<1",
+    "pydantic>=2.10,<3",
+    "uvicorn>=0.34,<1",
+    "mcp>=1.28,<2",
+    "httpx>=0.27,<1",
+    "pytest>=8,<9",
+]
+
+[project.scripts]
+memweave = "agent_knowledge_bridge.cli:main"
+memweave-daemon = "agent_knowledge_bridge.daemon:main"
+agent-knowledge-mcp = "agent_knowledge_bridge.server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_knowledge_bridge = ["knowledge_dashboard.html", "assets/*.ico", "assets/*.png"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

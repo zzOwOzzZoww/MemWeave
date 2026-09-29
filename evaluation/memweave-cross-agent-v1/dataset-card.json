@@ -1,0 +1,17 @@
+{
+  "name": "MemWeave Cross-Agent Reuse Benchmark",
+  "version": "1.0.0-candidate",
+  "language": ["English", "Simplified Chinese"],
+  "task": ["cross-agent retrieval", "scope and lifecycle governance", "abstention", "answer evidence"],
+  "instances": 500,
+  "independent_synthetic_fact_kernels": 50,
+  "splits": {"calibration": 100, "dev": 100, "test": 300},
+  "source": "Original synthetic examples authored for MemWeave; no user transcripts or third-party benchmark rows are included.",
+  "license": "CC-BY-4.0 (proposed for this dataset only; attribution and license require maintainer confirmation)",
+  "limitations": [
+    "This is a retrieval and governance diagnostic set, not a full conversational memory benchmark.",
+    "The 500 rows are ten controlled scenarios over 50 independent synthetic fact kernels, not 500 independent facts.",
+    "It does not by itself measure real-agent task success or prove that agents improve with longer use.",
+    "The initial labels and baseline require human review before a formal public release."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "version": "mixed-library-20-v1",
+  "label_author": "assistant; not independently adjudicated",
+  "records": {
+    "theme": {"title":"页面主题长期偏好","content":"用户的页面主题长期偏好是浅色，适用于各个项目。","knowledge_type":"preference","scope":"user","search_terms":"页面 主题 浅色 深色 界面 配色"},
+    "language": {"title":"回答语言长期偏好","content":"用户默认希望使用简体中文回答，适用于各个项目。","knowledge_type":"preference","scope":"user","search_terms":"回答 语言 简体中文 回复"},
+    "current": {"title":"青岚当前审核期限","content":"青岚项目当前候选审核期限为24小时。原72小时决定已废止。","knowledge_type":"decision","scope":"project","search_terms":"青岚 审核 期限 候选 24小时"},
+    "old": {"title":"青岚旧审核期限","content":"青岚项目旧审核期限为72小时。此决定已废止，已被24小时替代。","knowledge_type":"decision","scope":"project","search_terms":"青岚 审核 期限 候选 72小时"},
+    "retry": {"title":"青岚重试策略","content":"青岚服务在503响应后使用指数退避，最多重试三次。","knowledge_type":"procedure","scope":"project","search_terms":"青岚 服务 重试 退避 503"},
+    "logs": {"title":"青岚日志保留","content":"青岚项目调试日志保留七天。","knowledge_type":"decision","scope":"project","search_terms":"青岚 日志 保存 保留 七天"}
+  },
+  "cases": [
+    {"id":"M01","query":"我的页面主题长期偏好是什么？","required":["theme"],"forbidden":["old"]},
+    {"id":"M02","query":"青岚当前审核期限是多少？不要引用页面主题。","required":["current"],"forbidden":["theme","old"]},
+    {"id":"M03","query":"青岚重试策略是什么？不要引用青岚审核期限。","required":["retry"],"forbidden":["current","old"]},
+    {"id":"M04","query":"青岚日志保留几天？不要引用青岚重试策略。","required":["logs"],"forbidden":["retry","old"]},
+    {"id":"M05","query":"查看历史决定：青岚审核期限以前是72小时吗？","required":["old"],"forbidden":[]},
+    {"id":"M06","query":"不要调用任何历史记忆，请算一下21除以3。","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M07","query":"有人说“不要引用页面主题”，但我现在需要知道页面主题偏好。","required":["theme"],"forbidden":["old"]},
+    {"id":"M08","query":"并不是不要引用页面主题偏好，请告诉我默认主题。","required":["theme"],"forbidden":["old"]},
+    {"id":"M09","query":"青岚审核期限为24小时；现在只解释太阳辐射的物理原理。","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M10","query":"我的回复语言偏好是什么？","required":["language"],"forbidden":["old"]},
+    {"id":"M11","query":"另外项目的审核期限是多少？","project":"other","required":[],"forbidden":["current","old","retry","logs"]},
+    {"id":"M12","query":"另一个项目也按我的页面主题偏好设计。","project":"other","required":["theme"],"forbidden":["current","old","retry","logs"]},
+    {"id":"M13","query":"为什么浅色衣服在太阳下通常比深色衣服凉快？","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M14","query":"简体中文和繁体中文的历史起源是什么？","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M15","query":"HTTP 503状态码是什么意思？","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M16","query":"一般来说日志保留七天有哪些合规考虑？这不是青岚项目的配置问题。","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M17","query":"青岚当前审核期限与日志保留期分别是多少？","required":["current","logs"],"forbidden":["old"]},
+    {"id":"M18","query":"青岚审核期限已经知道是24小时，不用重复。请介绍SQLite WAL。","required":[],"forbidden":["theme","language","current","old","retry","logs"]},
+    {"id":"M19","query":"青岚收到503后应该怎样重试？","required":["retry"],"forbidden":["old"]},
+    {"id":"M20","query":"解释浅色与深色材料的吸热差异，这与我的页面主题偏好无关。","required":[],"forbidden":["theme","language","current","old","retry","logs"]}
+  ]
+}

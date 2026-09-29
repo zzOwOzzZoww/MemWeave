@@ -1,0 +1,39 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+# The whole runtime state directory: it holds plaintext bearer tokens and
+# machine-specific absolute paths, so only the .db files were ever safe to
+# list explicitly. Everything under data/ stays out.
+data/
+# Evaluation runs embed prompts, transcripts and per-row model output.
+outputs/
+
+demo/data/*.db
+demo/data/*.db-shm
+demo/data/*.db-wal
+demo/self-learning-data/
+demo/self-learning-workspace/outputs/*
+!demo/self-learning-workspace/outputs/.gitkeep
+
+# Local integrations, screenshots, credentials and backups are not release assets.
+.workbuddy/
+.codex/
+.claude/
+/AGENTS.md
+/CLAUDE.md
+.env
+.env.*
+!.env.example
+*.bak
+*.memweave-backup
+*.memweave-hooks-backup
+/.qa-*.png
+/.ui-*.png
+/dashboard_preview*.png
+.venv/
+*.whl
+demo/claude-workspace/acceptance-result.json
+demo/codex-workspace/handoff-result.json

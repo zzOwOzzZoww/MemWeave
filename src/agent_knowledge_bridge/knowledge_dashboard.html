@@ -1,0 +1,3562 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE60lEQVR42u1WXYhVVRT+1t77/Ny5c+94x3FMEpwsIZJKm8iKajQCjXww4s5D4aMjUlTkQ0jlufelmgjF8CEJzJ+XmEuiBmGE5AwimA6SORrSjIZa/o3jeO/cc8/P3quH6/zo/NhDUA/zwYHD2Wev8+1vrfWtA0xjGtP4j0ETPvVYYCEIrTAA8d3L2Q6WV3tAnYBBnsy9PsJgogniTPI2i3FkRhepek22Pi4YdWRZDpMYt3cyzNrlPzRrJz/XvI2t6pFZjt38zEfR8me/4DVLNnPTbdJTBv5+Czv3SAETPBDyOdTv2fiZqfBboiQda1CfcP34jT82umfATNlcj3XuatNu1ZBsFfVA6JoBVnpF9xr752yWZaFAevi0OQ8069rVGjsx4/MZjlyhY3NCJqzV2RyGiIDh1Fbl64BAnkzmcC6HOWI9QqNMOYiY5WIdqK4F74bPZ4lE35nUPoVkqy4HYVyMfEEioyOxLdvBsvAIRnKc8yDzeTJlnX4/Ydlri4GZl0xYq6I4WkRE3JGFGFWAmUDEc7/i+v54qE9JqrVcm3mASdzk2PFtxy2aQfviud9swUucmQ2hqE8JrjVkUqS5TtmIdGv3WlVo8Vh15qEB4NO2gXQQ2WfTCSuTcgVZkq/MrLceXbmBBsYWpUCumoZr5wczlZNlt9jVL0vHrhBpIQUpB2EQITZ1durBJXoI8Y2zx0UweF0JS0kmJo7BHOKDbAfLTsC0tXUrgPh6UbxOlGz0gygCKVWJ+OuVG2jA81iN7YjRCq51tGxwIGanTHhLiqGev85KNheF5VjQJuAojNPWfDPbWqTQe/GCJn0TSkgO4tiCfPxcb7wKeTIDLzUbr+Un5UfRm0OBz6FhZ6BYKRmKv7xdyHe07QgBNwlSaUUqrYy8v5ECqF+TJl4mtD6vLNshhlZK2DXJhlNP1DQ/DRs7hCuFNIjhg3mIP2xrY6vQCtOXWbDCkLuwHJYDolpZjsJv1m1OXurIQuTv8o1RBZIglZaQaQWZIqjGZF1vPvF7ysgXyOijlms7bKIfWFxaun0//WlJtdX42qeQ7LgURzKyFp1U+lWAeKhSXl8OAwSxFoN+Ma6Q2AIwFVAY14ajCjS4LFMCMi2hZhBk2orgsejZRBfuq8ilQkUth7+zXz64d25/cxtbR96hXhXybimlNKHR7IO5Qm+/sqy7uRJFLbf8G5GGbZeC8oFPtqdOeR6oUGjVdxNQwzcVWSGkFKQFiAggQxRsIINtx63OtVQB0DXsGd1zoAEmi9AelOLVFAmb/ZCtiv1UP9vfWn4/yM2gFBThKL0JAE6fntj277BRrYg5KSDSgEyLaq4yzQZgyo64ITHyZLIdEIffoz7ysVMJJUXIkQhiWZuYPy80iEqRr0r+jWO79jcd8uCJYZOalAAnXAKRo4mNqQGjVrhjDJOrAUbbp9ADBjORidsxFAcUSxuhDl22K031T9LDDYvpgcy8jwHi09ncpFYtkKsGSsSXLxObX0SdtOGChIuDUw6MPJlsa0EcbU+cl4FZp1joGnJcVyg3ZSWsBKF9657MXs/jSU8/OguG3fAA1xeTaKEy+m8up64RyaeCxwJ5Mi++FjzmVOQrKW3sGif+cce+miP/aP+/gglGsjflmJ7sh6Q6VgUKAFonl21CDh6LQ4eqNdXYCJ5K9mlMYxr/K/wNpMJcpKdHJZUAAAAASUVORK5CYII=">
+  <title>MemWeave 知识管理</title>
+  <style>
+
+    :root {
+      color-scheme: dark;
+      
+      /* 极致深空玄黑色彩体系 (Linear & Vercel Pro Aesthetic) */
+      --bg-base: #06080d;
+      --bg-surface: #0a0e17;
+      --bg-card: rgba(13, 18, 27, 0.72);
+      --bg-card-hover: rgba(20, 27, 40, 0.88);
+      --bg-card-active: rgba(26, 36, 54, 0.95);
+      --bg-glass: rgba(10, 14, 23, 0.7);
+      --bg-input: rgba(8, 11, 18, 0.9);
+      --bg-subtle: rgba(255, 255, 255, 0.025);
+
+      /* 极微发光双层边框 */
+      --border: rgba(255, 255, 255, 0.08);
+      --border-subtle: rgba(255, 255, 255, 0.04);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-glow: rgba(0, 242, 254, 0.35);
+      --border-highlight: rgba(255, 255, 255, 0.14);
+
+      /* 文字层级 */
+      --text: #f8fafc;
+      --text-sub: #cbd5e1;
+      --text-muted: #8290a5;
+      --text-dim: #475569;
+
+      /* 核心科技高饱和霓虹色 */
+      --cyan: #00f2fe;
+      --cyan-bright: #38bdf8;
+      --cyan-glow: rgba(0, 242, 254, 0.32);
+      --cyan-bg: rgba(0, 242, 254, 0.08);
+      --cyan-border: rgba(0, 242, 254, 0.28);
+      --cyan-text: #38bdf8;
+
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.3);
+      --indigo-bg: rgba(99, 102, 241, 0.1);
+      --indigo-border: rgba(99, 102, 241, 0.3);
+
+      --emerald: #10b981;
+      --emerald-bright: #34d399;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --emerald-bg: rgba(16, 185, 129, 0.1);
+      --emerald-border: rgba(16, 185, 129, 0.3);
+      --emerald-text: #34d399;
+
+      --amber: #f59e0b;
+      --amber-bright: #fbbf24;
+      --amber-glow: rgba(245, 158, 11, 0.28);
+      --amber-bg: rgba(245, 158, 11, 0.1);
+      --amber-border: rgba(245, 158, 11, 0.3);
+      --amber-text: #fbbf24;
+
+      --rose: #f43f5e;
+      --rose-bright: #fb7185;
+      --rose-glow: rgba(244, 63, 94, 0.28);
+      --rose-bg: rgba(244, 63, 94, 0.1);
+      --rose-border: rgba(244, 63, 94, 0.3);
+      --rose-text: #fb7185;
+
+      --header-bg: rgba(6, 8, 13, 0.85);
+      --header-border: rgba(255, 255, 255, 0.07);
+
+      /* 圆角与阴影 */
+      --radius-xs: 6px;
+      --radius-sm: 9px;
+      --radius: 13px;
+      --radius-lg: 18px;
+      --radius-xl: 22px;
+      --radius-pill: 9999px;
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow: 0 6px 24px -2px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 18px 44px -8px rgba(0, 0, 0, 0.7);
+      
+      --glass-blur: blur(24px) saturate(190%);
+      --transition-fast: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-bounce: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg-base: #f6f8fb;
+      --bg-surface: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.88);
+      --bg-card-hover: #ffffff;
+      --bg-card-active: #f1f5f9;
+      --bg-glass: rgba(255, 255, 255, 0.85);
+      --bg-input: #ffffff;
+      --bg-subtle: #f8fafc;
+
+      --border: #e2e8f0;
+      --border-subtle: #edf2f7;
+      --border-strong: #cbd5e1;
+      --border-glow: rgba(2, 132, 199, 0.25);
+      --border-highlight: rgba(255, 255, 255, 0.95);
+
+      --text: #0f172a;
+      --text-sub: #334155;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+
+      --cyan: #0284c7;
+      --cyan-bright: #0284c7;
+      --cyan-glow: rgba(2, 132, 199, 0.15);
+      --cyan-bg: #f0f9ff;
+      --cyan-border: #bae6fd;
+      --cyan-text: #0369a1;
+
+      --indigo: #4f46e5;
+      --indigo-glow: rgba(79, 70, 229, 0.15);
+      --indigo-bg: #eef2ff;
+      --indigo-border: #c7d2fe;
+
+      --emerald: #059669;
+      --emerald-bright: #059669;
+      --emerald-glow: rgba(5, 150, 105, 0.15);
+      --emerald-bg: #ecfdf5;
+      --emerald-border: #a7f3d0;
+      --emerald-text: #065f46;
+
+      --amber: #d97706;
+      --amber-bright: #d97706;
+      --amber-glow: rgba(217, 119, 6, 0.15);
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --amber-text: #92400e;
+
+      --rose: #e11d48;
+      --rose-bright: #e11d48;
+      --rose-glow: rgba(225, 29, 72, 0.15);
+      --rose-bg: #fff1f2;
+      --rose-border: #fecdd3;
+      --rose-text: #be123c;
+
+      --header-bg: rgba(255, 255, 255, 0.88);
+      --header-border: #e2e8f0;
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 0.12);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-base);
+      color: var(--text);
+      font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      /* 细腻科技点阵网格与极光微晕 */
+      background-image: 
+        radial-gradient(ellipse 90% 45% at 50% -10%, rgba(0, 242, 254, 0.15), transparent 75%),
+        radial-gradient(ellipse 65% 35% at 90% 8%, rgba(99, 102, 241, 0.12), transparent 70%),
+        radial-gradient(ellipse 55% 30% at 10% 35%, rgba(16, 185, 129, 0.08), transparent 60%),
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.045) 1px, transparent 0);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 26px 26px;
+      background-attachment: fixed;
+    }
+
+    [data-theme="light"] body {
+      background-image: 
+        radial-gradient(ellipse 90% 45% at 50% -10%, rgba(2, 132, 199, 0.08), transparent 75%),
+        radial-gradient(ellipse 65% 35% at 90% 8%, rgba(79, 70, 229, 0.06), transparent 70%),
+        radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.035) 1px, transparent 0);
+    }
+
+    /* 顶部霓虹光纤导轨 */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(0, 242, 254, 0.9) 25%, 
+        rgba(99, 102, 241, 0.95) 50%, 
+        rgba(16, 185, 129, 0.9) 75%, 
+        transparent 100%);
+      z-index: 999;
+      box-shadow: 0 0 16px 1px rgba(0, 242, 254, 0.6);
+      pointer-events: none;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航 Header (Floating Island) */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 12px 36px;
+      background: var(--header-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--header-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.6), rgba(99, 102, 241, 0.4), rgba(255, 255, 255, 0.1));
+      box-shadow: 0 0 20px -3px rgba(0, 242, 254, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-bounce);
+      cursor: pointer;
+    }
+
+    .brand-avatar:hover {
+      transform: scale(1.06) rotate(2deg);
+      box-shadow: 0 0 26px rgba(0, 242, 254, 0.55);
+    }
+
+    .brand-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: calc(var(--radius-sm) - 2px);
+      background: #0d121c;
+      object-fit: cover;
+    }
+
+    .brand-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .brand-title-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(180deg, #FFFFFF 20%, #CBD5E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="light"] h1 {
+      background: linear-gradient(180deg, #0f172a 0%, #334155 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .version-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 242, 254, 0.28);
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .agent-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition-fast);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .agent-pill.claude {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+
+    .agent-pill.codex {
+      background: rgba(0, 242, 254, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+    }
+
+    .project-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-strong);
+      color: var(--text-sub);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      width: 230px;
+      max-width: 100%;
+    }
+
+    .project-pill:hover, .project-pill:focus {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--cyan);
+      color: var(--text);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .db-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--emerald-bright);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.12);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald-bright);
+      box-shadow: 0 0 8px var(--emerald-bright);
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px var(--emerald-bright); }
+      50% { transform: scale(1.35); opacity: 0.75; box-shadow: 0 0 14px var(--emerald-bright); }
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .theme-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--border-strong);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       核心 BENTO GRID 双翼布局 (Bento Dual-Wing Dashboard Layout)
+       ============================================================ */
+    main {
+      flex: 1;
+      padding: 24px 36px 48px;
+      max-width: 1560px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-areas:
+        "metrics metrics"
+        "agent agent"
+        "relation relation"
+        "evidence evidence"
+        "knowledge knowledge";
+      gap: 20px;
+      align-items: start;
+      align-content: start;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "metrics"
+          "agent"
+          "relation"
+          "evidence"
+          "knowledge";
+      }
+    }
+
+    .metrics {
+      grid-area: metrics;
+      margin-bottom: 0;
+    }
+
+    .agent-panel {
+      grid-area: agent;
+      margin-bottom: 0;
+      height: 100%;
+    }
+
+    .relation-strip {
+      grid-area: relation;
+      margin-bottom: 0;
+    }
+
+    .reuse-panel {
+      grid-area: evidence;
+      margin-bottom: 0;
+      height: 100%;
+    }
+
+    .knowledge-panel {
+      grid-area: knowledge;
+      margin-bottom: 0;
+    }
+
+    /* 现代玻璃拟态卡片 Panel */
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-highlight), transparent);
+      pointer-events: none;
+    }
+
+    .panel:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: var(--shadow-lg), 0 0 24px -6px rgba(0, 242, 254, 0.08);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.015em;
+    }
+
+    h2 svg {
+      color: var(--cyan);
+      filter: drop-shadow(0 0 6px var(--cyan-glow));
+    }
+
+    /* Independent native disclosures preserve inputs and data when collapsed. */
+    .overview-panel { grid-area: metrics; }
+    .relation-panel { grid-area: relation; }
+    .panel.dashboard-module { min-width: 0; height: auto; }
+    .dashboard-module > summary.panel-head {
+      min-height: 58px;
+      gap: 16px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+    .dashboard-module > summary::-webkit-details-marker { display: none; }
+    .dashboard-module > summary h2 { margin-right: auto; }
+    .dashboard-module > summary::after {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: 0 0 7px;
+      margin: 0 3px 3px 0;
+      border-right: 1.5px solid var(--text-muted);
+      border-bottom: 1.5px solid var(--text-muted);
+      transform: rotate(45deg);
+      transition: transform .15s ease;
+    }
+    .dashboard-module:not([open]) > summary::after { transform: rotate(-45deg); }
+    .dashboard-module:not([open]) > summary { border-bottom-color: transparent; }
+    .dashboard-module > summary:hover { background: var(--bg-subtle); }
+    .dashboard-module > summary:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: -3px;
+      border-radius: var(--radius-sm);
+    }
+    .dashboard-body { min-width: 0; padding: 20px 24px; }
+    .dashboard-body > .metrics, .dashboard-body > .relation-strip { grid-area: auto; }
+    .dashboard-module.reuse-panel { padding: 0; display: block; }
+    .dashboard-module .agent-panel-body { height: auto; }
+    .reuse-body { display: flex; flex-direction: column; }
+    .knowledge-body { min-width: 0; }
+
+    /* Agent 维护面板定制 */
+    .agent-status {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .agent-panel-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 53px);
+    }
+
+    .agent-toolbar {
+      display: grid;
+      grid-template-columns: minmax(205px, 1.4fr) minmax(130px, 0.9fr) minmax(145px, 1fr) minmax(175px, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .agent-toolbar > div { min-width: 0; }
+
+    @media (max-width: 1100px) {
+      .agent-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .agent-actions { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 760px) {
+      header { padding: 12px 16px; flex-wrap: wrap; }
+      main { padding: 16px; }
+      .agent-panel-body { padding: 16px; }
+      .agent-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .agent-toolbar > div:first-child, .agent-actions { grid-column: 1 / -1; }
+      .agent-actions { justify-content: flex-start; flex-wrap: wrap; }
+      .project-pill { width: min(230px, 100%); }
+    }
+
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      font-family: inherit;
+      font-weight: 400;
+      width: 100%;
+      height: 38px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 12.5px;
+      outline: none;
+      transition: var(--transition-fast);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px var(--cyan-glow), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+      background: var(--bg-surface);
+    }
+
+    input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .agent-picker {
+      position: relative;
+    }
+
+    .agent-picker-trigger {
+      width: 100%;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition-fast);
+    }
+
+    .agent-picker-trigger .agent-choice-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .agent-picker-trigger svg { flex-shrink: 0; }
+
+    .agent-picker-trigger:hover, .agent-picker-trigger:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px var(--cyan-glow);
+    }
+
+    .agent-options {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 6px;
+      z-index: 100;
+      max-height: 260px;
+      overflow-y: auto;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .agent-option {
+      display: flex;
+      width: 100%;
+      min-height: 40px;
+      height: auto;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-xs);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 12.5px;
+      text-align: left;
+      white-space: normal;
+      box-shadow: none;
+      transition: var(--transition-fast);
+    }
+
+    .agent-option:hover, .agent-option:focus-visible, .agent-option[aria-selected="true"] {
+      background: var(--cyan-bg);
+      border-color: var(--cyan-border);
+      color: var(--text);
+      transform: none;
+    }
+
+    .agent-option.joined,
+    .agent-option.joined:hover,
+    .agent-option.joined:focus-visible { color: var(--emerald-text); }
+    .agent-option:not(.joined) { color: var(--text); }
+
+    .agent-option .agent-choice-name { flex: 1; min-width: 0; color: inherit; }
+    .agent-option .agent-choice-dot { flex: 0 0 6px; margin-right: 0; }
+    .agent-option .agent-choice-state { margin-left: auto; white-space: nowrap; }
+    .agent-option.joined .agent-choice-state { color: var(--emerald-text); }
+    .agent-option.joined .agent-choice-dot { background: var(--emerald); box-shadow: 0 0 6px var(--emerald-glow); }
+    .agent-option:not(.joined) .agent-choice-dot { background: var(--text-muted); box-shadow: none; }
+    .agent-option:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: -2px;
+    }
+
+    button {
+      height: 38px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      transition: var(--transition-fast);
+      outline: none;
+      white-space: nowrap;
+    }
+
+    button[hidden] { display: none !important; }
+    button:disabled, button:disabled:hover {
+      cursor: not-allowed; opacity: .48; box-shadow: none; transform: none;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.approve {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #ffffff;
+      box-shadow: 0 0 16px -2px rgba(14, 165, 233, 0.45);
+    }
+
+    button.approve:hover {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      box-shadow: 0 0 24px rgba(14, 165, 233, 0.65);
+    }
+
+    button.reject {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: var(--rose-border);
+      color: var(--rose-bright);
+    }
+
+    button.reject:hover {
+      background: var(--rose);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(244, 63, 94, 0.4);
+    }
+
+    .agent-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .agent-help {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(0, 242, 254, 0.04);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-left: 3px solid var(--cyan);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+      line-height: 1.6;
+    }
+
+    /* 核心指标看板 (Bento Metric Grid) */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .metrics {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric {
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-bounce);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .metric::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: transparent;
+      transition: var(--transition-fast);
+    }
+
+    .metric:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: var(--shadow), 0 0 20px -4px rgba(0, 242, 254, 0.15);
+    }
+
+    .metric:nth-child(1)::before { background: var(--cyan); }
+    .metric:nth-child(2)::before { background: var(--emerald); }
+    .metric:nth-child(3)::before { background: var(--indigo); }
+    .metric:nth-child(4)::before { background: var(--amber); }
+    .metric:nth-child(5)::before { background: #94a3b8; }
+    .metric:nth-child(6)::before { background: #64748b; }
+    .metric:nth-child(7)::before { background: var(--rose); }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      font-feature-settings: "tnum";
+    }
+
+    .metric:nth-child(1) .metric-value {
+      color: var(--cyan-bright);
+      text-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .metric:nth-child(2) .metric-value {
+      color: var(--emerald-bright);
+      text-shadow: 0 0 16px var(--emerald-glow);
+    }
+
+    .metric:nth-child(3) .metric-value {
+      color: #818cf8;
+      text-shadow: 0 0 16px var(--indigo-glow);
+    }
+
+    /* Two distinct groups: knowledge availability and observed activity. */
+    .relation-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .relation-group {
+      --relation-accent: #93b9ff;
+      --relation-border: #293e61;
+      --relation-bg: #111e33;
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--relation-border);
+      border-radius: 16px;
+      background: var(--relation-bg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .relation-group.activity {
+      --relation-accent: #81c9b4;
+      --relation-border: #284b43;
+      --relation-bg: #102720;
+    }
+
+    [data-theme="light"] .relation-group {
+      --relation-accent: #426ca6;
+      --relation-border: #d9e5f5;
+      --relation-bg: #eef4fc;
+    }
+
+    [data-theme="light"] .relation-group.activity {
+      --relation-accent: #367865;
+      --relation-border: #d4e7df;
+      --relation-bg: #edf6f1;
+    }
+
+    .relation-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .relation-heading svg {
+      width: 32px;
+      height: 32px;
+      padding: 7px;
+      flex-shrink: 0;
+      color: var(--relation-accent);
+      background: var(--bg-card);
+      border: 1px solid var(--relation-border);
+      border-radius: 10px;
+    }
+
+    .relation-heading h2 {
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .relation-heading p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 2px 0 0;
+    }
+
+    .relation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .relation-item {
+      min-width: 0;
+      padding: 15px 16px 13px;
+      border: 1px solid var(--relation-border);
+      border-radius: 12px;
+      background: var(--bg-card);
+    }
+
+    .relation-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    .relation-number {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 6px;
+    }
+
+    .relation-value {
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.035em;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .relation-unit, .relation-note, .relation-footnote {
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .relation-note { display: block; margin: 0; }
+    .relation-footnote { margin: 12px 0 0; }
+
+    @media (max-width: 1100px) {
+      .relation-strip { gap: 14px; }
+      .relation-group { padding: 16px; }
+      .relation-item { padding: 13px 12px; }
+    }
+
+    /* 实际复用证据面板 */
+    .reuse-panel {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .reuse-banner {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      margin: 8px 0 16px 0;
+      display: inline-block;
+    }
+
+    .reuse-metrics-box {
+      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .evidence-card { min-width:0; padding:16px 18px; border:1px solid var(--border); border-radius:12px; background:var(--bg-surface); }
+    .evidence-label { display:block; color:var(--text-sub); font-size:13px; font-weight:500; }
+    .evidence-value { display:block; margin:8px 0; color:var(--text); font-size:25px; line-height:1.25; font-weight:600; font-variant-numeric:tabular-nums; }
+    .evidence-card p { margin:0; color:var(--text-muted); font-size:12px; font-weight:400; line-height:1.7; overflow-wrap:anywhere; }
+    .evidence-card.attention { border-color:var(--amber-border); background:var(--amber-bg); }
+    .experience-heading { display:flex; align-items:baseline; gap:14px; margin:14px 0 12px; }
+    .experience-heading h3 { margin:0; font-size:14px; font-weight:600; color:var(--text); }
+    .experience-heading span { font-size:12px; color:var(--text-muted); }
+    .experience-audit { margin-top:6px; font-size:13px; color:var(--text-sub); }
+    @media (max-width:1100px) { .reuse-metrics-box { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+    details summary {
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-sub);
+      user-select: none;
+      outline: none;
+      padding: 8px 0;
+      transition: var(--transition-fast);
+    }
+
+    details summary:hover {
+      color: var(--cyan);
+    }
+
+    .reuse-traces-wrap {
+      margin-top: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    /* 知识清单与筛选工具栏 */
+    .knowledge-filters {
+      display: grid;
+      grid-template-columns: minmax(176px, 1.6fr) minmax(88px, .8fr) minmax(105px, 1fr) minmax(88px, .8fr) minmax(105px, 1fr) minmax(118px, 1fr) minmax(252px, 2.1fr) minmax(108px, .9fr) 38px;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .knowledge-filters { background:var(--bg-subtle); }
+    .knowledge-filters > * { min-width: 0; }
+    .knowledge-filters .styled-select-trigger { padding: 0 8px; gap: 6px; font-size: 13px; font-weight:400; font-family:inherit; color:var(--text-sub); }
+    .knowledge-filters input, .knowledge-filters .date-control label { font-size:13px; font-weight:400; font-family:inherit; color:var(--text-sub); }
+    .knowledge-filters input::placeholder { color:var(--text-muted); opacity:1; }
+    .knowledge-filters .date-control label { color:var(--text-muted); }
+    .knowledge-filters .styled-select-chevron { flex-shrink: 0; }
+
+    @media (max-width: 1360px) {
+      .knowledge-filters { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .knowledge-filters .search-wrap, .knowledge-filters .date-range { grid-column: span 2; }
+      .knowledge-filters .date-control { min-width: 0; flex: 1; }
+    }
+
+    @media (max-width: 760px) {
+      .knowledge-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-wrap input {
+      padding-left: 36px;
+      padding-right: 10px;
+    }
+
+    .date-range {
+      display: flex;
+      gap: 8px;
+    }
+
+    .date-control {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .date-control label {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .date-control input {
+      height: 38px;
+      font-size: 12px;
+      padding: 0 10px;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+
+    .date-control[data-empty="true"] input::-webkit-datetime-edit { opacity: 0; }
+    .date-control[data-empty="false"] label { display: none; }
+    .date-control input::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
+    .date-control:focus-within input { border-color: var(--cyan); }
+
+    .knowledge-page-size {
+      min-width: 0;
+    }
+
+    .time-sort-control { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .time-sort-label, .sort-arrow {
+      border: 0; background: transparent; color: inherit; box-shadow: none;
+      padding: 0; height: auto; min-height: 0; border-radius: 3px;
+      font: inherit; cursor: pointer;
+    }
+    .time-sort-label:hover, .sort-arrow:hover { background: transparent; color: var(--cyan-text); transform: none; box-shadow: none; }
+    .time-sort-arrows { display: flex; flex-direction: column; }
+    .sort-arrow { display: flex; align-items: center; justify-content: center; width: 20px; height: 12px; color: var(--text-muted); opacity: 0.55; }
+    .sort-arrow[aria-pressed="true"] { color: var(--cyan-text); opacity: 1; }
+    .sort-arrow svg { width: 9px; height: 6px; fill: currentColor; }
+    .time-sort-label:focus-visible, .sort-arrow:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 48px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+    }
+
+    .pagination-bar .page-summary {
+      min-width: 92px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pagination-bar button {
+      min-width: 64px;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 11.5px;
+    }
+
+    .pagination-bar button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-sub);
+    }
+
+    .icon-button:hover {
+      color: var(--cyan);
+      border-color: var(--cyan-border);
+      background: var(--cyan-bg);
+      transform: rotate(45deg);
+    }
+
+    /* 折叠清单模块 */
+    .knowledge-module {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .knowledge-module:last-child {
+      border-bottom: none;
+    }
+
+    .knowledge-module summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.015);
+      border-bottom: 1px solid transparent;
+      transition: var(--transition-fast);
+      list-style: none;
+    }
+
+    .knowledge-module summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .knowledge-module summary:hover {
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .knowledge-module[open] summary {
+      border-bottom-color: var(--border-subtle);
+    }
+
+    .module-summary-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .summary-chevron {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--cyan);
+      display: inline-block;
+      transition: transform 0.25s ease;
+      line-height: 1;
+    }
+
+    .knowledge-module[open] .summary-chevron {
+      transform: rotate(90deg);
+    }
+
+    .module-summary-title strong {
+      font-size: 13.5px;
+      color: var(--text);
+      margin-right: 8px;
+    }
+
+    .module-summary-title small {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .count {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-sub);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .bulk-review-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+    }
+
+    .bulk-review-toolbar label {
+      display: inline-flex;
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .bulk-selected-count {
+      color: var(--text-muted);
+      font-size: 11.5px;
+      margin-right: auto;
+    }
+
+    .bulk-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .bulk-actions button {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 11.5px;
+    }
+
+    .bulk-actions button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .selection-cell {
+      width: 44px;
+      text-align: center;
+      padding-left: 12px;
+      padding-right: 8px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    input.knowledge-check,
+    input#selectAllPending, input#selectAllAdopted {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      padding: 0;
+      margin: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      background: var(--bg-input);
+      box-shadow: none;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+
+    input.knowledge-check:hover,
+    input#selectAllPending:hover, input#selectAllAdopted:hover {
+      border-color: var(--cyan);
+    }
+
+    input.knowledge-check:checked,
+    input#selectAllPending:checked,
+    input#selectAllPending:indeterminate,
+    input#selectAllAdopted:checked, input#selectAllAdopted:indeterminate {
+      border-color: var(--cyan);
+      background: var(--cyan);
+      box-shadow: 0 0 0 2px var(--cyan-glow);
+    }
+
+    input.knowledge-check:checked::after,
+    input#selectAllPending:checked::after, input#selectAllAdopted:checked::after {
+      content: "";
+      display: block;
+      width: 8px;
+      height: 4px;
+      margin: 4px 0 0 3px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg);
+    }
+
+    input#selectAllPending:indeterminate::after, input#selectAllAdopted:indeterminate::after {
+      content: "";
+      display: block;
+      width: 8px;
+      height: 2px;
+      margin: 6px 0 0 3px;
+      background: #fff;
+    }
+
+    /* 现代表格设计 */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1000px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    td {
+      padding: 12px 18px;
+      font-size: 12.5px;
+      color: var(--text-sub);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: var(--transition-fast);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--text);
+    }
+
+    tr[style*="cursor: pointer"]:hover td {
+      background: rgba(0, 242, 254, 0.04);
+    }
+
+    .title-cell { width: 38%; }
+    .agent-cell { width: 11%; }
+    .knowledge-source { white-space: nowrap; }
+    #turnTimingMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .share-cell { width: 14%; }
+    .state-cell { width: 11%; }
+    .scope-cell { width: 10%; }
+    .time-cell { width: 16%; }
+
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* 模态弹窗 Dialog */
+    dialog {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      background: #0d121c;
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px -5px rgba(0, 242, 254, 0.2);
+      max-width: 960px;
+      width: min(92vw, 960px);
+      max-height: min(90vh, 820px);
+      overflow: hidden;
+      outline: none;
+    }
+
+    [data-theme="light"] dialog {
+      background: var(--bg-surface);
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.24), 0 0 40px -5px rgba(2, 132, 199, 0.16);
+    }
+
+    [data-theme="light"] dialog::backdrop {
+      background: rgba(15, 23, 42, 0.34);
+    }
+
+    dialog::backdrop {
+      background: rgba(4, 7, 12, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .dialog-head h2 {
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .dialog-head .close {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      font-size: 20px;
+      line-height: 1;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .dialog-head .close:hover {
+      color: var(--rose);
+      border-color: var(--rose-border);
+      background: var(--rose-bg);
+    }
+
+    .dialog-body {
+      padding: 16px 24px 18px;
+      overflow-y: auto;
+      max-height: calc(min(90vh, 820px) - 68px);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 14px 0 8px 0;
+      letter-spacing: 0.02em;
+    }
+
+    .content-block {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    [data-theme="light"] .content-block {
+      background: #f8fafc;
+      border-color: #dbe5ef;
+    }
+
+    #detailVersions {
+      white-space: normal;
+      word-break: break-word;
+      margin-top: 8px;
+      background: rgba(14, 165, 233, 0.08);
+      border-color: rgba(14, 165, 233, 0.27);
+    }
+    #detailVersions[hidden] { display: none; }
+    #detailVersions strong { display: block; font-size: 13px; }
+    #detailVersions p { margin: 5px 0 10px; line-height: 1.5; }
+    #detailVersions .evidence-item { margin-top: 8px; }
+    [data-theme="light"] #detailVersions {
+      background: #edf7fc;
+      border-color: #b9ddeb;
+    }
+
+    .review-box {
+      position: sticky;
+      bottom: -1px;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      column-gap: 14px;
+      margin: 16px -6px 0;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      box-shadow: 0 -8px 18px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    [data-theme="light"] .review-box {
+      background: #f8fafc;
+      border-color: #dbe5ef;
+    }
+
+    .review-box textarea {
+      height: 42px;
+      min-height: 42px;
+      margin: 0;
+      resize: none;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 10px 12px;
+    }
+
+    .review-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      white-space: nowrap;
+    }
+
+    .review-box .field-label {
+      grid-column: 1;
+      margin: 0 0 5px;
+      font-size: 10px;
+    }
+
+    @media (max-width: 680px) {
+      dialog { width: calc(100vw - 20px); max-height: calc(100vh - 20px); }
+      .dialog-head { padding: 14px 16px; }
+      .dialog-body { padding: 12px 16px 14px; max-height: calc(100vh - 114px); }
+      .review-box {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-left: 0;
+        margin-right: 0;
+      }
+      .review-box .field-label, .review-box textarea, .review-actions {
+        grid-column: 1;
+        grid-row: auto;
+      }
+      .review-actions { justify-content: stretch; }
+      .review-actions button { flex: 1; }
+    }
+
+    /* 悬浮轻量级 Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--emerald-border);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      z-index: 9999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition-bounce);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* 动态徽章与状态标签 */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+
+    .badge.active {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald-bright);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);
+    }
+
+    .badge.candidate {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber-bright);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.15);
+    }
+
+    .badge.stale {
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .badge.archived {
+      background: rgba(100, 116, 139, 0.12);
+      color: #64748b;
+      border: 1px solid rgba(100, 116, 139, 0.25);
+    }
+
+    .badge.quarantined {
+      background: rgba(244, 63, 94, 0.12);
+      color: var(--rose-bright);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      box-shadow: 0 0 8px rgba(244, 63, 94, 0.15);
+    }
+
+    .badge.confirmed {
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+    }
+
+    .badge.available {
+      background: rgba(0, 242, 254, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      box-shadow: 0 0 8px rgba(0, 242, 254, 0.15);
+    }
+
+    .badge.none {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-dim);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .badge.joined {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald-bright);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .agent-choice-name {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .agent-choice-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+    }
+
+    .agent-choice-state {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 6px;
+    }
+
+    .agent-empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      background: rgba(255, 255, 255, 0.015);
+      border-radius: var(--radius-sm);
+    }
+
+    .agent-id {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-muted);
+      background: none;
+      padding: 0;
+    }
+
+    .agent-name {
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+      white-space: nowrap;
+    }
+
+    .agent-table .agent-id { display: inline-block; margin-top: 4px; }
+
+    .knowledge-title {
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .knowledge-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .small-button {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 11.5px;
+      border-radius: var(--radius-xs);
+    }
+
+    .danger-button {
+      background: rgba(244, 63, 94, 0.1);
+      border-color: rgba(244, 63, 94, 0.25);
+      color: var(--rose-bright);
+    }
+
+    .danger-button:hover {
+      background: var(--rose);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .detail-field {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .detail-field .field-label {
+      margin-bottom: 0;
+      font-size: 10.5px;
+    }
+
+    .detail-field .field-value {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .evidence {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .evidence-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--cyan);
+      border-radius: var(--radius-xs);
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    [data-theme="light"] .evidence-item {
+      background: #f8fafc;
+      border-color: #dbe5ef;
+    }
+
+    .evidence-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .error {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      border-left: 3px solid var(--rose);
+      color: var(--rose-bright);
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      margin-top: 16px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+    }
+
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+  
+    /* 优化滚动条为极细半透明现代样式 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-pill);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 242, 254, 0.3);
+    }
+
+    /* Agent 表格在窗口较窄时只在面板内滚动 */
+    .agent-table {
+      min-width: 880px;
+      width: 100%;
+    }
+    .agent-table th, .agent-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    .agent-table th:nth-child(1) { width: 16%; }
+    .agent-table th:nth-child(2) { width: 24%; }
+    .agent-table th:nth-child(3) { width: 16%; }
+    .agent-table th:nth-child(4) { width: 15%; }
+    .agent-table th:nth-child(5) { width: 21%; }
+    .agent-table th:nth-child(6) { width: 8%; }
+    .agent-table td:nth-child(2) .badge { max-width: 100%; white-space: normal; }
+
+    .styled-select { position: relative; min-width: 0; width: 100%; }
+    .styled-select.project-select { width: 230px; max-width: 100%; }
+    .styled-select-native {
+      position: absolute;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .styled-select-trigger {
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      justify-content: space-between;
+      background: var(--bg-input);
+      border-color: var(--border);
+      font-weight: 500;
+      padding: 0 12px;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+    }
+    .project-select .styled-select-trigger { border-radius: var(--radius-pill); height: 34px; }
+    .styled-select-trigger:hover, .styled-select-trigger[aria-expanded="true"] {
+      border-color: var(--cyan);
+      background: var(--bg-surface);
+    }
+    .styled-select-trigger:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+    .styled-select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .styled-select-chevron {
+      width: 7px;
+      height: 7px;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: rotate(45deg) translateY(-2px);
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+    .styled-select-trigger[aria-expanded="true"] .styled-select-chevron { transform: rotate(225deg) translateY(-2px); }
+    .styled-select-menu {
+      position: fixed;
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 5px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-lg);
+    }
+    .styled-select-menu[hidden] { display: none; }
+    .styled-select-option {
+      width: 100%;
+      min-height: 36px;
+      height: auto;
+      padding: 8px 10px;
+      justify-content: flex-start;
+      text-align: left;
+      border: 0;
+      border-radius: var(--radius-xs);
+      background: transparent;
+      box-shadow: none;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      font-weight: 500;
+    }
+    .styled-select-option:hover, .styled-select-option:focus-visible,
+    .styled-select-option[aria-selected="true"] {
+      color: var(--cyan-text);
+      background: var(--cyan-bg);
+      transform: none;
+    }
+
+    /* 优化底部报错提示为现代警告横幅 */
+    .error {
+      background: rgba(244, 63, 94, 0.06);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-left: 3px solid var(--rose);
+      color: var(--rose-bright);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      margin-top: 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(8px);
+    }
+    .error:empty {
+      display: none;
+    }
+
+    /* 增强知识清单筛选栏在暗夜下的通透感 */
+    .knowledge-filters select {
+      background-color: var(--bg-input);
+      cursor: pointer;
+    }
+    .knowledge-filters select:hover {
+      border-color: var(--border-strong);
+    }
+
+
+    #providerDialog {width: min(520px, calc(100vw - 48px)); padding: 26px; border: 1px solid var(--border); border-radius: 16px; color: var(--text); background: var(--bg-panel, #fff); box-shadow: 0 24px 64px #0002;}
+    #providerDialog::backdrop {background: #1e293b55;}
+    #providerDialog h2 {margin:0 0 10px; font-size:18px;}
+    #providerDialog p {font-size:13px; line-height:1.7; color:var(--text-secondary, #64748b);}
+    #providerDialog label {display:block; margin-top:14px; font-size:13px;}
+    #providerDialog input, #providerDialog select {width:100%; box-sizing:border-box; margin-top:6px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font:inherit; background:var(--bg-input);color:var(--text);}
+    #providerDialog .settings-actions {display:flex; gap:10px; justify-content:flex-end; margin-top:20px;}
+    #providerMessage {min-height:22px; white-space:pre-wrap;}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="header-brand">
+        <div class="brand-avatar" title="MemWeave Knowledge Bridge">
+          <img src="data:image/png;base64,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" alt="MemWeave Logo">
+        </div>
+        <div class="brand-title-wrap">
+          <div class="brand-title-line">
+            <h1>MemWeave 知识管理</h1>
+            <span class="version-tag">v0.4.0</span>
+          </div>
+          <div class="subtitle">
+            <span class="agent-pill claude">Claude Code</span>
+            <span>↔</span>
+            <span class="agent-pill codex">Codex</span>
+            <select id="project" hidden aria-label="当前项目"></select>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="providerSettings" type="button" class="btn">模型与工作区</button>
+        <span class="db-status"><span class="pulse-dot"></span>SQLite WAL · FTS5</span>
+        <button id="themeToggle" class="theme-toggle" title="切换深浅模式" aria-label="切换深浅模式"></button>
+      </div>
+    </header>
+    
+    <main>
+      <details id="overviewModule" class="panel overview-panel dashboard-module" open aria-labelledby="overviewTitle">
+        <summary class="panel-head">
+          <h2 id="overviewTitle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>总览</h2>
+        </summary>
+        <div class="dashboard-body">
+          <div class="metrics">
+        <div class="metric"><span class="metric-label">知识总数</span><strong class="metric-value" id="total">0</strong></div>
+        <div class="metric"><span class="metric-label">双方可召回</span><strong class="metric-value" id="shared">0</strong></div>
+        <div class="metric"><span class="metric-label">双方有历史反馈</span><strong class="metric-value" id="confirmed">0</strong></div>
+        <div class="metric"><span class="metric-label">待验证</span><strong class="metric-value" id="candidate">0</strong></div>
+        <div class="metric"><span class="metric-label">已降级</span><strong class="metric-value" id="stale">0</strong></div>
+        <div class="metric"><span class="metric-label">已归档</span><strong class="metric-value" id="archived">0</strong></div>
+        <div class="metric"><span class="metric-label">已隔离</span><strong class="metric-value" id="quarantined">0</strong></div>
+          </div>
+        </div>
+      </details>
+
+      <details id="agentsModule" class="panel agent-panel dashboard-module" open aria-labelledby="agentsTitle">
+        <summary class="panel-head">
+          <h2 id="agentsTitle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 8v1a7 7 0 0 1-14 0V8"/><rect width="16" height="10" x="4" y="12" rx="2"/></svg>
+            Agent 维护
+          </h2>
+          <span class="agent-status" id="agentStatus">尚未检测本机 Agent</span>
+        </summary>
+        <div class="agent-module-content">
+        <div class="agent-panel-body">
+          <div class="agent-toolbar">
+            <div>
+              <span class="field-label" id="agentPickerLabel">检测到的本机 Agent</span>
+              <div class="agent-picker">
+                <button id="agentCandidate" class="agent-picker-trigger" type="button" aria-labelledby="agentPickerLabel agentCandidateText" aria-haspopup="listbox" aria-controls="agentOptions" aria-expanded="false">
+                  <span class="agent-choice-name" id="agentCandidateText">自定义 Agent</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="agentOptions" class="agent-options" role="listbox" aria-labelledby="agentPickerLabel" hidden></div>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="agentId">Agent ID</label>
+              <input id="agentId" placeholder="例如 my-agent" maxlength="64" autocomplete="off">
+            </div>
+            <div>
+              <label class="field-label" for="agentName">显示名称</label>
+              <input id="agentName" placeholder="例如 My Agent" maxlength="120" autocomplete="off">
+            </div>
+            <div>
+              <label class="field-label" for="agentAdapter">接入方式</label>
+              <select id="agentAdapter" aria-label="Agent 接入方式">
+                <option value="runtime-api">Runtime API</option>
+                <option value="claude-hook">Claude 原生 Hook</option>
+                <option value="codex-hook">Codex 原生 Hook</option>
+                <option value="custom">自定义适配器</option>
+              </select>
+            </div>
+            <div class="agent-actions">
+              <button id="discoverAgents" type="button">检测本机 Agent</button>
+              <button id="registerAgent" type="button" class="approve">加入 MemWeave</button>
+            </div>
+          </div>
+          <p class="agent-help">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px;color:var(--cyan)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>加入会登记 Agent，并为 Claude Code / Codex 自动配置全局 Hook；其它 Agent 目前通过 Runtime API 接入，需要客户端适配器主动调用 Runtime。普通对话仍需实际触发学习，天气等时效性回答不会自动成为可复用知识。</span>
+          </p>
+          <div class="table-wrap">
+            <table class="agent-table">
+              <thead><tr><th>Agent</th><th>接入状态</th><th>适配方式</th><th>能力</th><th>最近学习 / 检测</th><th>操作</th></tr></thead>
+              <tbody id="agentRows"></tbody>
+            </table>
+            <div id="agentEmpty" class="agent-empty" hidden>还没有 Agent 加入 MemWeave。先检测本机，再选择 Agent 加入。</div>
+          </div>
+        </div>
+        </div>
+      </details>
+
+      <details id="distributionModule" class="panel relation-panel dashboard-module" open aria-labelledby="distributionTitle">
+        <summary class="panel-head">
+          <h2 id="distributionTitle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16h16M8 15v-4M13 15V7M18 15v-6"/></svg>知识分布与使用</h2>
+        </summary>
+        <div class="dashboard-body">
+          <div class="relation-strip">
+        <section class="relation-group" aria-labelledby="knowledgeDistributionTitle">
+          <div class="relation-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2"/><rect x="14" y="13" width="7" height="7" rx="2"/><path d="M14 7h4v3M10 17H6v-3"/></svg>
+            <div><h2 id="knowledgeDistributionTitle">Agent 知识分布</h2><p>当前项目 · 来源与可召回范围</p></div>
+          </div>
+          <div class="relation-grid">
+            <div class="relation-item">
+              <span class="relation-title">Codex 来源</span>
+              <div class="relation-number"><strong class="relation-value" id="codexSource">—</strong><span class="relation-unit">条</span></div>
+              <p class="relation-note">由 Codex 产生的知识记录</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">Codex 可召回</span>
+              <div class="relation-number"><strong class="relation-value" id="codexAvailable">—</strong><span class="relation-unit">条</span></div>
+              <p class="relation-note">含自身及其他 Agent 的知识</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">Claude Code 来源</span>
+              <div class="relation-number"><strong class="relation-value" id="claudeSource">—</strong><span class="relation-unit">条</span></div>
+              <p class="relation-note">由 Claude Code 产生的知识记录</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">Claude Code 可召回</span>
+              <div class="relation-number"><strong class="relation-value" id="claudeAvailable">—</strong><span class="relation-unit">条</span></div>
+              <p class="relation-note">含自身及其他 Agent 的知识</p>
+            </div>
+          </div>
+          <p class="relation-footnote">来源含待采纳等全部状态；可召回包含已生效及已降级知识，不代表已被使用。</p>
+        </section>
+        <section class="relation-group activity" aria-labelledby="activityOverviewTitle">
+          <div class="relation-heading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16h16M8 15v-4M13 15V7M18 15v-6"/></svg>
+            <div><h2 id="activityOverviewTitle">接入与使用概览</h2><p>全局接入 · 当前项目累计证据</p></div>
+          </div>
+          <div class="relation-grid">
+            <div class="relation-item">
+              <span class="relation-title">已接入 Agent</span>
+              <div class="relation-number"><strong class="relation-value" id="connectedAgents">—</strong><span class="relation-unit">个</span></div>
+              <p class="relation-note">已登记并启用，不代表在线</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">召回请求</span>
+              <div class="relation-number"><strong class="relation-value" id="recallRequests">—</strong><span class="relation-unit">次</span></div>
+              <p class="relation-note">含零召回与诊断请求</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">跨 Agent 输出</span>
+              <div class="relation-number"><strong class="relation-value" id="crossAgentEmittedTurns">—</strong><span class="relation-unit">次</span></div>
+              <p class="relation-note">已输出其他 Agent 的知识上下文</p>
+            </div>
+            <div class="relation-item">
+              <span class="relation-title">跨 Agent 引用证据</span>
+              <div class="relation-number"><strong class="relation-value" id="crossAgentEvidenceTurns">—</strong><span class="relation-unit">次</span></div>
+              <p class="relation-note">观察到逐条引用或来源标注</p>
+            </div>
+          </div>
+          <p class="relation-footnote">按请求去重，含诊断请求；输出不保证模型接收，引用证据不代表产物校验通过。</p>
+        </section>
+          </div>
+        </div>
+      </details>
+
+      <details id="evidenceModule" class="panel reuse-panel dashboard-module" open aria-labelledby="evidenceTitle">
+        <summary class="panel-head">
+          <h2 id="evidenceTitle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            实际复用证据
+          </h2>
+        </summary>
+        <div class="dashboard-body reuse-body">
+        <p class="subtitle reuse-banner">分别观察知识输出、引用与验证结果；以下统计不等同于模型采用或任务因记忆而成功。</p>
+        <div id="reuseMetrics" class="reuse-metrics-box"></div>
+        <div class="experience-heading"><h3>经验学习闭环</h3><span>适用条件 → 执行清单 → 结果验证 → 反例暂停</span></div>
+        <div id="experienceMetrics" class="reuse-metrics-box"></div>
+        <div class="experience-heading"><h3>MemWeave 首 token 影响</h3><span>受控实验：开启 − 关闭；正值表示增加等待</span></div>
+        <div id="turnTimingMetrics" class="reuse-metrics-box"></div>
+        <p id="timingImpactNote" class="subtitle"></p>
+        <details>
+          <summary>最近 20 次对话生命周期与复用记录</summary>
+          <div id="reuseTraces" class="reuse-traces-wrap"></div>
+        </details>
+        </div>
+      </details>
+
+      <details id="knowledgeModule" class="panel knowledge-panel dashboard-module" open aria-labelledby="knowledgeTitle">
+        <summary class="panel-head">
+          <h2 id="knowledgeTitle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+            知识清单
+          </h2>
+          <span class="count" id="count">0 条</span>
+        </summary>
+        <div class="knowledge-body">
+        <div class="knowledge-filters" aria-label="知识筛选">
+          <div class="search-wrap">
+            <span class="search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </span>
+            <input id="query" type="search" placeholder="搜索知识或来源" aria-label="搜索标题、内容或来源 Agent">
+          </div>
+          <select id="status" aria-label="生命周期状态">
+            <option value="all">常用状态</option>
+            <option value="active">Active</option>
+            <option value="stale">Stale</option>
+            <option value="archived">Archived</option>
+            <option value="candidate">Candidate</option>
+            <option value="quarantined">Quarantined</option>
+          </select>
+          <select id="sharing" aria-label="共享状态">
+            <option value="all">全部共享状态</option>
+            <option value="confirmed_shared">双方有历史反馈</option>
+            <option value="available_shared">双方可召回</option>
+            <option value="not_shared">尚不可共同召回</option>
+          </select>
+          <select id="knowledgeType" aria-label="知识类型">
+            <option value="all">全部类型</option>
+            <option value="fact">事实 fact</option>
+            <option value="preference">偏好 preference</option>
+            <option value="procedure">流程 procedure</option>
+            <option value="decision">决策 decision</option>
+          </select>
+          <select id="scope" aria-label="知识作用域">
+            <option value="all">全部作用域</option>
+            <option value="user">通用知识</option>
+            <option value="project">项目知识</option>
+          </select>
+          <select id="sourceAgent" aria-label="来源 Agent">
+            <option value="all">全部来源 Agent</option>
+          </select>
+          <div class="date-range" aria-label="更新时间范围">
+            <div class="date-control" data-empty="true"><label for="updatedFrom">起始时间</label><input id="updatedFrom" type="date" aria-label="起始时间" title="选择起始时间"></div>
+            <div class="date-control" data-empty="true"><label for="updatedTo">结束时间</label><input id="updatedTo" type="date" aria-label="结束时间" title="选择结束时间"></div>
+          </div>
+          <select id="pageSize" class="knowledge-page-size" aria-label="每页数量">
+            <option value="20">每页 20 条</option>
+            <option value="50">每页 50 条</option>
+            <option value="100">每页 100 条</option>
+          </select>
+          <button id="refresh" class="icon-button" title="刷新数据" aria-label="刷新">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+          </button>
+        </div>
+
+        <details id="pendingModule" class="knowledge-module pending-module" open>
+          <summary>
+            <span class="module-summary-title"><span class="summary-chevron">›</span><span><strong id="pendingHeading">待采纳清单</strong><small id="pendingDescription">候选待审 24 小时，到期隔离；可筛选找回</small></span></span>
+            <span class="count" id="pendingCount">0 条</span>
+          </summary>
+          <div class="bulk-review-toolbar" id="pendingBulkToolbar">
+            <label for="selectAllPending">
+              <input id="selectAllPending" type="checkbox" aria-label="全选当前待采纳知识">
+              <span>全选本页</span>
+            </label>
+            <span class="bulk-selected-count" id="selectedPendingCount">已选 0 条</span>
+            <div class="bulk-actions">
+              <button id="batchReject" type="button" class="reject" disabled>批量隔离</button>
+              <button id="batchApprove" type="button" class="approve" disabled>批量批准</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="selection-cell"><span class="sr-only">选择</span></th><th class="title-cell">知识</th><th class="agent-cell">知识来源</th><th class="agent-cell">是否可召回</th>
+                <th class="share-cell">共享状态</th><th class="state-cell">生命周期</th><th class="scope-cell">作用域</th><th class="time-cell" data-time-sort aria-sort="descending"></th>
+              </tr></thead>
+              <tbody id="pendingRows"></tbody>
+            </table>
+            <div id="pendingEmpty" class="empty" hidden>当前筛选条件下没有待采纳知识</div>
+          </div>
+          <div class="pagination-bar" id="pendingPagination" hidden>
+            <button type="button" class="small-button" id="pendingPrev">上一页</button>
+            <span class="page-summary" id="pendingPageSummary"></span>
+            <button type="button" class="small-button" id="pendingNext">下一页</button>
+          </div>
+        </details>
+
+        <details id="adoptedModule" class="knowledge-module adopted-module">
+          <summary>
+            <span class="module-summary-title"><span class="summary-chevron">›</span><span><strong>已采纳清单</strong><small>已通过证据门；Active / Stale 可召回，Archived 仅保留历史</small></span></span>
+            <span class="count" id="adoptedCount">0 条</span>
+          </summary>
+          <div class="bulk-review-toolbar" id="adoptedBulkToolbar">
+            <label for="selectAllAdopted">
+              <input id="selectAllAdopted" type="checkbox" aria-label="全选本页已采纳知识">
+              <span>全选本页</span>
+            </label>
+            <span class="bulk-selected-count" id="selectedAdoptedCount">已选 0 条</span>
+            <div class="bulk-actions">
+              <button id="batchRemove" type="button" class="reject" disabled>批量移除</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="selection-cell"><span class="sr-only">选择</span></th><th class="title-cell">知识</th><th class="agent-cell">知识来源</th><th class="agent-cell">是否可召回</th>
+                <th class="share-cell">共享状态</th><th class="state-cell">生命周期</th><th class="scope-cell">作用域</th><th class="time-cell" data-time-sort aria-sort="descending"></th>
+              </tr></thead>
+              <tbody id="adoptedRows"></tbody>
+            </table>
+            <div id="adoptedEmpty" class="empty" hidden>当前筛选条件下没有已采纳知识</div>
+          </div>
+          <div class="pagination-bar" id="adoptedPagination" hidden>
+            <button type="button" class="small-button" id="adoptedPrev">上一页</button>
+            <span class="page-summary" id="adoptedPageSummary"></span>
+            <button type="button" class="small-button" id="adoptedNext">下一页</button>
+          </div>
+        </details>
+        <div id="error" class="error" hidden></div>
+        </div>
+      </details>
+    </main>
+  </div>
+
+  <dialog id="detail">
+    <div class="dialog-head">
+      <div>
+        <h2 id="detailTitle">知识详情</h2>
+        <div class="subtitle knowledge-meta" id="detailId" style="cursor:pointer" title="点击复制 ID"></div>
+      </div>
+      <button class="close" id="close" title="关闭" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="detail-grid" id="detailGrid"></div>
+      <h3 class="section-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        知识内容
+      </h3>
+      <div class="content-block" id="detailContent"></div>
+      <div class="content-block" id="detailVersions" hidden></div>
+      <h3 class="section-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        来源与审核记录（不等于复用）
+      </h3>
+      <div class="evidence" id="detailEvidence"></div>
+      <h3 class="section-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        该知识的逐轮复用记录（最近 100 次）
+      </h3>
+      <div id="detailReuse" class="reuse-traces-wrap" style="padding:0;background:none;border:none"></div>
+      <div class="review-box">
+        <label id="reviewLabel" class="field-label" for="reviewReason">人工审核意见</label>
+        <textarea id="reviewReason" aria-label="审核说明">人工审核确认。</textarea>
+        <p id="reviewHint" class="subtitle review-hint"></p>
+        <div class="review-actions">
+          <button id="reject" class="reject">隔离知识</button>
+          <button id="approve" class="approve">批准为 Active</button>
+          <button id="replaceVersion" class="approve" hidden>采纳并替代旧版</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+
+  <dialog id="providerDialog" aria-labelledby="providerTitle">
+    <form id="providerForm">
+      <h2 id="providerTitle">模型与工作区</h2>
+      <p>学习模型仅用于提炼候选知识，检索在本机完成。经脱敏的会话摘要会发送到此服务商；请使用可信地址。</p>
+      <label>查看工作区<select id="settingsProject" aria-label="查看工作区"></select></label>
+      <label>API Base URL<input id="providerUrl" type="url" required placeholder="https://your-provider.example/v1" autocomplete="off"></label>
+      <label>模型名称<input id="providerModel" required placeholder="填写服务商提供的模型名称" autocomplete="off"></label>
+      <label>API Key<input id="providerKey" type="password" placeholder="输入 Key；同地址留空保留原值" autocomplete="new-password"></label>
+      <p id="providerMessage" role="status"></p>
+      <div class="settings-actions"><button type="button" id="providerClose" class="btn">关闭</button><button type="button" id="providerCheck" class="btn">检查已保存配置</button><button type="submit" class="btn primary">保存</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">操作成功</span>
+  </div>
+
+  <script>
+    // Toast Notification Utility
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toastMsg');
+      text.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    // Theme Management
+    const themeStorageKey = 'memweave-theme-v2';
+    const savedTheme = localStorage.getItem(themeStorageKey) || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+      const sunIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>';
+      const moonIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486A9 9 0 0 1 11.514 3.015a9 9 0 1 0 9.47 9.47Z"/></svg>';
+      const renderThemeButton = () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? '浅色' : '深色';
+        themeToggleBtn.innerHTML = next === '浅色' ? sunIcon : moonIcon;
+        themeToggleBtn.title = `切换至${next}模式`;
+        themeToggleBtn.setAttribute('aria-label', themeToggleBtn.title);
+      };
+      renderThemeButton();
+      themeToggleBtn.addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(themeStorageKey, next);
+        renderThemeButton();
+        showToast(`已切换至 ${next === 'dark' ? '深色夜间' : '浅色明亮'} 模式`);
+      });
+    }
+
+    const fragment = new URLSearchParams(location.hash.slice(1));
+    const token = fragment.get('token') || '';
+    const initialProject = fragment.get('project') || 'claude-codex-mvp';
+    const defaultAgents = ['claude-code', 'codex'];
+    const state = {
+      overview: null, records: [], selected: null, selectedPendingIds: new Set(),
+      selectedAdoptedIds: new Set(), bulkBusy: false, reviewBusy: false,
+      selectedAgentId: '', discoveredAgents: [], registeredAgents: [],
+      pageSize: 20, sortDirection: 'desc', pendingPage: 1, adoptedPage: 1
+    };
+
+    const styledSelects = new Map();
+    let openSelect = null;
+
+    function syncStyledSelect(select) {
+      const control = styledSelects.get(select);
+      if (control) control.value.textContent = select.selectedOptions[0]?.textContent || '';
+    }
+
+    function closeStyledSelect({restoreFocus = false} = {}) {
+      if (!openSelect) return;
+      openSelect.menu.hidden = true;
+      openSelect.trigger.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) openSelect.trigger.focus();
+      openSelect = null;
+    }
+
+    function positionStyledSelect(control) {
+      const {trigger, menu} = control;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.min(Math.max(rect.width, 180), window.innerWidth - 16);
+      const height = Math.min(menu.scrollHeight, 240);
+      const spaceAbove = Math.max(0, rect.top - 12);
+      const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - 12);
+      const above = spaceBelow < height && spaceAbove > spaceBelow;
+      const available = Math.max(36, Math.min(240, above ? spaceAbove : spaceBelow));
+      menu.style.width = `${width}px`;
+      menu.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))}px`;
+      menu.style.top = `${above ? Math.max(8, rect.top - Math.min(height, available) - 5) : Math.min(rect.bottom + 5, window.innerHeight - available - 8)}px`;
+      menu.style.maxHeight = `${available}px`;
+    }
+
+    function showStyledSelect(control) {
+      closeStyledSelect();
+      const {select, trigger, menu} = control;
+      menu.replaceChildren();
+      for (const option of select.options) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'styled-select-option';
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', String(option.selected));
+        item.textContent = option.textContent;
+        item.disabled = option.disabled;
+        item.addEventListener('click', () => {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', {bubbles: true}));
+          closeStyledSelect({restoreFocus: true});
+        });
+        menu.appendChild(item);
+      }
+      menu.hidden = false;
+      menu.style.visibility = 'hidden';
+      positionStyledSelect(control);
+      menu.style.visibility = '';
+      trigger.setAttribute('aria-expanded', 'true');
+      openSelect = control;
+      (menu.querySelector('[aria-selected="true"]') || menu.querySelector('.styled-select-option'))?.focus({preventScroll: true});
+    }
+
+    function enhanceSelect(select) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `styled-select${select.id === 'project' ? ' project-select' : ''}`;
+      select.parentNode.insertBefore(wrapper, select);
+      wrapper.appendChild(select);
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.id = `${select.id}-trigger`;
+      trigger.className = 'styled-select-trigger';
+      trigger.setAttribute('aria-label', select.getAttribute('aria-label') || document.querySelector(`label[for="${select.id}"]`)?.textContent || select.id);
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-controls', `${select.id}-menu`);
+      trigger.setAttribute('aria-expanded', 'false');
+      const value = document.createElement('span');
+      value.className = 'styled-select-value';
+      const chevron = document.createElement('span');
+      chevron.className = 'styled-select-chevron';
+      chevron.setAttribute('aria-hidden', 'true');
+      trigger.append(value, chevron);
+      wrapper.appendChild(trigger);
+      const menu = document.createElement('div');
+      menu.id = `${select.id}-menu`;
+      menu.className = 'styled-select-menu';
+      menu.setAttribute('role', 'listbox');
+      menu.setAttribute('aria-label', trigger.getAttribute('aria-label'));
+      menu.hidden = true;
+      (select.closest('dialog') || document.body).appendChild(menu);
+      const control = {select, trigger, menu, value};
+      styledSelects.set(select, control);
+      select.classList.add('styled-select-native');
+      select.tabIndex = -1;
+      select.setAttribute('aria-hidden', 'true');
+      select.addEventListener('change', () => syncStyledSelect(select));
+      trigger.addEventListener('click', () => openSelect === control ? closeStyledSelect() : showStyledSelect(control));
+      trigger.addEventListener('keydown', event => {
+        if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) {
+          event.preventDefault();
+          showStyledSelect(control);
+        }
+      });
+      menu.addEventListener('keydown', event => {
+        const options = [...menu.querySelectorAll('.styled-select-option:not(:disabled)')];
+        const current = options.indexOf(document.activeElement);
+        if (event.key === 'Escape' || event.key === 'Tab') {
+          if (event.key === 'Escape') event.preventDefault();
+          closeStyledSelect({restoreFocus: event.key === 'Escape'});
+        } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+          event.preventDefault();
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 :
+            (current + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+          options[next]?.focus();
+        }
+      });
+      syncStyledSelect(select);
+    }
+
+    document.querySelectorAll('select:not(#project)').forEach(enhanceSelect);
+    document.addEventListener('pointerdown', event => {
+      if (openSelect && !openSelect.trigger.contains(event.target) && !openSelect.menu.contains(event.target)) closeStyledSelect();
+    });
+    window.addEventListener('resize', () => closeStyledSelect());
+    window.addEventListener('scroll', event => {
+      if (openSelect && !openSelect.menu.contains(event.target)) positionStyledSelect(openSelect);
+    }, true);
+
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const statusLabel = value => ({active:'Active',stale:'Stale',archived:'Archived',candidate:'Candidate',quarantined:'Quarantined'}[value] || value);
+    const sharingLabel = value => ({confirmed_shared:'双方有历史反馈',available_shared:'双方可召回',version_conflict:'版本待核对，暂停召回',candidate:'待验证，尚不共享',archived:'已归档',quarantined:'已隔离'}[value] || value);
+    const badge = (text, kind) => `<span class="badge ${kind}">${escapeHtml(text)}</span>`;
+
+    async function post(path, body) {
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+      return data;
+    }
+
+    async function get(path) {
+      const response = await fetch(path, {headers: {'Authorization': `Bearer ${token}`}});
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+      return data;
+    }
+
+
+    const providerDialog = document.getElementById('providerDialog');
+    document.getElementById('providerSettings').addEventListener('click', async () => {
+      try {
+        const value = await get('/v1/settings/provider');
+        document.getElementById('providerUrl').value = value.base_url;
+        document.getElementById('providerModel').value = value.model;
+        document.getElementById('providerKey').value = '';
+        document.getElementById('providerMessage').textContent = value.configured ? '已保存 API 配置；不会显示原 Key。' : '尚未配置 API，填写后保存即可启用学习。';
+        const projects = document.getElementById('settingsProject');
+        projects.replaceChildren();
+        for (const project of state.overview?.projects || []) {
+          const option = document.createElement('option');
+          option.value = project.project_key;
+          option.textContent = project.label || project.project_key;
+          projects.appendChild(option);
+        }
+        if (![...projects.options].some(x=>x.value===state.overview?.project_key)) {
+          projects.add(new Option('当前工作区',state.overview?.project_key || initialProject));
+        }
+        projects.value = state.overview?.project_key || initialProject;
+        syncStyledSelect(projects);
+        providerDialog.showModal();
+      } catch (error) { showError(error.message); }
+    });
+    document.getElementById('settingsProject').addEventListener('change', event=>load(event.target.value));
+    document.getElementById('providerClose').addEventListener('click', ()=>providerDialog.close());
+    providerDialog.addEventListener('close', ()=>{closeStyledSelect();document.getElementById('providerKey').value='';});
+    document.getElementById('providerForm').addEventListener('submit', async event=>{
+      event.preventDefault();
+      const button=event.submitter; button.disabled=true;
+      try {
+        await post('/v1/settings/provider', {base_url:document.getElementById('providerUrl').value,
+          model:document.getElementById('providerModel').value, api_key:document.getElementById('providerKey').value || null});
+        document.getElementById('providerKey').value='';
+        document.getElementById('providerMessage').textContent='保存成功，后续学习任务使用新配置。未发起模型请求。';
+      } catch(error) {document.getElementById('providerMessage').textContent=error.message;}
+      finally {button.disabled=false;}
+    });
+    document.getElementById('providerCheck').addEventListener('click', async event=>{
+      if (!confirm('将向已保存的模型发送一条短测试请求，可能产生少量费用。继续？')) return;
+      const button=event.currentTarget;button.disabled=true;
+      try {await post('/v1/settings/provider/check',{});document.getElementById('providerMessage').textContent='API 实际请求检查通过。';}
+      catch(error) {document.getElementById('providerMessage').textContent=error.message;}
+      finally {button.disabled=false;}
+    });
+
+    const adapterLabel = value => ({
+      'claude-hook': 'Claude 原生 Hook', 'codex-hook': 'Codex 原生 Hook',
+      'runtime-api': 'Runtime API', custom: '自定义适配器'
+    }[value] || value || '未指定');
+    const learningLabel = item => {
+      const learning = item.learning;
+      if (!learning) return '尚无学习记录';
+      if (learning.status === 'completed') {
+        const proposals = Number(learning.proposal_count) || 0;
+        const promoted = Number(learning.promoted_count) || 0;
+        if (proposals || promoted) return `最近学习完成 · 生成 ${proposals} 条候选${promoted ? ` · 晋升 ${promoted} 条` : ' · 待审核'}`;
+        return '最近学习完成 · 未生成新候选';
+      }
+      if (learning.status === 'failed') return '最近学习失败';
+      if (learning.status === 'running') return '正在学习…';
+      if (learning.status === 'queued' || learning.status === 'pending') return '等待学习';
+      return '学习状态待更新';
+    };
+    const isNativeHook = item => ['claude-hook', 'codex-hook'].includes(item.adapter_type);
+    const connectionNeedsRepair = item => isNativeHook(item) && (!item.hook?.configured ||
+      (item.adapter_type === 'codex-hook' && item.hook?.feature_enabled === false));
+    const detectionLabel = item => {
+      if (!item.enabled) return '已停用';
+      if (connectionNeedsRepair(item)) return '接入待修复';
+      return isNativeHook(item) ? '已接入' : '已登记';
+    };
+    const detectionKind = item => {
+      if (!item.enabled) return 'none';
+      if (connectionNeedsRepair(item)) return 'candidate';
+      return isNativeHook(item) ? 'active' : 'source';
+    };
+    const connectionDetail = item => {
+      if (!item.enabled) return '不参与默认共享';
+      if (!isNativeHook(item)) return item.installed ? '等待客户端适配器调用 Runtime' : '未检测到本机安装';
+      if (!item.hook?.configured) return '全局 Hook 未配置';
+      if (item.adapter_type === 'codex-hook' && item.hook?.feature_enabled === false) return 'Codex Hook 功能未启用';
+      if (!item.hook?.execution) return '全局 Hook 已配置';
+      return item.hook?.execution?.observed ? '全局 Hook 已配置 · 已记录执行' : '全局 Hook 已配置 · 执行证据待确认';
+    };
+
+    function fillAgentForm(item) {
+      document.getElementById('agentId').value = item?.agent_id || '';
+      document.getElementById('agentName').value = item?.display_name || '';
+      document.getElementById('agentAdapter').value = item?.adapter_type || 'runtime-api';
+      syncStyledSelect(document.getElementById('agentAdapter'));
+    }
+
+    function renderAgentCandidates() {
+      const menu = document.getElementById('agentOptions');
+      menu.replaceChildren();
+      const enabledAgents = new Set(state.registeredAgents.filter(item => item.enabled).map(item => item.agent_id));
+      const candidates = state.discoveredAgents.filter(item => item.installed);
+      if (state.selectedAgentId && !candidates.some(item => item.agent_id === state.selectedAgentId)) state.selectedAgentId = '';
+      for (const item of [null, ...candidates]) {
+        const joined = item && enabledAgents.has(item.agent_id);
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `agent-option${joined ? ' joined' : ''}`;
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', String((item?.agent_id || '') === state.selectedAgentId));
+        option.dataset.agentId = item?.agent_id || '';
+        const dot = document.createElement('span');
+        dot.className = 'agent-choice-dot';
+        dot.setAttribute('aria-hidden', 'true');
+        const name = document.createElement('span');
+        name.className = 'agent-choice-name';
+        name.textContent = item?.display_name || '自定义 Agent';
+        const status = document.createElement('span');
+        status.className = 'agent-choice-state';
+        status.textContent = item ? (joined ? '已加入 MemWeave' : '尚未加入') : '填写右侧字段';
+        option.append(dot, name, status);
+        option.addEventListener('click', () => {
+          state.selectedAgentId = item?.agent_id || '';
+          fillAgentForm(item);
+          renderAgentCandidates();
+          closeAgentOptions({focusTrigger: true});
+        });
+        menu.appendChild(option);
+      }
+      const selected = candidates.find(item => item.agent_id === state.selectedAgentId);
+      const trigger = document.getElementById('agentCandidate');
+      trigger.classList.toggle('joined', Boolean(selected && enabledAgents.has(selected.agent_id)));
+      document.getElementById('agentCandidateText').textContent = selected?.display_name || '自定义 Agent';
+    }
+
+    function closeAgentOptions({focusTrigger = false} = {}) {
+      document.getElementById('agentOptions').hidden = true;
+      const trigger = document.getElementById('agentCandidate');
+      trigger.setAttribute('aria-expanded', 'false');
+      if (focusTrigger) trigger.focus();
+    }
+
+    function openAgentOptions() {
+      const menu = document.getElementById('agentOptions');
+      menu.hidden = false;
+      document.getElementById('agentCandidate').setAttribute('aria-expanded', 'true');
+      (menu.querySelector('[aria-selected="true"]') || menu.querySelector('.agent-option'))?.focus();
+    }
+
+    function renderAgentRows() {
+      const body = document.getElementById('agentRows');
+      body.innerHTML = '';
+      const items = state.registeredAgents;
+      document.getElementById('agentEmpty').hidden = items.length !== 0;
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        const evidence = item.detected_by?.length ? item.detected_by.join('、') : '无探测证据';
+        const hookPath = item.hook?.matched_paths?.[0] || '';
+        row.innerHTML = `<td><span class="agent-name">${escapeHtml(item.display_name)}</span><span class="agent-id">${escapeHtml(item.agent_id)}</span></td>
+          <td>${badge(detectionLabel(item), detectionKind(item))}<div class="knowledge-meta">${escapeHtml(connectionDetail(item))}</div><div class="knowledge-meta">${escapeHtml(evidence)}</div>${hookPath ? `<div class="knowledge-meta">Hook ${escapeHtml(hookPath)}</div>` : ''}</td>
+          <td>${escapeHtml(adapterLabel(item.adapter_type))}</td>
+          <td>${escapeHtml((item.capabilities || []).join('、') || '未声明')}</td>
+          <td>${escapeHtml(learningLabel(item))}<div class="knowledge-meta">${escapeHtml(item.learning?.completed_at || item.learning?.created_at ? new Date(item.learning.completed_at || item.learning.created_at).toLocaleString() : (item.last_checked_at ? new Date(item.last_checked_at).toLocaleString() : '从未检测'))}</div></td>
+          <td><button type="button" class="small-button danger-button" data-disable-agent="${escapeHtml(item.agent_id)}">停用</button></td>`;
+        body.appendChild(row);
+      });
+      body.querySelectorAll('[data-disable-agent]').forEach(button => {
+        button.addEventListener('click', async event => {
+          event.stopPropagation();
+          const agentId = button.dataset.disableAgent;
+          if (!confirm(`确认停用 ${agentId}？停用后它不会参与默认共享知识视图。`)) return;
+          try {
+            await post('/v1/agents/disable', {agent_id: agentId});
+            showToast(`已停用 Agent: ${agentId}`);
+            await loadAgents();
+            await load(document.getElementById('project').value || initialProject);
+          } catch (error) { showError(error.message); }
+        });
+      });
+    }
+
+    let agentLoadPromise = null;
+    async function loadAgents(options = {}) {
+      if (agentLoadPromise) {
+        const result = await agentLoadPromise;
+        if (!options.discover) return result;
+      }
+      agentLoadPromise = fetchAgents(options);
+      try { return await agentLoadPromise; }
+      finally { agentLoadPromise = null; }
+    }
+
+    async function fetchAgents({discover = false, quiet = false} = {}) {
+      if (!token) return false;
+      try {
+        const [registered, discovered] = await Promise.all([
+          get('/v1/agents?include_disabled=true'),
+          discover ? get('/v1/agents/discover') : Promise.resolve({results: state.discoveredAgents})
+        ]);
+        state.registeredAgents = registered.results || [];
+        setRelationMetric('connectedAgents', new Set(state.registeredAgents.filter(item => item.enabled).map(item => item.agent_id)).size);
+        if (discover) state.discoveredAgents = discovered.results || [];
+        renderAgentCandidates();
+        renderAgentRows();
+        const detected = state.discoveredAgents.filter(item => item.installed).length;
+        document.getElementById('agentStatus').textContent = `${detected} 个本机 Agent 已检测 · ${state.registeredAgents.filter(item => item.enabled).length} 个已加入`;
+        return true;
+      } catch (error) {
+        document.getElementById('agentStatus').textContent = 'Agent 状态更新失败，当前显示上次结果';
+        if (!quiet) showError(error.message);
+        return false;
+      }
+    }
+
+    function overviewAgents() {
+      const enabled = state.registeredAgents.filter(item => item.enabled).map(item => item.agent_id);
+      return [...new Set([...defaultAgents, ...enabled])].slice(0, 10);
+    }
+
+    function knowledgeSourceName(agent) {
+      return ({'claude-code': 'Claude Code', codex: 'Codex'})[agent]
+        || state.registeredAgents.find(item => item.agent_id === agent)?.display_name
+        || agent || '未知来源';
+    }
+
+    function recallCell(record) {
+      const access = Object.entries(record.recall_access || {});
+      if (!access.length) return badge('待确认', 'none');
+      const available = access.filter(([, allowed]) => allowed === true);
+      if (available.length) {
+        const names = available.map(([agent]) => knowledgeSourceName(agent)).join('、');
+        return `<span title="${escapeHtml(`当前可供 ${names} 检索；是否命中仍取决于问题相关性与适用条件`)}">${badge('可召回', 'active')}</span>`;
+      }
+      const reason = {candidate: '待采纳，尚未生效', archived: '已归档，不参与常规召回',
+        quarantined: '已隔离，暂停召回'}[record.status] || '当前召回范围内不可用';
+      return `<span title="${escapeHtml(reason)}">${badge('不可召回', 'none')}</span>`;
+    }
+
+    function setRelationMetric(id, value) {
+      document.getElementById(id).textContent = Number.isFinite(value) && value >= 0
+        ? value.toLocaleString('zh-CN') : '—';
+    }
+
+    function renderSummary() {
+      const summary = state.overview.summary;
+      const status = summary.status_counts || {};
+      const shared = (summary.available_shared || 0) + (summary.confirmed_shared || 0);
+      document.getElementById('total').textContent = summary.total || 0;
+      document.getElementById('shared').textContent = shared;
+      document.getElementById('confirmed').textContent = summary.confirmed_shared || 0;
+      document.getElementById('candidate').textContent = status.candidate || 0;
+      document.getElementById('stale').textContent = status.stale || 0;
+      document.getElementById('archived').textContent = status.archived || 0;
+      document.getElementById('quarantined').textContent = status.quarantined || 0;
+      setRelationMetric('claudeSource', summary.source_counts ? (summary.source_counts['claude-code'] ?? 0) : null);
+      setRelationMetric('codexSource', summary.source_counts ? (summary.source_counts.codex ?? 0) : null);
+      setRelationMetric('codexAvailable', summary.retrievable_counts?.codex);
+      setRelationMetric('claudeAvailable', summary.retrievable_counts?.['claude-code']);
+    }
+
+    function renderProjects() {
+      const select = document.getElementById('project');
+      const current = state.overview.project_key;
+      select.innerHTML = '';
+      const projects = state.overview.projects || [];
+      if (!projects.some(item => item.project_key === current)) projects.unshift({project_key: current, count: 0});
+      projects.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.project_key;
+        option.textContent = item.project_key;
+        option.selected = item.project_key === current;
+        select.appendChild(option);
+      });
+      syncStyledSelect(select);
+    }
+
+    function filteredRecords() {
+      const query = document.getElementById('query').value.trim().toLowerCase();
+      const status = document.getElementById('status').value;
+      const sharing = document.getElementById('sharing').value;
+      const knowledgeType = document.getElementById('knowledgeType').value;
+      const scope = document.getElementById('scope').value;
+      const sourceAgent = document.getElementById('sourceAgent').value;
+      const updatedFrom = document.getElementById('updatedFrom').value;
+      const updatedTo = document.getElementById('updatedTo').value;
+      const records = state.records.filter(record => {
+        if (status !== 'all' && record.status !== status) return false;
+        if (sharing === 'confirmed_shared' && record.sharing_state !== 'confirmed_shared') return false;
+        if (sharing === 'available_shared' && !['available_shared','confirmed_shared'].includes(record.sharing_state)) return false;
+        if (sharing === 'not_shared' && ['available_shared','confirmed_shared'].includes(record.sharing_state)) return false;
+        if (knowledgeType !== 'all' && record.knowledge_type !== knowledgeType) return false;
+        if (scope !== 'all' && record.scope !== scope) return false;
+        if (sourceAgent !== 'all' && record.source_agent !== sourceAgent) return false;
+        const updated = new Date(record.updated_at);
+        const updatedDate = Number.isNaN(updated.getTime()) ? '' : `${updated.getFullYear()}-${String(updated.getMonth() + 1).padStart(2, '0')}-${String(updated.getDate()).padStart(2, '0')}`;
+        if (updatedFrom && updatedDate < updatedFrom) return false;
+        if (updatedTo && updatedDate > updatedTo) return false;
+        if (!query) return true;
+        return [record.title, record.content, record.source_agent, record.project_key, record.knowledge_type, record.scope, record.search_terms]
+          .some(value => String(value || '').toLowerCase().includes(query));
+      });
+      const direction = state.sortDirection === 'asc' ? 1 : -1;
+      return records.sort((left, right) => {
+        const leftTime = Date.parse(left.updated_at || '') || 0;
+        const rightTime = Date.parse(right.updated_at || '') || 0;
+        return (leftTime - rightTime) * direction || String(left.id).localeCompare(String(right.id));
+      });
+    }
+
+    function renderSourceAgents() {
+      const select = document.getElementById('sourceAgent');
+      const selected = select.value || 'all';
+      const agents = [...new Set(state.records.map(record => record.source_agent).filter(Boolean))].sort();
+      select.innerHTML = '<option value="all">全部来源 Agent</option>' + agents
+        .map(agent => `<option value="${escapeHtml(agent)}">${escapeHtml(agent)}</option>`).join('');
+      select.value = agents.includes(selected) ? selected : 'all';
+      syncStyledSelect(select);
+    }
+
+    function renderKnowledgeRows(records, bodyId, emptyId, emptyText) {
+      const body = document.getElementById(bodyId);
+      const empty = document.getElementById(emptyId);
+      body.innerHTML = '';
+      records.forEach(record => {
+        const row = document.createElement('tr');
+        const shareKind = record.sharing_state === 'confirmed_shared' ? 'confirmed' : record.sharing_state === 'available_shared' ? 'available' : record.status;
+        row.innerHTML = `
+          <td class="selection-cell"><input class="knowledge-check" type="checkbox" data-knowledge-id="${escapeHtml(record.id)}" aria-label="选择 ${escapeHtml(record.title)}"></td>
+          <td><span class="knowledge-title" title="${escapeHtml(record.title)}">${escapeHtml(record.title)}</span><span class="knowledge-meta">${escapeHtml(record.knowledge_type)} · ${record.scope === 'user' ? '通用知识' : '项目知识'}</span>${record.status === 'candidate' && record.candidate_expires_at ? `<span class="knowledge-meta" title="${escapeHtml(new Date(record.candidate_expires_at).toLocaleString('zh-CN'))}">待审核至 ${escapeHtml(new Date(record.candidate_expires_at).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false}))}</span>` : ''}</td>
+          <td class="knowledge-source">${escapeHtml(knowledgeSourceName(record.source_agent))}</td>
+          <td>${recallCell(record)}</td>
+          <td>${badge(sharingLabel(record.sharing_state), shareKind)}</td>
+          <td>${badge(statusLabel(record.status), record.status)}</td>
+          <td>${escapeHtml(record.scope === 'user' ? '用户级' : record.project_key)}</td>
+          <td>${escapeHtml(new Date(record.updated_at).toLocaleString())}</td>`;
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', event => {
+          if (event.target.closest('input.knowledge-check')) return;
+          openDetail(record);
+        });
+        body.appendChild(row);
+        {
+          const selection = bodyId === 'pendingRows' ? state.selectedPendingIds : state.selectedAdoptedIds;
+          const checkbox = row.querySelector('input.knowledge-check');
+          checkbox.checked = selection.has(record.id);
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) selection.add(record.id);
+            else selection.delete(record.id);
+            updateBulkReview();
+          });
+        }
+      });
+      empty.textContent = emptyText;
+      empty.hidden = records.length !== 0;
+    }
+
+    function paginate(records, page) {
+      const totalPages = Math.max(1, Math.ceil(records.length / state.pageSize));
+      const safePage = Math.min(Math.max(1, page), totalPages);
+      const start = (safePage - 1) * state.pageSize;
+      return { rows: records.slice(start, start + state.pageSize), page: safePage, totalPages };
+    }
+
+    function renderPagination(prefix, page, totalPages, total) {
+      const bar = document.getElementById(`${prefix}Pagination`);
+      const summary = document.getElementById(`${prefix}PageSummary`);
+      const prev = document.getElementById(`${prefix}Prev`);
+      const next = document.getElementById(`${prefix}Next`);
+      const visible = total > 0;
+      bar.hidden = !visible;
+      summary.textContent = visible ? `第 ${page} / ${totalPages} 页 · ${total} 条` : '';
+      prev.disabled = !visible || page <= 1;
+      next.disabled = !visible || page >= totalPages;
+    }
+
+    function renderRows() {
+      document.querySelectorAll('[data-time-sort]').forEach(header => {
+        header.setAttribute('aria-sort', state.sortDirection === 'asc' ? 'ascending' : 'descending');
+        header.querySelectorAll('[data-sort]').forEach(button => {
+          button.setAttribute('aria-pressed', String(button.dataset.sort === state.sortDirection));
+        });
+      });
+      const records = filteredRecords();
+      const reviewingIsolated = document.getElementById('status').value === 'quarantined';
+      const pending = records.filter(record => record.status === (reviewingIsolated ? 'quarantined' : 'candidate'));
+      document.getElementById('pendingHeading').textContent = reviewingIsolated ? '已隔离清单' : '待采纳清单';
+      document.getElementById('pendingDescription').textContent = reviewingIsolated
+        ? '到期或人工隔离的知识，可审核后重新采纳'
+        : '候选待审 24 小时，到期隔离；可筛选找回';
+      const adopted = records.filter(record => ['active', 'stale', 'archived'].includes(record.status));
+      const pendingPage = paginate(pending, state.pendingPage);
+      const adoptedPage = paginate(adopted, state.adoptedPage);
+      state.pendingPage = pendingPage.page;
+      state.adoptedPage = adoptedPage.page;
+      const visiblePendingIds = new Set(pendingPage.rows.map(record => record.id));
+      state.selectedPendingIds = new Set([...state.selectedPendingIds].filter(id => visiblePendingIds.has(id)));
+      const visibleAdoptedIds = new Set(adoptedPage.rows.map(record => record.id));
+      state.selectedAdoptedIds = new Set([...state.selectedAdoptedIds].filter(id => visibleAdoptedIds.has(id)));
+      document.getElementById('count').textContent = `${pending.length + adopted.length} 条`;
+      document.getElementById('pendingCount').textContent = `${pending.length} 条`;
+      document.getElementById('adoptedCount').textContent = `${adopted.length} 条`;
+      renderKnowledgeRows(pendingPage.rows, 'pendingRows', 'pendingEmpty', reviewingIsolated ? '当前筛选条件下没有已隔离知识' : '当前筛选条件下没有待采纳知识');
+      renderKnowledgeRows(adoptedPage.rows, 'adoptedRows', 'adoptedEmpty', '当前筛选条件下没有已采纳知识');
+      renderPagination('pending', pendingPage.page, pendingPage.totalPages, pending.length);
+      renderPagination('adopted', adoptedPage.page, adoptedPage.totalPages, adopted.length);
+      updateBulkReview();
+    }
+
+    function updateBulkReview() {
+      const pending = [...document.querySelectorAll('#pendingRows input.knowledge-check')];
+      const selected = pending.filter(input => input.checked).length;
+      const selectAll = document.getElementById('selectAllPending');
+      selectAll.checked = pending.length > 0 && selected === pending.length;
+      selectAll.indeterminate = selected > 0 && selected < pending.length;
+      selectAll.disabled = pending.length === 0;
+      document.getElementById('selectedPendingCount').textContent = `已选 ${selected} 条`;
+      document.getElementById('batchApprove').disabled = selected === 0 || state.bulkBusy;
+      document.getElementById('batchReject').disabled = selected === 0 || state.bulkBusy;
+      const adopted = [...document.querySelectorAll('#adoptedRows input.knowledge-check')];
+      const adoptedCount = adopted.filter(input => input.checked).length;
+      const allAdopted = document.getElementById('selectAllAdopted');
+      allAdopted.checked = adopted.length > 0 && adoptedCount === adopted.length;
+      allAdopted.indeterminate = adoptedCount > 0 && adoptedCount < adopted.length;
+      allAdopted.disabled = adopted.length === 0 || state.bulkBusy;
+      document.getElementById('selectedAdoptedCount').textContent = `已选 ${adoptedCount} 条`;
+      document.getElementById('batchRemove').disabled = adoptedCount === 0 || state.bulkBusy;
+    }
+
+    const experienceLabel = value => ({passed:'匹配检查通过',recovered:'先失败后恢复',failed:'检查失败，已暂停推荐',not_checked:'未执行匹配检查',weak_turn_association:'轮次关联不足',pending:'等待本轮完成'}[value] || value);
+    const durationLabel = value => typeof value !== 'number' || !Number.isFinite(value) || value < 0
+      ? '未测量' : value < 1000 ? value.toFixed(0) + ' ms' : (value / 1000).toFixed(2) + ' s';
+    const timingStatusLabel = value => ({captured:'原生计时已记录',partial:'原生计时部分缺失',
+      unmeasured:'尚未采集',unavailable:'未取得原生终止事件或计时字段',aborted:'本轮已中断，不计完成耗时',
+      invalid:'原生计时异常，未计入统计',source_mismatch:'会话来源不匹配，未计入统计'}[value] || '尚未采集');
+    const checkLabel = value => ({constraint_pass:'产物校验通过',constraint_fail:'产物校验不符合',
+      pending:'待验证',no_verifier:'未配置产物校验，采用未知',unchanged_artifact:'产物未变化，不记功',
+      not_cited:'未观察到引用',weak_turn_association:'轮次关联不足',missing:'未找到产物',
+      unsafe_path:'产物路径不合规',no_workspace:'未提供工作目录',invalid_json:'产物不是有效 JSON',
+      no_valid_baseline:'无法确认原始产物状态'}[value] || value);
+
+    function traceHtml(traces, knowledgeId) {
+      const safeTraces = Array.isArray(traces) ? traces : [];
+      if (!safeTraces.length) return '<p class="subtitle" style="padding:14px 0">暂无新版本复用证据。历史 used / verified 不折算为实际复用。</p>';
+      return safeTraces.map(trace => {
+        const items = Array.isArray(trace?.items) ? trace.items : [];
+        return `<div class="evidence-item">
+        <div class="evidence-meta">${escapeHtml(trace.id)} · 消费 Agent ${escapeHtml(trace.agent_id)} · ${escapeHtml(trace.created_at)}</div>
+        <div style="color:var(--text-sub)">会话 ${escapeHtml(trace.session_id)} · 关联 ${escapeHtml(trace.association || '等待本轮完成')} · 检索 ${Number(trace.retrieval_ms).toFixed(2)} ms · 上下文 ${trace.context_chars} 字符</div>
+        <div class="knowledge-meta">首 token 耗时 ${durationLabel(trace.ttft_ms)} · 整轮耗时 ${durationLabel(trace.response_total_ms)} · ${escapeHtml(timingStatusLabel(trace.timing_status))}</div>
+        ${items.some(i => i.source_attribution_observed) ? `<div class="knowledge-meta">回答标注来源：${escapeHtml([...new Set(items.filter(i => i.source_attribution_observed).map(i => i.source_label || i.source_agent))].join('、'))} · 仅来源级证据，不能确定采用了哪条知识。</div>` : ''}
+        ${items.filter(i => !knowledgeId || i.knowledge_id === knowledgeId).map(i => `<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border)">
+        <strong style="color:var(--cyan-text)">${escapeHtml(i.source_agent)} → ${escapeHtml(trace.agent_id)}</strong> · <span class="knowledge-meta">${escapeHtml(i.knowledge_id)} · 排名 ${i.rank}</span><br>
+        <span style="font-size:12.5px">${i.emitted ? '上下文已输出' : '超出预算，未输出'} → ${i.citation_observed ? '观察到引用' : '未观察到引用'} → <strong>${escapeHtml(checkLabel(i.check_status))}</strong></span>
+        ${i.experience_result ? `<div class="experience-audit">经验检查：${escapeHtml(experienceLabel(i.experience_result.status))} · 观察结果不等于因果证明</div>` : ''}
+        ${i.after?.sha256 ? `<div class="knowledge-meta">产物 SHA256: ${escapeHtml(i.after.sha256)}</div>` : ''}</div>`).join('')}
+        ${!items.length ? '<div style="color:var(--muted);font-size:12px">零召回，未注入知识</div>' : ''}
+        </div>`;
+      }).join('');
+    }
+
+    function evidenceCard(label, value, note, tone = '') {
+      return '<article class="evidence-card ' + tone + '"><span class="evidence-label">' + escapeHtml(label) +
+        '</span><strong class="evidence-value">' + escapeHtml(value) + '</strong><p>' + escapeHtml(note) + '</p></article>';
+    }
+
+    function renderReuse(metrics, traces) {
+      const m = metrics.reuse;
+      setRelationMetric('recallRequests', m.traces);
+      setRelationMetric('crossAgentEmittedTurns', m.cross_agent_emitted_turns);
+      setRelationMetric('crossAgentEvidenceTurns', m.cross_agent_evidence_turns);
+      const number = value => value == null ? '—' : Number(value).toLocaleString('zh-CN');
+      const ms = value => value == null ? '暂无样本' : Number(value).toFixed(2) + ' ms';
+      document.getElementById('reuseMetrics').innerHTML = [
+        evidenceCard('上下文输出', number(m.emitted_items) + ' 条次',
+          number(m.traces) + ' 次请求 · 输出不等于模型采用'),
+        evidenceCard('跨 Agent 引用', number(m.cross_agent_evidence_turns) + ' 次',
+          '逐条引用 ' + number(m.cross_agent_cited_turns) + ' · 来源标注 ' + number(m.cross_agent_source_attributed_turns)),
+        evidenceCard('产物校验', m.checked_items ? number(m.constraint_pass_items) + ' / ' + number(m.checked_items) : '暂无样本',
+          m.checked_items ? '通过 / 已检查 · 仅代表产物符合约束' : '尚未配置或完成对应产物的验证'),
+        evidenceCard('检索延迟 · P50', ms(m.retrieval_p50_ms),
+          'P95 ' + ms(m.retrieval_p95_ms) + ' · 不含模型首 token')
+      ].join('');
+      const e = metrics.experience;
+      document.getElementById('experienceMetrics').innerHTML = [
+        evidenceCard('可调用经验', e ? number(e.ready) + ' 条' : '—', e ? '待审核 ' + number(e.candidates) + ' · 总计 ' + number(e.total) : '等待学习统计'),
+        evidenceCard('跨 Agent 验证', e ? number(e.cross_agent_passed) + ' 条次' : '—', '输出经验后，另一 Agent 执行匹配检查并通过'),
+        evidenceCard('失败检查观察', e ? number(e.failure_events) + ' 条次' : '—', e ? '其中恢复 ' + number(e.recovered) + ' 条次 · 不等于因果收益' : '等待学习统计'),
+        evidenceCard('反例暂停', e ? number(e.suspended) + ' 条' : '—', '出现末次验证失败，停止推荐并等待复核', e?.suspended ? 'attention' : '')
+      ].join('');
+      const impact = metrics.latency_impact;
+      const signed = value => typeof value === 'number' && Number.isFinite(value)
+        ? (value > 0 ? '+' : value < 0 ? '−' : '') + durationLabel(Math.abs(value)) : '暂无对照样本';
+      document.getElementById('turnTimingMetrics').innerHTML = [
+        evidenceCard('首 token 增量 · P50', signed(impact?.ttft_delta_ms?.p50),
+          'P95 ' + signed(impact?.ttft_delta_ms?.p95) + ' · 逐对相减后统计'),
+        evidenceCard('有效对照', (impact?.pairs || 0) + ' 对',
+          impact?.baseline_mode === 'framework_absent' ? '基线：未安装 MemWeave Hook' :
+          impact?.baseline_mode === 'hook_bypass' ? '基线：Hook 保留，但跳过召回与学习' : '等待同条件的开启 / 关闭实验')
+      ].join('');
+      document.getElementById('timingImpactNote').textContent = impact?.pairs
+        ? `${impact.pairs < 20 ? '样本偏少，仅供观察。' : '这是当前实验的观测差值。'}${impact.order_balanced ? '' : '尚未同时覆盖两种执行顺序。'} 实验条件由操作者确认；网络、缓存与模型负载仍可能带来波动。单轮原始计时保留在下方记录中。`
+        : '普通对话不能自动充当对照组。需要相同任务、模型配置和初始上下文，交替开启 / 关闭后比较；检索耗时不能直接当作首 token 增量。';
+      document.getElementById('reuseTraces').innerHTML = traceHtml(traces?.results);
+    }
+
+    function readableKnowledge(content) {
+      try {
+        const e = JSON.parse(content).experience;
+        if (!e || !Array.isArray(e.steps)) return content;
+        return '适用条件（全部满足）：' + (e.applies_when || []).join('；') +
+          '\n不适用：' + ((e.exclude_when || []).join('；') || '未声明额外排除条件') +
+          '\n\n观察到的教训\n' + e.reason + '\n\n执行步骤\n' +
+          e.steps.map((step, i) => (i + 1) + '. ' + step).join('\n') +
+          '\n\n避免：' + ((e.avoid || []).join('；') || '未声明') +
+          '\n验证命令：' + e.verifier.command +
+          '\n\n记录验证结果，不自动执行命令，也不将通过视为因果证明。';
+      } catch { return content; }
+    }
+
+    async function openDetail(record) {
+      try {
+        state.selected = record;
+        const detail = await post('/v1/knowledge/get', {
+          agent_id: 'claude-code', project_key: state.overview.project_key, knowledge_id: record.id
+        });
+        document.getElementById('detailTitle').textContent = detail.knowledge.title;
+        const idElem = document.getElementById('detailId');
+        idElem.textContent = `${detail.knowledge.id} 📋 点击复制`;
+        idElem.onclick = () => {
+          navigator.clipboard.writeText(detail.knowledge.id);
+          showToast('已复制知识 ID 到剪贴板');
+        };
+        const fields = [
+          ['来源 Agent', detail.knowledge.source_agent], ['生命周期', statusLabel(detail.knowledge.status)],
+          ['共享状态', sharingLabel(record.sharing_state)], ['作用域', detail.knowledge.scope],
+          ['验证 / 拒绝', `${detail.knowledge.verified_count} / ${detail.knowledge.rejected_count}`],
+          ['置信度', `${Math.round((detail.knowledge.confidence || 0) * 100)}%`]
+        ];
+        document.getElementById('detailGrid').innerHTML = fields.map(([label, value]) => `<div class="detail-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+        document.getElementById('detailContent').textContent = readableKnowledge(detail.knowledge.content || '');
+        state.selectedVersions = detail.versions || {};
+        const conflicts = state.selectedVersions.conflicts || [];
+        const versionPanel = document.getElementById('detailVersions');
+        const isHistorical = !!detail.knowledge.superseded_by;
+        versionPanel.hidden = !conflicts.length && !isHistorical && !(state.selectedVersions.supersedes || []).length;
+        versionPanel.innerHTML = isHistorical
+          ? '<strong>历史版本 · 已被替代</strong><p>保留供追溯，不再用于当前任务，也不会自动恢复。' +
+            (state.selectedVersions.successor_removed ? '后续版本已被移除；本条仍不会重新生效。' : '') + '</p>'
+          : conflicts.length ? '<strong>同一事项存在不同的已采纳值</strong><p>请核对以下知识。明确替代后，这些旧版将归档，新版才会生效。</p>' + conflicts.map(item =>
+            `<div class="evidence-item"><strong>${escapeHtml(item.title)}</strong><div class="evidence-meta">来源：${escapeHtml(knowledgeSourceName(item.source_agent))}</div><div>${escapeHtml(readableKnowledge(item.content))}</div></div>`).join('')
+          : '<strong>已完成版本替代</strong><p>已归档 ' + (state.selectedVersions.supersedes || []).length + ' 条旧知识；当前内容为已采纳版本。</p>';
+        const evidence = document.getElementById('detailEvidence');
+        const evidenceItems = Array.isArray(detail.evidence) ? detail.evidence : [];
+        evidence.innerHTML = evidenceItems.length ? evidenceItems.map(item => `
+          <div class="evidence-item"><div class="evidence-meta">${escapeHtml(item.agent_id)} · ${escapeHtml(item.outcome)} · ${escapeHtml(item.evidence_kind)} · ${escapeHtml(new Date(item.created_at).toLocaleString())}</div><div>${escapeHtml(item.summary)}</div>${item.evidence_ref ? `<div class="knowledge-meta">${escapeHtml(item.evidence_ref)}</div>` : ''}</div>`).join('') : '<div class="empty">暂无证据</div>';
+        const reuse = await post('/v1/reuse/traces', {project_key: state.overview.project_key, knowledge_id: record.id, limit:100});
+        document.getElementById('detailReuse').innerHTML = traceHtml(reuse?.results, record.id);
+        const canReview = !isHistorical && (['candidate', 'quarantined'].includes(detail.knowledge.status) || conflicts.length > 0);
+        const replaceButton = document.getElementById('replaceVersion');
+        replaceButton.hidden = !canReview || !conflicts.length;
+        replaceButton.disabled = !canReview;
+        const approveButton = document.getElementById('approve');
+        const rejectButton = document.getElementById('reject');
+        const reviewReason = document.getElementById('reviewReason');
+        const reviewHint = document.getElementById('reviewHint');
+        const reviewLabel = document.getElementById('reviewLabel');
+        state.selected = detail.knowledge;
+        state.reviewBusy = false;
+        approveButton.hidden = false;
+        approveButton.disabled = !canReview || conflicts.length > 0;
+        approveButton.textContent = detail.knowledge.status === 'active' ? '已批准 · Active' : '批准为 Active';
+        rejectButton.hidden = !canReview;
+        rejectButton.disabled = !canReview;
+        reviewReason.disabled = !canReview;
+        reviewLabel.textContent = canReview ? '人工审核意见' : '状态说明';
+        reviewReason.value = canReview
+          ? '人工审核确认。'
+          : detail.knowledge.status === 'active'
+            ? '该知识已是 Active，无需重复批准。'
+            : '当前状态不支持在此处重复审核。';
+        reviewHint.textContent = conflicts.length
+          ? '同一事项有不同值。核对正文与来源后，使用“采纳并替代旧版”；确认后旧版不再用于当前召回。'
+          : canReview
+          ? '人工批准只改变生命周期状态；只有下面的逐轮复用记录，才能证明 Agent 实际使用了这条知识。'
+          : detail.knowledge.status === 'active'
+            ? '该知识已处于 Active，表示已通过审核并允许召回；这不等于已经被 Agent 实际使用。请在另一个 Agent 执行相关任务后查看逐轮复用记录。'
+            : '该知识当前不可通过人工审核按钮变更；请通过治理流程查看其归档、复活或隔离原因。';
+        if (!document.getElementById('detail').open) document.getElementById('detail').showModal();
+        document.querySelector('#detail .dialog-body').scrollTop = 0;
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    async function submitFeedback(outcome, replace = false) {
+      const conflicts = state.selectedVersions?.conflicts || [];
+      if (!state.selected || state.reviewBusy || state.selected.superseded_by || (!['candidate', 'quarantined'].includes(state.selected.status) && !conflicts.length)) return;
+      if (outcome === 'verified' && conflicts.length && !replace) return showError('请核对冲突并选择“采纳并替代旧版”。');
+      const reason = document.getElementById('reviewReason').value.trim();
+      if (!reason) return showError('请填写审核说明');
+      const action = replace ? '采纳并替代旧版' : outcome === 'verified' ? '批准' : '隔离';
+      const impact = replace ? `\n将归档 ${conflicts.length} 条冲突知识；旧版不再用于当前任务。` : '';
+      if (!confirm(`确认${action}“${state.selected.title}”？${impact}`)) return;
+      state.reviewBusy = true;
+      document.getElementById('approve').disabled = true;
+      document.getElementById('reject').disabled = true;
+      document.getElementById('replaceVersion').disabled = true;
+      try {
+        await post('/v1/knowledge/feedback', {
+          agent_id: 'human-review',
+          project_key: state.overview.project_key,
+          knowledge_id: state.selected.id,
+          outcome,
+          evidence_summary: reason,
+          evidence_kind: 'user_approval',
+          supersedes: replace ? conflicts.map(item => item.id) : null,
+          evidence_ref: `memweave-console://${outcome}/${state.selected.id}/${Date.now()}`
+        });
+        document.getElementById('detail').close();
+        showToast(`已${action}知识“${state.selected.title}”`);
+        await load(state.overview.project_key);
+      } catch (error) {
+        showError(error.message);
+        if (replace) {
+          try { await openDetail(state.selected); }
+          catch { /* Original review error remains visible. */ }
+        }
+      } finally {
+        state.reviewBusy = false;
+        const remainingConflicts = state.selectedVersions?.conflicts || [];
+        const canReview = !state.selected?.superseded_by && (['candidate', 'quarantined'].includes(state.selected?.status) || remainingConflicts.length > 0);
+        document.getElementById('approve').disabled = !canReview || remainingConflicts.length > 0;
+        document.getElementById('reject').disabled = !canReview;
+        document.getElementById('replaceVersion').disabled = !canReview;
+      }
+    }
+
+    async function submitBulkRemove() {
+      const ids = [...state.selectedAdoptedIds];
+      if (!ids.length || state.bulkBusy) return;
+      const includesUser = state.records.some(r => ids.includes(r.id) && r.scope === 'user');
+      const note = includesUser ? '\n包含通用知识，移除后所有项目均不可再召回。' : '';
+      if (!confirm(`永久移除选中的 ${ids.length} 条知识？\n正文、索引和关联审核记录将删除，无法通过归档召回恢复。历史对话与运行审计仍保留。${note}`)) return;
+      state.bulkBusy = true;
+      updateBulkReview();
+      try {
+        const result = await post('/v1/knowledge/remove', {
+          agent_id: 'human-review', project_key: state.overview.project_key,
+          knowledge_ids: ids, confirm_permanent: true
+        });
+        state.selectedAdoptedIds.clear();
+        if (ids.includes(state.selected?.id)) document.getElementById('detail').close();
+        showToast(`已移除 ${result.removed_count} 条知识`);
+        await load(state.overview.project_key);
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        state.bulkBusy = false;
+        updateBulkReview();
+      }
+    }
+
+    async function submitBulkFeedback(outcome) {
+      const ids = [...state.selectedPendingIds];
+      if (!ids.length) return;
+      const action = outcome === 'verified' ? '批准' : '隔离';
+      if (!confirm(`确认${action}选中的 ${ids.length} 条知识？`)) return;
+      const buttons = [document.getElementById('batchApprove'), document.getElementById('batchReject')];
+      buttons.forEach(button => { button.disabled = true; });
+      const reason = outcome === 'verified' ? '批量人工审核确认。' : '批量人工审核隔离。';
+      const results = await Promise.allSettled(ids.map(knowledgeId => post('/v1/knowledge/feedback', {
+        agent_id: 'human-review',
+        project_key: state.overview.project_key,
+        knowledge_id: knowledgeId,
+        outcome,
+        evidence_summary: reason,
+        evidence_kind: 'user_approval',
+        evidence_ref: `memweave-console://bulk-${outcome}/${knowledgeId}/${Date.now()}`
+      })));
+      const failed = results.filter(result => result.status === 'rejected');
+      state.selectedPendingIds = new Set(ids.filter((_, index) => results[index].status === 'rejected'));
+      if (failed.length) showError(`${action}完成 ${ids.length - failed.length} 条，失败 ${failed.length} 条；请打开详情核对冲突或错误信息。`);
+      else showToast(`已${action} ${ids.length} 条知识`);
+      await load(document.getElementById('project').value || initialProject);
+    }
+
+    function showError(message) {
+      const element = document.getElementById('error');
+      element.textContent = message;
+      element.hidden = false;
+    }
+
+    async function load(projectKey) {
+      document.getElementById('error').hidden = true;
+      document.querySelectorAll('.relation-value:not(#connectedAgents)').forEach(element => { element.textContent = '—'; });
+      const refreshBtn = document.getElementById('refresh');
+      if (refreshBtn) refreshBtn.classList.add('spinning');
+      if (!token) {
+        if (refreshBtn) refreshBtn.classList.remove('spinning');
+        return showError('Dashboard token missing');
+      }
+      try {
+        const [overview, metrics, traces] = await Promise.all([
+          post('/v1/knowledge/overview', {project_key: projectKey, agent_ids: overviewAgents(), limit: 2000}),
+          post('/v1/metrics', {project_key: projectKey}),
+          post('/v1/reuse/traces', {project_key: projectKey, limit:20})
+        ]);
+        state.overview = overview;
+        renderReuse(metrics, traces);
+        state.records = Array.isArray(state.overview.results) ? state.overview.results : [];
+        renderProjects();
+        renderSourceAgents();
+        renderSummary();
+        renderRows();
+        return true;
+      } catch (error) {
+        console.error('[MemWeave] dashboard load failed', error);
+        showError(error.message);
+        return false;
+      } finally {
+        if (refreshBtn) refreshBtn.classList.remove('spinning');
+      }
+    }
+
+    function resetKnowledgeFilters() {
+      document.getElementById('query').value = '';
+      for (const id of ['status', 'sharing', 'knowledgeType', 'scope', 'sourceAgent']) {
+        const select = document.getElementById(id);
+        select.value = 'all';
+        syncStyledSelect(select);
+      }
+      document.getElementById('updatedFrom').value = '';
+      document.getElementById('updatedTo').value = '';
+      syncDateFilters();
+      document.getElementById('pageSize').value = '20';
+      syncStyledSelect(document.getElementById('pageSize'));
+      state.sortDirection = 'desc';
+      state.pageSize = 20;
+      state.pendingPage = 1;
+      state.adoptedPage = 1;
+      state.selectedPendingIds.clear();
+      state.selectedAdoptedIds.clear();
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', e => {
+      if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable && !document.getElementById('detail').open) {
+        e.preventDefault();
+        document.getElementById('query').focus();
+      } else if (e.key === 'Escape') {
+        if (document.getElementById('detail').open) {
+          document.getElementById('detail').close();
+        } else if (document.activeElement === document.getElementById('query')) {
+          document.getElementById('query').blur();
+        }
+      }
+    });
+
+    document.getElementById('query').addEventListener('input', renderRows);
+    document.getElementById('status').addEventListener('change', renderRows);
+    document.getElementById('sharing').addEventListener('change', renderRows);
+    document.getElementById('knowledgeType').addEventListener('change', renderRows);
+    document.getElementById('scope').addEventListener('change', renderRows);
+    document.getElementById('sourceAgent').addEventListener('change', renderRows);
+    function syncDateFilters() {
+      for (const id of ['updatedFrom', 'updatedTo']) {
+        const input = document.getElementById(id);
+        input.parentElement.dataset.empty = String(!input.value);
+      }
+      document.getElementById('updatedFrom').max = document.getElementById('updatedTo').value;
+      document.getElementById('updatedTo').min = document.getElementById('updatedFrom').value;
+    }
+    for (const id of ['updatedFrom', 'updatedTo']) {
+      document.getElementById(id).addEventListener('click', event => {
+        try { event.currentTarget.showPicker?.(); } catch (_) { /* Native keyboard editing remains available. */ }
+      });
+      document.getElementById(id).addEventListener('input', () => {
+        syncDateFilters();
+        state.pendingPage = 1;
+        state.adoptedPage = 1;
+        renderRows();
+      });
+    }
+    function setTimeSort(direction) {
+      state.sortDirection = direction;
+      state.pendingPage = 1;
+      state.adoptedPage = 1;
+      renderRows();
+    }
+    document.querySelectorAll('[data-time-sort]').forEach(header => {
+      header.innerHTML = `<span class="time-sort-control"><button type="button" class="time-sort-label" title="切换更新时间排序">更新时间</button><span class="time-sort-arrows"><button type="button" class="sort-arrow" data-sort="asc" aria-label="更新时间升序" title="最早优先" aria-pressed="false"><svg viewBox="0 0 10 6" aria-hidden="true"><path d="M5 0 10 6H0Z"/></svg></button><button type="button" class="sort-arrow" data-sort="desc" aria-label="更新时间降序" title="最新优先" aria-pressed="true"><svg viewBox="0 0 10 6" aria-hidden="true"><path d="m0 0 5 6 5-6Z"/></svg></button></span></span>`;
+      header.querySelector('.time-sort-label').addEventListener('click', () => setTimeSort(state.sortDirection === 'asc' ? 'desc' : 'asc'));
+      header.querySelectorAll('[data-sort]').forEach(button => button.addEventListener('click', () => setTimeSort(button.dataset.sort)));
+    });
+    document.getElementById('pageSize').addEventListener('change', event => {
+      state.pageSize = Number(event.target.value) || 20;
+      state.pendingPage = 1;
+      state.adoptedPage = 1;
+      renderRows();
+    });
+    document.getElementById('pendingPrev').addEventListener('click', () => { state.pendingPage -= 1; renderRows(); });
+    document.getElementById('pendingNext').addEventListener('click', () => { state.pendingPage += 1; renderRows(); });
+    document.getElementById('adoptedPrev').addEventListener('click', () => { state.adoptedPage -= 1; renderRows(); });
+    document.getElementById('adoptedNext').addEventListener('click', () => { state.adoptedPage += 1; renderRows(); });
+    document.getElementById('project').addEventListener('change', event => load(event.target.value));
+    document.getElementById('refresh').addEventListener('click', async () => {
+      resetKnowledgeFilters();
+      const agentsUpdated = await loadAgents();
+      const knowledgeUpdated = await load(document.getElementById('project').value || initialProject);
+      if (agentsUpdated && knowledgeUpdated) showToast('Agent 与知识数据已刷新，检索条件已重置');
+      else showError('部分数据刷新失败，请稍后重试；检索条件已重置');
+    });
+    document.getElementById('discoverAgents').addEventListener('click', async () => {
+      const button = document.getElementById('discoverAgents');
+      button.disabled = true;
+      button.textContent = '检测中…';
+      try {
+        await loadAgents({discover: true});
+        showToast('本机 Agent 探测完成');
+      }
+      finally { button.disabled = false; button.textContent = '检测本机 Agent'; }
+    });
+    document.getElementById('agentCandidate').addEventListener('click', () => {
+      if (document.getElementById('agentOptions').hidden) openAgentOptions();
+      else closeAgentOptions();
+    });
+    document.getElementById('agentCandidate').addEventListener('keydown', event => {
+      if (['ArrowDown', 'Enter', ' '].includes(event.key)) {
+        event.preventDefault();
+        openAgentOptions();
+      }
+    });
+    document.getElementById('agentOptions').addEventListener('keydown', event => {
+      const options = [...document.querySelectorAll('#agentOptions .agent-option')];
+      const current = options.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAgentOptions({focusTrigger: true});
+      } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 :
+          (current + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+        options[next]?.focus();
+      }
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!event.target.closest('.agent-picker')) closeAgentOptions();
+    });
+    document.getElementById('registerAgent').addEventListener('click', async () => {
+      const agentId = document.getElementById('agentId').value.trim();
+      const displayName = document.getElementById('agentName').value.trim();
+      if (!agentId || !displayName) return showError('请填写 Agent ID 和显示名称');
+      const discovered = state.discoveredAgents.find(item => item.agent_id === agentId);
+      try {
+        await post('/v1/agents/register', {
+          agent_id: agentId,
+          display_name: displayName,
+          adapter_type: document.getElementById('agentAdapter').value,
+          installed: Boolean(discovered?.installed),
+          detected_by: discovered?.detected_by || [],
+          executable_path: discovered?.executable_path || null,
+          config_path: discovered?.config_path || null,
+          capabilities: discovered?.capabilities || ['shared-knowledge']
+        });
+        showToast(`已登记 ${displayName}，请检查接入配置和学习记录`);
+        await loadAgents();
+        await load(document.getElementById('project').value || initialProject);
+      } catch (error) { showError(error.message); }
+    });
+    document.getElementById('close').addEventListener('click', () => document.getElementById('detail').close());
+    document.getElementById('approve').addEventListener('click', () => submitFeedback('verified'));
+    document.getElementById('replaceVersion').addEventListener('click', () => submitFeedback('verified', true));
+    document.getElementById('reject').addEventListener('click', () => submitFeedback('rejected'));
+    document.getElementById('selectAllPending').addEventListener('change', event => {
+      const checked = event.target.checked;
+      document.querySelectorAll('#pendingRows input.knowledge-check').forEach(input => {
+        input.checked = checked;
+        if (checked) state.selectedPendingIds.add(input.dataset.knowledgeId);
+        else state.selectedPendingIds.delete(input.dataset.knowledgeId);
+      });
+      updateBulkReview();
+    });
+    document.getElementById('batchApprove').addEventListener('click', () => submitBulkFeedback('verified'));
+    document.getElementById('batchReject').addEventListener('click', () => submitBulkFeedback('rejected'));
+    document.getElementById('selectAllAdopted').addEventListener('change', event => {
+      document.querySelectorAll('#adoptedRows input.knowledge-check').forEach(input => {
+        input.checked = event.target.checked;
+        if (input.checked) state.selectedAdoptedIds.add(input.dataset.knowledgeId);
+        else state.selectedAdoptedIds.delete(input.dataset.knowledgeId);
+      });
+      updateBulkReview();
+    });
+    document.getElementById('batchRemove').addEventListener('click', submitBulkRemove);
+    // Only refresh inexpensive Agent state in the background. Leave knowledge
+    // filters, selections and metrics alone; hidden pages make no poll requests.
+    setInterval(() => {
+      if (!document.hidden && token && !agentLoadPromise) loadAgents({quiet: true});
+    }, 15000);
+    (async () => { await loadAgents({discover: true}); await load(initialProject); })();
+  </script>
+</body>
+</html>
