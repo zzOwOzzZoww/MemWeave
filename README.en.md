@@ -6,6 +6,8 @@ MemWeave is a local shared-memory layer for coding agents.
 
 It lets agents such as Claude Code and Codex reuse confirmed project knowledge: technical decisions, user preferences, lessons learned, and working agreements. It does not treat every conversation as permanent memory, and it does not inject loosely related content just to make recall numbers look better.
 
+**In one sentence: MemWeave is not about whether an agent can remember; it is about how existing coding agents can share project knowledge that is verified, traceable, and safe to retire.**
+
 > Current version: 0.5.0a1 (Alpha). The core loop is working and ready for evaluation in test projects.
 
 ## What problem does it solve?
@@ -23,6 +25,16 @@ MemWeave focuses on a small, complete loop:
 2. A candidate becomes usable only after human approval or objective evidence.
 3. A new task receives only knowledge relevant to the current project and query.
 4. Old knowledge can be archived, quarantined, replaced, or deleted while keeping its provenance.
+
+## How is it different from Mem0 and Letta?
+
+The projects overlap, but they operate at different layers rather than fully replacing one another:
+
+- **[Mem0](https://github.com/mem0ai/mem0)** is closer to a general-purpose memory service. Applications call add/search to store and retrieve memories for assistants, personalization, and other AI products.
+- **[Letta / MemGPT](https://github.com/letta-ai/letta)** is closer to a complete stateful agent runtime. It manages the agent loop, context window, and memory blocks inside its own framework.
+- **MemWeave** is a local governance layer outside existing coding agents. Claude Code, Codex, and other tools keep their normal runtime and connect through hooks or the Runtime API. New knowledge starts as a candidate, becomes active only after human approval or objective evidence, and keeps its project, source agent, source session, and evidence trail.
+
+As a rough guide: consider Mem0 for general application memory, Letta when building a persistent agent runtime from scratch, and MemWeave when existing coding agents need to share verified project knowledge without allowing incorrect, stale, or cross-project memories to spread silently.
 
 ## Design principles
 
@@ -47,6 +59,18 @@ Optional MCP ──────────────────────�
 ~~~
 
 The retrieval hot path does not call a model. It starts with SQLite FTS5/BM25, then applies limited bilingual term bridges, topic expansion, and evidence gates. MemWeave is not trying to be a general-purpose semantic search engine; it is designed to keep a focused knowledge-governance loop explainable and auditable.
+
+## Public benchmark
+
+As of 2026-09-29, the current code was evaluated on 1,986 questions from the public **LoCoMo** long-term conversational-memory benchmark. The run used session-level Top-5 evidence retrieval and did not call a model:
+
+| Metric | Result |
+| --- | ---: |
+| Hit@5 | **88.32%** |
+| MRR | **73.14%** |
+| P95 retrieval latency | **13.79 ms** |
+
+Hit@5 means that the correct evidence session appeared in the Top-5 retrieved results. **These numbers describe the retrieval layer only. They are not final-answer accuracy, real-agent task success, or a safety score.** The evaluation script is available at [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py).
 
 ## Quick start
 

@@ -6,6 +6,8 @@ MemWeave 是一个给 Coding Agent 用的本地共享记忆层。
 
 它让 Claude Code、Codex 等 Agent 在同一个项目里复用已经确认过的知识，比如技术决策、用户偏好、踩坑经验和项目约定。它不会把所有对话都当成“记忆”，也不会为了看起来聪明而硬塞不相关内容。
 
+**一句话定位：MemWeave 解决的不是“Agent 有没有记忆”，而是“多个现有 Coding Agent 如何共享经过验证、可追溯、能安全退出的项目知识”。**
+
 > 当前版本：0.5.0a1（Alpha）。核心闭环已经可以运行，适合在测试项目中体验和验证。
 
 ## 它解决什么问题
@@ -23,6 +25,16 @@ MemWeave 想做的是一个小而完整的闭环：
 2. 候选经过人工确认或客观证据验证后，才能成为可用知识。
 3. 新任务开始时，只召回当前项目和当前问题真正相关的内容。
 4. 旧知识可以归档、隔离、替换或删除，并保留来源和证据记录。
+
+## 和 Mem0、Letta 有什么不同
+
+它们有重叠，但解决的层级不同，不是谁完全替代谁：
+
+- **[Mem0](https://github.com/mem0ai/mem0)** 更像通用记忆服务。应用主动调用 add/search，为聊天机器人、用户画像和通用 AI 应用保存与检索记忆。
+- **[Letta / MemGPT](https://github.com/letta-ai/letta)** 更像完整的有状态 Agent Runtime。它负责 Agent 循环、上下文窗口和 memory blocks，让 Agent 在自己的运行框架内管理记忆。
+- **MemWeave** 是现有 Coding Agent 外部的本地治理层。Claude Code、Codex 等工具保留原来的运行方式，通过 Hook 或 Runtime API 共享知识；新知识先进入 candidate，经过人工确认或客观证据后才成为 active，并保留项目、来源 Agent、来源会话和证据链。
+
+简单来说：做通用应用记忆可以优先看 Mem0；从头构建长期运行的 Agent 可以看 Letta；希望多个现有 Coding Agent 复用经过验证的项目知识，同时控制错误、过期和跨项目记忆，可以使用 MemWeave。
 
 ## 设计原则
 
@@ -47,6 +59,18 @@ CLI / Web ───────┘       │
 ~~~
 
 检索热路径不调用模型，主要使用 SQLite FTS5/BM25，再做有限的中英文术语桥接、同主题扩展和证据门禁。它不是通用语义搜索引擎，目标是让固定的知识治理闭环保持可解释、可审计。
+
+## 公开评测
+
+截至 2026-09-29，使用当前代码在公开长对话记忆基准 **LoCoMo** 的 1,986 道问答上进行 session 粒度 Top-5 证据检索评测，评测过程不调用模型：
+
+| 指标 | 结果 |
+| --- | ---: |
+| Hit@5 | **88.32%** |
+| MRR | **73.14%** |
+| P95 检索延迟 | **13.79 ms** |
+
+这里的 Hit@5 表示 Top-5 结果中是否包含正确证据会话。**这些数字只代表检索层，不是最终回答准确率、真实 Agent 任务成功率或安全性评分。**评测脚本位于 [scripts/evaluate_locomo_retrieval.py](https://github.com/zzOwOzzZoww/MemWeave/blob/main/scripts/evaluate_locomo_retrieval.py)。
 
 ## 快速开始
 
