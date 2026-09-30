@@ -11,8 +11,8 @@ from typing import Any, Callable
 
 try:
     import uvicorn
-    from fastapi import Depends, FastAPI, Header, HTTPException
-    from fastapi.responses import HTMLResponse, JSONResponse
+    from fastapi import Depends, FastAPI, Header, HTTPException, Request
+    from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 except ModuleNotFoundError as error:  # pragma: no cover - install guidance
     # The daemon is the only part of MemWeave that needs a web stack. The core,
     # the hooks, and every retrieval path run on the standard library alone, so
@@ -25,8 +25,7 @@ except ModuleNotFoundError as error:  # pragma: no cover - install guidance
     ) from error
 
 from agent_knowledge_bridge import __version__ as RUNTIME_VERSION
-from agent_knowledge_bridge.claude_learning_adapter import ClaudeLearningAdapter
-from agent_knowledge_bridge.codex_learning_adapter import CodexLearningAdapter
+from agent_knowledge_bridge.runtime_learning_adapter import RuntimeLearningAdapter
 from agent_knowledge_bridge.contracts import (
     ProviderSettingsRequest,
     AgentDisableRequest,
@@ -41,12 +40,14 @@ from agent_knowledge_bridge.contracts import (
     KnowledgeReviewRequest,
     KnowledgeSearchRequest,
     LearnTurnRequest,
+    LearningRunRecordsRequest,
     MetricsRequest,
     LatencyPairRequest,
     RecallRequest,
     ReuseTracesRequest,
 )
 from agent_knowledge_bridge.learning import LearningStore
+from agent_knowledge_bridge.dashboard_events import DashboardChanges
 from agent_knowledge_bridge.paths import default_database_path
 from agent_knowledge_bridge.reuse import ReuseStore
 from agent_knowledge_bridge.service import KnowledgeBridgeService
@@ -87,6 +88,7 @@ def create_app(
     app.state.api_token = selected_token
     app.state.reviewer = reviewer
     app.state.timing_collector = timing_collector
+    dashboard_changes = DashboardChanges(LearningStore(selected_database))
     startup_service = KnowledgeBridgeService(
         agent_id="memweave-governor",
         project_key="runtime-startup",
@@ -136,13 +138,13 @@ def create_app(
             auto_install_hooks=True,
         )
 
-    def learning(agent_id: str, project_key: str) -> ClaudeLearningAdapter:
-        adapter_type = CodexLearningAdapter if agent_id == "codex" else ClaudeLearningAdapter
-        return adapter_type(
+    def learning(agent_id: str, project_key: str, **options) -> RuntimeLearningAdapter:
+        return RuntimeLearningAdapter(
             database_path=app.state.database_path,
             agent_id=agent_id,
             project_key=project_key,
             reviewer=app.state.reviewer,
+            **options,
         )
 
     from .learning_queue import LearningQueue
@@ -281,7 +283,20 @@ def create_app(
             evidence_kind=request.evidence_kind,
             evidence_ref=request.evidence_ref,
             supersedes=request.supersedes,
+            learning_run_id=request.learning_run_id,
+            expected_status=request.expected_status,
         )
+
+    @app.post('/v1/learning/run-records', dependencies=[Depends(authorize)])
+    def learning_run_records(request: LearningRunRecordsRequest) -> dict[str, Any]:
+        return service(request.agent_id, request.project_key).learning_run_records(
+            **request.model_dump(exclude={'agent_id', 'project_key'})
+        )
+
+    @app.get('/v1/dashboard/events', dependencies=[Depends(authorize)])
+    async def dashboard_events(request: Request):
+        return StreamingResponse(dashboard_changes.stream(request), media_type='text/event-stream',
+            headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
     @app.post('/v1/metrics/latency-pairs', dependencies=[Depends(authorize)])
     def latency_pair(request: LatencyPairRequest) -> dict[str, Any]:
@@ -290,7 +305,10 @@ def create_app(
 
     @app.post("/v1/learning/recall", dependencies=[Depends(authorize)])
     def recall(request: RecallRequest) -> dict[str, Any]:
-        return learning(request.agent_id, request.project_key).recall(
+        options = {"transcript_format": request.transcript_format}
+        if request.bind_transcript_boundary is not None:
+            options["bind_transcript_boundary"] = request.bind_transcript_boundary
+        return learning(request.agent_id, request.project_key, **options).recall(
             request.model_dump(exclude={"agent_id", "project_key"})
         )
 
@@ -299,6 +317,10 @@ def create_app(
         store = LearningStore(app.state.database_path)
         if not store.knowledge.agent_allowed(request.agent_id, require_registered=True):
             return {'status': 'disabled'}
+        if request.turn is not None:
+            raise ValueError("inline turn is synchronous only; the queue stores local transcript references")
+        from .runtime_learning_adapter import transcript_parser
+        transcript_parser(request.agent_id, request.transcript_format)
         result = learning_queue.submit(request.model_dump())
         timing_collector.submit(agent_id=request.agent_id, project_key=request.project_key,
             session_id=request.session_id, turn_id=request.turn_id, transcript_path=request.transcript_path)

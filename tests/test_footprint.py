@@ -40,6 +40,12 @@ CORE_MODULES = (
     "claude_learning_adapter",
     "claude_transcript",
     "codex_transcript",
+    "gemini_transcript",
+    "runtime_learning_adapter",
+    "learning_engine",
+    "integration_profiles",
+    "integration_installation",
+    "hooks/shared_hook",
 )
 WEB_STACK = ("fastapi", "pydantic", "uvicorn", "starlette", "mcp")
 

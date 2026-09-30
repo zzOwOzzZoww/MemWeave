@@ -8,6 +8,7 @@ reasoning, credentials, and the raw transcript are never published.
 """
 
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,33 @@ from agent_knowledge_bridge.claude_transcript import (
     redact_text,
     tool_success,
 )
+
+
+def resolve_transcript_path(hook_input: dict) -> str:
+    """Recover an omitted desktop rollout path from a bounded session scan."""
+    supplied = str(hook_input.get("transcript_path") or "").strip()
+    if supplied and Path(supplied).is_file():
+        return supplied
+    session_id = str(hook_input.get("session_id") or "").strip()
+    if not session_id:
+        return supplied
+    root = Path(os.getenv("CODEX_HOME") or Path.home() / ".codex") / "sessions"
+    if not root.is_dir():
+        return supplied
+    try:
+        paths = sorted(root.glob("**/rollout-*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)[:80]
+    except OSError:
+        return supplied
+    for path in paths:
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as stream:
+                item = json.loads(stream.readline(20_000))
+            payload = item.get("payload") or {}
+            if str(payload.get("session_id") or payload.get("id") or "") == session_id:
+                return str(path)
+        except (OSError, ValueError, TypeError, AttributeError):
+            continue
+    return supplied
 
 
 def _tail_lines(path: Path, max_bytes: int = MAX_TRANSCRIPT_BYTES, end_offset: int | None = None) -> list[str]:

@@ -1678,6 +1678,52 @@
       .review-actions button { flex: 1; }
     }
 
+    .learning-link {
+      display: inline; padding: 0; border: 0; border-radius: 0;
+      background: none; color: var(--cyan); font: inherit;
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+    .learning-link:hover { background: none; color: var(--text); }
+    .learning-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    #learningDialog[open] { display: flex; flex-direction: column; }
+    #learningDialog .dialog-head > div { min-width: 0; overflow-wrap: anywhere; }
+    #learningDialog .close { flex: 0 0 32px; }
+    #learningDialog .dialog-body { min-height: 0; flex: 1; max-height: none; }
+    .learning-toolbar, .learning-footer-actions, .learning-pagination {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .learning-toolbar { justify-content: space-between; margin: 12px 0; }
+    .learning-tabs { display: flex; gap: 4px; }
+    .learning-tabs button { font-size: 12px; border-radius: 4px; padding: 6px 10px; letter-spacing: 0; }
+    .learning-tabs [aria-selected="true"] { color: var(--cyan); border-color: var(--cyan); }
+    .learning-summary { color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+    .learning-select { display: flex; gap: 7px; align-items: center; font-size: 12px; }
+    .learning-select input, .learning-entry input { width: 16px; height: 16px; flex: 0 0 16px; margin: 0; }
+    .learning-entry { padding: 14px 0; border-top: 1px solid var(--border); }
+    .learning-entry-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .learning-entry-head strong { font-size: 13px; flex: 1; min-width: 100px; overflow-wrap: anywhere; }
+    .learning-entry summary { color: var(--cyan); font-size: 12px; cursor: pointer; margin: 8px 0; }
+    .learning-entry .content-block { border: 0; border-radius: 0; padding: 8px 0; background: none; word-break: normal; overflow-wrap: anywhere; }
+    .learning-entry .evidence-item { padding: 8px 0; border: 0; border-radius: 0; background: none; overflow-wrap: anywhere; }
+    .learning-entry .evidence-meta { white-space: normal; }
+    .learning-entry .knowledge-meta { overflow-wrap: anywhere; }
+    .learning-entry-error, #learningError { color: var(--rose); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #learningError { margin: 8px 0; }
+    .learning-pagination { justify-content: flex-end; margin: 12px 0 0; font-size: 12px; }
+    .learning-footer { flex: 0 0 auto; border-top: 1px solid var(--border); padding: 12px 24px; background: var(--bg-surface); }
+    .learning-footer label { font-size: 12px; }
+    .learning-footer textarea { width: 100%; min-height: 48px; max-height: 90px; resize: vertical; margin: 6px 0 10px; font: inherit; font-size: 13px; }
+    .learning-footer-actions span { flex: 1; font-size: 12px; color: var(--text-muted); }
+    #learningMessage { font-size: 12px; color: var(--text-muted); margin: 6px 0; }
+    #learningDialog [hidden] { display: none !important; }
+    @media (max-width: 680px) {
+      #learningDialog { max-height: calc(100dvh - 20px); }
+      .learning-footer { padding: 10px 16px; }
+      .learning-footer-actions { gap: 6px; }
+      .learning-entry-head strong { min-width: calc(100% - 30px); }
+      .learning-entry-head .small-button { margin-top: 4px; }
+    }
+
     /* 悬浮轻量级 Toast */
     .toast {
       position: fixed;
@@ -2171,6 +2217,7 @@
                 <option value="runtime-api">Runtime API</option>
                 <option value="claude-hook">Claude 原生 Hook</option>
                 <option value="codex-hook">Codex 原生 Hook</option>
+                <option value="gemini-hook">Gemini 原生 Hook</option>
                 <option value="custom">自定义适配器</option>
               </select>
             </div>
@@ -2181,7 +2228,7 @@
           </div>
           <p class="agent-help">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px;color:var(--cyan)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>加入会登记 Agent，并为 Claude Code / Codex 自动配置全局 Hook；其它 Agent 目前通过 Runtime API 接入，需要客户端适配器主动调用 Runtime。普通对话仍需实际触发学习，天气等时效性回答不会自动成为可复用知识。</span>
+            <span>加入会登记 Agent，并为 Claude Code / Codex / Gemini CLI 配置全局 Hook；其它 Agent 需要客户端适配器调用 Runtime。普通对话仍需实际触发学习，天气等时效性回答不会自动成为可复用知识。</span>
           </p>
           <div class="table-wrap">
             <table class="agent-table">
@@ -2453,6 +2500,41 @@
   </dialog>
 
 
+  <dialog id="learningDialog" aria-labelledby="learningTitle">
+    <div class="dialog-head">
+      <div><h2 id="learningTitle">本次学习</h2><div class="subtitle" id="learningMeta"></div></div>
+      <button type="button" class="close" id="learningClose" title="关闭" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="learning-summary" id="learningSummary"></div>
+      <div class="learning-toolbar">
+        <div class="learning-tabs" role="tablist" aria-label="学习记录筛选">
+          <button type="button" id="learningAll" role="tab" data-learning-status="all" aria-controls="learningRecords">全部关联</button>
+          <button type="button" id="learningPending" role="tab" data-learning-status="candidate" aria-controls="learningRecords">待审核</button>
+        </div>
+        <label class="learning-select"><input type="checkbox" id="learningSelectAll">选择本页待审核</label>
+      </div>
+      <div id="learningMessage" role="status" aria-live="polite"></div>
+      <div id="learningError" role="alert" hidden></div>
+      <button type="button" class="small-button" id="learningRetry" hidden>重试</button>
+      <div id="learningRecords" role="tabpanel"></div>
+      <div class="learning-pagination" id="learningPagination" hidden>
+        <button type="button" class="small-button" id="learningPrev">上一页</button>
+        <span id="learningPage"></span>
+        <button type="button" class="small-button" id="learningNext">下一页</button>
+      </div>
+    </div>
+    <div class="learning-footer">
+      <label for="learningReason">人工审核意见</label>
+      <textarea id="learningReason" maxlength="1000" aria-label="本次学习审核说明">人工核对候选内容与证据。</textarea>
+      <div class="learning-footer-actions">
+        <span id="learningSelected">已选 0 条</span>
+        <button type="button" class="small-button danger-button" id="learningReject" disabled>隔离所选</button>
+        <button type="button" class="small-button" id="learningApprove" disabled>批准所选</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="providerDialog" aria-labelledby="providerTitle">
     <form id="providerForm">
       <h2 id="providerTitle">模型与工作区</h2>
@@ -2512,6 +2594,7 @@
       overview: null, records: [], selected: null, selectedPendingIds: new Set(),
       selectedAdoptedIds: new Set(), bulkBusy: false, reviewBusy: false,
       selectedAgentId: '', discoveredAgents: [], registeredAgents: [],
+      learningReview: null,
       pageSize: 20, sortDirection: 'desc', pendingPage: 1, adoptedPage: 1
     };
 
@@ -2711,6 +2794,7 @@
 
     const adapterLabel = value => ({
       'claude-hook': 'Claude 原生 Hook', 'codex-hook': 'Codex 原生 Hook',
+      'gemini-hook': 'Gemini 原生 Hook',
       'runtime-api': 'Runtime API', custom: '自定义适配器'
     }[value] || value || '未指定');
     const learningLabel = item => {
@@ -2719,7 +2803,7 @@
       if (learning.status === 'completed') {
         const proposals = Number(learning.proposal_count) || 0;
         const promoted = Number(learning.promoted_count) || 0;
-        if (proposals || promoted) return `最近学习完成 · 生成 ${proposals} 条候选${promoted ? ` · 晋升 ${promoted} 条` : ' · 待审核'}`;
+        if (proposals || promoted) return `最近学习完成 · 生成 ${proposals} 条候选${promoted ? ` · 晋升 ${promoted} 条` : ''}`;
         return '最近学习完成 · 未生成新候选';
       }
       if (learning.status === 'failed') return '最近学习失败';
@@ -2727,7 +2811,17 @@
       if (learning.status === 'queued' || learning.status === 'pending') return '等待学习';
       return '学习状态待更新';
     };
-    const isNativeHook = item => ['claude-hook', 'codex-hook'].includes(item.adapter_type);
+    function learningSummaryHtml(item) {
+      const learning = item.learning;
+      if (!learning?.run_id) return escapeHtml(learningLabel(item));
+      const generated = Number(learning.proposal_count) || 0;
+      const promoted = Number(learning.promoted_count) || 0;
+      const pending = Number(learning.pending_count) || 0;
+      const label = {completed: '最近学习完成', failed: '最近学习失败', running: '正在学习…'}[learning.status] || learningLabel(item);
+      return `${escapeHtml(label)} · <button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="all" aria-haspopup="dialog">生成 ${generated} 条候选</button>${promoted ? ` · 晋升 ${promoted} 条` : ''}<div><button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="candidate" aria-haspopup="dialog">待审核 ${pending} 条</button></div>`;
+    }
+    const isNativeHook = item => ['claude-hook', 'codex-hook', 'gemini-hook'].includes(item.adapter_type) ||
+      (item.agent_id === 'gemini-cli' && item.adapter_type === 'runtime-api');
     const connectionNeedsRepair = item => isNativeHook(item) && (!item.hook?.configured ||
       (item.adapter_type === 'codex-hook' && item.hook?.feature_enabled === false));
     const detectionLabel = item => {
@@ -2810,7 +2904,7 @@
     function renderAgentRows() {
       const body = document.getElementById('agentRows');
       body.innerHTML = '';
-      const items = state.registeredAgents;
+      const items = state.registeredAgents.filter(item => item.enabled);
       document.getElementById('agentEmpty').hidden = items.length !== 0;
       items.forEach(item => {
         const row = document.createElement('tr');
@@ -2820,9 +2914,15 @@
           <td>${badge(detectionLabel(item), detectionKind(item))}<div class="knowledge-meta">${escapeHtml(connectionDetail(item))}</div><div class="knowledge-meta">默认共享池：${escapeHtml(item.hook?.shared_project || '未配置')}</div><div class="knowledge-meta">${escapeHtml(evidence)}</div>${hookPath ? `<div class="knowledge-meta">Hook ${escapeHtml(hookPath)}</div>` : ''}</td>
           <td>${escapeHtml(adapterLabel(item.adapter_type))}</td>
           <td>${escapeHtml((item.capabilities || []).join('、') || '未声明')}</td>
-          <td>${escapeHtml(learningLabel(item))}<div class="knowledge-meta">${escapeHtml(item.learning?.completed_at || item.learning?.created_at ? new Date(item.learning.completed_at || item.learning.created_at).toLocaleString() : (item.last_checked_at ? new Date(item.last_checked_at).toLocaleString() : '从未检测'))}</div></td>
+          <td>${learningSummaryHtml(item)}<div class="knowledge-meta">${escapeHtml(item.learning?.completed_at || item.learning?.created_at ? new Date(item.learning.completed_at || item.learning.created_at).toLocaleString() : (item.last_checked_at ? new Date(item.last_checked_at).toLocaleString() : '从未检测'))}</div></td>
           <td>${isNativeHook(item) && item.enabled ? `<button type="button" class="small-button" data-repair-agent="${escapeHtml(item.agent_id)}">修复接入</button>` : ''}<button type="button" class="small-button danger-button" data-disable-agent="${escapeHtml(item.agent_id)}">停用</button></td>`;
         body.appendChild(row);
+      });
+      body.querySelectorAll('[data-learning-agent]').forEach(button => {
+        button.addEventListener('click', () => {
+          const item = items.find(agent => agent.agent_id === button.dataset.learningAgent);
+          openLearningRun(item, button.dataset.learningFilter);
+        });
       });
       body.querySelectorAll('[data-repair-agent]').forEach(button => {
         button.addEventListener('click', async event => {
@@ -2837,7 +2937,8 @@
               capabilities: item.capabilities || ['shared-knowledge']
             });
             showToast(`已更新 ${item.display_name} 的全局接入配置`);
-            await loadAgents();
+            agentLoadVersion++;
+            await loadAgents({force: true});
           } catch (error) { showError(error.message); }
           finally { button.disabled = false; }
         });
@@ -2847,21 +2948,35 @@
           event.stopPropagation();
           const agentId = button.dataset.disableAgent;
           if (!confirm(`确认停用 ${agentId}？停用后它不会参与默认共享知识视图。`)) return;
+          button.disabled = true;
           try {
-            await post('/v1/agents/disable', {agent_id: agentId});
+            const result = await post('/v1/agents/disable', {agent_id: agentId});
+            // Invalidate reads started before the mutation, then update immediately.
+            agentLoadVersion++;
+            state.registeredAgents = state.registeredAgents.map(item => item.agent_id === agentId ? {...item, ...result.agent} : item);
+            renderAgentState();
             showToast(`已停用 Agent: ${agentId}`);
-            await loadAgents();
+            await loadAgents({force: true});
             await load(document.getElementById('project').value || initialProject);
           } catch (error) { showError(error.message); }
+          finally { button.disabled = false; }
         });
       });
     }
 
-    let agentLoadPromise = null;
+    function renderAgentState() {
+      setRelationMetric('connectedAgents', new Set(state.registeredAgents.filter(item => item.enabled).map(item => item.agent_id)).size);
+      renderAgentCandidates();
+      renderAgentRows();
+      const detected = state.discoveredAgents.filter(item => item.installed).length;
+      document.getElementById('agentStatus').textContent = `${detected} 个本机 Agent 已检测 · ${state.registeredAgents.filter(item => item.enabled).length} 个已加入`;
+    }
+
+    let agentLoadPromise = null, agentLoadVersion = 0;
     async function loadAgents(options = {}) {
       if (agentLoadPromise) {
         const result = await agentLoadPromise;
-        if (!options.discover) return result;
+        if (!options.discover && !options.force) return result;
       }
       agentLoadPromise = fetchAgents(options);
       try { return await agentLoadPromise; }
@@ -2870,20 +2985,19 @@
 
     async function fetchAgents({discover = false, quiet = false} = {}) {
       if (!token) return false;
+      const version = ++agentLoadVersion;
       try {
         const [registered, discovered] = await Promise.all([
           get('/v1/agents?include_disabled=true'),
           discover ? get('/v1/agents/discover') : Promise.resolve({results: state.discoveredAgents})
         ]);
+        if (version !== agentLoadVersion) return false;
         state.registeredAgents = registered.results || [];
-        setRelationMetric('connectedAgents', new Set(state.registeredAgents.filter(item => item.enabled).map(item => item.agent_id)).size);
         if (discover) state.discoveredAgents = discovered.results || [];
-        renderAgentCandidates();
-        renderAgentRows();
-        const detected = state.discoveredAgents.filter(item => item.installed).length;
-        document.getElementById('agentStatus').textContent = `${detected} 个本机 Agent 已检测 · ${state.registeredAgents.filter(item => item.enabled).length} 个已加入`;
+        renderAgentState();
         return true;
       } catch (error) {
+        if (version !== agentLoadVersion) return false;
         document.getElementById('agentStatus').textContent = 'Agent 状态更新失败，当前显示上次结果';
         if (!quiet) showError(error.message);
         return false;
@@ -2899,6 +3013,231 @@
       return ({'claude-code': 'Claude Code', codex: 'Codex'})[agent]
         || state.registeredAgents.find(item => item.agent_id === agent)?.display_name
         || agent || '未知来源';
+    }
+
+    const learningDialog = document.getElementById('learningDialog');
+    const learningPageSize = 20;
+    function learningError(message) {
+      const element = document.getElementById('learningError');
+      element.textContent = message;
+      element.hidden = !message;
+    }
+
+    function updateLearningControls() {
+      const review = state.learningReview;
+      const locked = !review || review.busy || review.loading;
+      const candidates = (review?.data?.results || []).filter(item => item.knowledge.status === 'candidate');
+      const selected = candidates.filter(item => review.selected.has(item.knowledge.id));
+      document.getElementById('learningSelected').textContent = `已选 ${selected.length} 条`;
+      for (const id of ['learningApprove', 'learningReject']) document.getElementById(id).disabled = locked || !selected.length;
+      const selectAll = document.getElementById('learningSelectAll');
+      selectAll.disabled = locked || !candidates.length;
+      selectAll.checked = candidates.length > 0 && selected.length === candidates.length;
+      selectAll.indeterminate = selected.length > 0 && selected.length < candidates.length;
+      document.getElementById('learningReason').disabled = locked;
+      document.querySelectorAll('[data-learning-status]').forEach(button => {
+        const active = button.dataset.learningStatus === review?.filter;
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+        button.disabled = locked;
+      });
+      document.querySelectorAll('#learningRecords input, #learningRecords button').forEach(control => { control.disabled = locked; });
+      document.getElementById('learningPrev').disabled = locked || !review.offset;
+      document.getElementById('learningNext').disabled = locked || review.offset + learningPageSize >= (review.data?.total || 0);
+      document.getElementById('learningRecords').setAttribute('aria-busy', String(!!review?.loading));
+    }
+
+    function renderLearningRun() {
+      const review = state.learningReview;
+      if (!review?.data) return;
+      const data = review.data;
+      review.renderedData = JSON.stringify([review.filter, review.offset, data, [...review.errors]]);
+      const focused = document.activeElement;
+      const focusedAttribute = ['data-learning-check', 'data-learning-approve', 'data-learning-reject'].find(name => focused?.hasAttribute(name));
+      const focusedDetail = focused?.tagName === 'SUMMARY' ? focused.closest('details')?.dataset.knowledgeId : '';
+      const hadRecords = !!document.querySelector('#learningRecords .learning-entry');
+      const expanded = new Set([...document.querySelectorAll('#learningRecords details[open]')].map(item => item.dataset.knowledgeId));
+      document.getElementById('learningSummary').textContent = `本次生成 ${data.run.proposal_count} 条候选 · 自动晋升 ${data.run.promoted_count} 条 · 当前关联 ${data.linked_count} 条（含去重复用） · 待审核 ${data.pending_count} 条`;
+      const records = document.getElementById('learningRecords');
+      records.setAttribute('aria-labelledby', review.filter === 'all' ? 'learningAll' : 'learningPending');
+      records.innerHTML = data.results.length ? data.results.map((item, index) => {
+        const record = item.knowledge;
+        const pending = record.status === 'candidate';
+        const conflicts = item.versions?.conflicts || [];
+        const evidence = (item.evidence || []).map(entry => `<div class="evidence-item"><div class="evidence-meta">${escapeHtml(knowledgeSourceName(entry.agent_id))} · ${escapeHtml(entry.outcome)} · ${escapeHtml(entry.evidence_kind)} · ${escapeHtml(new Date(entry.created_at).toLocaleString())}</div><div>${escapeHtml(entry.summary)}</div>${entry.evidence_ref ? `<div class="knowledge-meta">${escapeHtml(entry.evidence_ref)}</div>` : ''}</div>`).join('');
+        const versionInfo = conflicts.length ? `<div class="learning-entry-error">存在不同的已采纳版本，普通批准不会替代旧版。</div>${conflicts.map(peer => `<div class="evidence-item"><strong>${escapeHtml(peer.title)}</strong><div>${escapeHtml(readableKnowledge(peer.content))}</div></div>`).join('')}` : '';
+        return `<article class="learning-entry" data-learning-id="${escapeHtml(record.id)}">
+          <div class="learning-entry-head">${pending ? `<input type="checkbox" aria-label="选择 ${escapeHtml(record.title)}" data-learning-check="${escapeHtml(record.id)}" ${review.selected.has(record.id) ? 'checked' : ''}>` : ''}<strong>${escapeHtml(record.title)}</strong>${badge({candidate:'待审核',active:'已批准',quarantined:'已隔离',archived:'已归档',stale:'待再验证'}[record.status] || statusLabel(record.status), record.status)}${pending ? `<button type="button" class="small-button" data-learning-approve="${escapeHtml(record.id)}">批准</button><button type="button" class="small-button danger-button" data-learning-reject="${escapeHtml(record.id)}">隔离</button>` : ''}</div>
+          <div class="knowledge-meta">来源：${escapeHtml(knowledgeSourceName(record.source_agent))} · ${record.scope === 'user' ? '通用知识' : '项目知识'} · ${escapeHtml(new Date(record.created_at).toLocaleString())}${item.relations.includes('deduplicated') ? ' · 去重复用' : ''}</div>
+          <details data-knowledge-id="${escapeHtml(record.id)}" ${expanded.has(record.id) || (!hadRecords && index === 0) ? 'open' : ''}><summary>内容与证据</summary><div class="content-block">${escapeHtml(readableKnowledge(record.content))}</div>${versionInfo}<h3 class="section-title">来源与审核记录</h3>${evidence || '<div class="knowledge-meta">暂无证据</div>'}</details>
+          ${review.errors.has(record.id) ? `<div class="learning-entry-error" role="alert">${escapeHtml(review.errors.get(record.id))}</div>` : ''}
+        </article>`;
+      }).join('') : `<div class="empty">${review.filter === 'candidate' ? '本次学习暂无待审核候选' : '本次学习暂无可追溯的关联知识'}</div>`;
+      records.querySelectorAll('[data-learning-check]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) review.selected.add(input.dataset.learningCheck);
+          else review.selected.delete(input.dataset.learningCheck);
+          updateLearningControls();
+        });
+      });
+      records.querySelectorAll('[data-learning-approve]').forEach(button => button.addEventListener('click', () => reviewLearningRecords('verified', [button.dataset.learningApprove])));
+      records.querySelectorAll('[data-learning-reject]').forEach(button => button.addEventListener('click', () => reviewLearningRecords('rejected', [button.dataset.learningReject])));
+      document.getElementById('learningPagination').hidden = data.total <= learningPageSize;
+      document.getElementById('learningPage').textContent = `${Math.floor(review.offset / learningPageSize) + 1} / ${Math.max(1, Math.ceil(data.total / learningPageSize))} 页 · ${data.total} 条`;
+      updateLearningControls();
+      if (!review.loading && (focusedAttribute || focusedDetail)) {
+        const replacement = focusedAttribute
+          ? records.querySelector(`[${focusedAttribute}="${focused.getAttribute(focusedAttribute)}"]`)
+          : records.querySelector(`details[data-knowledge-id="${focusedDetail}"] summary`);
+        (replacement || document.getElementById(review.filter === 'all' ? 'learningAll' : 'learningPending')).focus({preventScroll: true});
+      }
+    }
+
+    async function refreshLearningRun({background = false} = {}) {
+      const review = state.learningReview;
+      if (!review || !learningDialog.open) return;
+      clearTimeout(review.retryTimer);
+      review.retryTimer = null;
+      const version = ++review.requestVersion;
+      review.loading = !background || !review.data;
+      updateLearningControls();
+      if (!review.data) document.getElementById('learningMessage').textContent = '正在读取本次学习…';
+      document.getElementById('learningRetry').hidden = true;
+      try {
+        const data = await post('/v1/learning/run-records', {
+          agent_id: 'memweave-console', project_key: review.projectKey, source_agent: review.sourceAgent,
+          run_id: review.runId, status: review.filter, limit: learningPageSize, offset: review.offset
+        });
+        if (state.learningReview !== review || version !== review.requestVersion || !learningDialog.open || (background && review.busy)) return;
+        if (review.offset && review.offset >= data.total) {
+          review.offset = Math.max(0, Math.floor((data.total - 1) / learningPageSize) * learningPageSize);
+          return await refreshLearningRun({background});
+        }
+        review.data = data;
+        review.retryDelay = 1000;
+        const pending = new Set(data.results.filter(item => item.knowledge.status === 'candidate').map(item => item.knowledge.id));
+        review.selected = new Set([...review.selected].filter(id => pending.has(id)));
+        for (const id of review.errors.keys()) if (!pending.has(id)) review.errors.delete(id);
+        learningError('');
+        document.getElementById('learningMessage').textContent = '';
+        if (review.renderedData !== JSON.stringify([review.filter, review.offset, data, [...review.errors]])) renderLearningRun();
+      } catch (error) {
+        if (state.learningReview !== review || version !== review.requestVersion) return;
+        learningError(`同步失败：${error.message}`);
+        document.getElementById('learningMessage').textContent = review.data ? '当前显示上次同步结果' : '';
+        document.getElementById('learningRetry').hidden = false;
+        review.retryTimer = setTimeout(() => {
+          if (state.learningReview !== review || !learningDialog.open) return;
+          if (review.busy) scheduleDashboardSync();
+          else refreshLearningRun({background: true});
+        }, review.retryDelay || 1000);
+        review.retryDelay = Math.min(10000, (review.retryDelay || 1000) * 2);
+      } finally {
+        if (state.learningReview === review && version === review.requestVersion) {
+          review.loading = false;
+          updateLearningControls();
+        }
+      }
+    }
+
+    async function openLearningRun(item, filter) {
+      if (!item?.learning?.run_id) return;
+      state.learningReview = {
+        runId: item.learning.run_id, projectKey: item.learning.project_key, sourceAgent: item.agent_id,
+        filter, offset: 0, data: null, selected: new Set(), errors: new Map(), busy: false, loading: false, requestVersion: 0
+      };
+      document.getElementById('learningTitle').textContent = `本次学习 · ${item.display_name}`;
+      document.getElementById('learningMeta').textContent = `${item.learning.project_key} · ${new Date(item.learning.completed_at || item.learning.created_at).toLocaleString()}`;
+      document.getElementById('learningSummary').textContent = '';
+      document.getElementById('learningRecords').replaceChildren();
+      document.getElementById('learningPagination').hidden = true;
+      document.getElementById('learningReason').value = '人工核对候选内容与证据。';
+      learningError('');
+      if (!learningDialog.open) learningDialog.showModal();
+      learningDialog.querySelector('.dialog-body').scrollTop = 0;
+      await refreshLearningRun();
+    }
+
+    async function reviewLearningRecords(outcome, ids = [...(state.learningReview?.selected || [])]) {
+      const review = state.learningReview;
+      if (!review || review.busy || review.loading || !ids.length) return;
+      const reason = document.getElementById('learningReason').value.trim();
+      if (!reason) return learningError('请填写审核说明');
+      const action = outcome === 'verified' ? '批准' : '隔离';
+      const shared = review.data.results.some(item => ids.includes(item.knowledge.id) && item.knowledge.scope === 'user');
+      if (!confirm(`确认${action} ${ids.length} 条候选？${shared ? '\n包含通用知识，审核结果对所有项目生效。' : ''}`)) return;
+      review.busy = true;
+      learningError('');
+      updateLearningControls();
+      try {
+        const results = await Promise.allSettled(ids.map(id => post('/v1/knowledge/feedback', {
+          agent_id: 'human-review', project_key: review.projectKey, knowledge_id: id,
+          learning_run_id: review.runId, expected_status: 'candidate', outcome,
+          evidence_summary: reason, evidence_kind: 'user_approval',
+          evidence_ref: `memweave-console://learning-${outcome}/${id}/${Date.now()}`
+        })));
+        let completed = 0, changed = 0;
+        ids.forEach((id, index) => {
+          const result = results[index];
+          if (result.status === 'fulfilled') { completed++; review.selected.delete(id); review.errors.delete(id); }
+          else if (['knowledge status changed', 'knowledge record not found'].includes(result.reason.message)) {
+            changed++; review.selected.delete(id); review.errors.delete(id);
+          } else { review.errors.set(id, result.reason.message); review.selected.add(id); }
+        });
+        // Always reconcile, including stale requests and partially successful batches.
+        if (state.learningReview === review) await refreshLearningRun();
+        await load(document.getElementById('project').value || initialProject);
+        await loadAgents();
+        if (state.learningReview === review) {
+          const failures = ids.length - completed - changed;
+          if (failures) learningError(`已${action} ${completed} 条，${failures} 条未通过校验；具体原因见对应记录。`);
+          else showToast(changed ? `已${action} ${completed} 条；另 ${changed} 条已同步其他位置的审核结果` : `已${action} ${completed} 条`);
+        }
+      } finally {
+        review.busy = false;
+        if (state.learningReview === review) updateLearningControls();
+      }
+    }
+
+    document.getElementById('learningClose').addEventListener('click', () => learningDialog.close());
+    learningDialog.addEventListener('close', () => {
+      clearTimeout(state.learningReview?.retryTimer);
+      state.learningReview = null;
+    });
+    document.getElementById('learningRetry').addEventListener('click', refreshLearningRun);
+    document.querySelectorAll('[data-learning-status]').forEach(button => {
+      button.addEventListener('click', () => {
+        const review = state.learningReview;
+        if (!review || review.busy || review.loading) return;
+        review.filter = button.dataset.learningStatus;
+        review.offset = 0;
+        review.selected.clear();
+        refreshLearningRun();
+      });
+      button.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const target = document.getElementById(event.key === 'Home' ? 'learningAll' : event.key === 'End' ? 'learningPending' : button.id === 'learningAll' ? 'learningPending' : 'learningAll');
+        target.focus(); target.click();
+      });
+    });
+    document.getElementById('learningSelectAll').addEventListener('change', event => {
+      const review = state.learningReview;
+      for (const item of review.data?.results || []) {
+        if (item.knowledge.status !== 'candidate') continue;
+        if (event.target.checked) review.selected.add(item.knowledge.id);
+        else review.selected.delete(item.knowledge.id);
+      }
+      renderLearningRun();
+    });
+    document.getElementById('learningApprove').addEventListener('click', () => reviewLearningRecords('verified'));
+    document.getElementById('learningReject').addEventListener('click', () => reviewLearningRecords('rejected'));
+    for (const [id, step] of [['learningPrev', -1], ['learningNext', 1]]) {
+      document.getElementById(id).addEventListener('click', () => {
+        state.learningReview.offset += step * learningPageSize;
+        state.learningReview.selected.clear();
+        refreshLearningRun();
+      });
     }
 
     function recallCell(record) {
@@ -3368,7 +3707,9 @@
       element.hidden = false;
     }
 
+    let dashboardLoadVersion = 0;
     async function load(projectKey) {
+      const version = ++dashboardLoadVersion;
       document.getElementById('error').hidden = true;
       document.querySelectorAll('.relation-value:not(#connectedAgents)').forEach(element => { element.textContent = '—'; });
       const refreshBtn = document.getElementById('refresh');
@@ -3383,6 +3724,7 @@
           post('/v1/metrics', {project_key: projectKey}),
           post('/v1/reuse/traces', {project_key: projectKey, limit:20})
         ]);
+        if (version !== dashboardLoadVersion) return false;
         state.overview = overview;
         renderReuse(metrics, traces);
         state.records = Array.isArray(state.overview.results) ? state.overview.results : [];
@@ -3392,11 +3734,12 @@
         renderRows();
         return true;
       } catch (error) {
+        if (version !== dashboardLoadVersion) return false;
         console.error('[MemWeave] dashboard load failed', error);
         showError(error.message);
         return false;
       } finally {
-        if (refreshBtn) refreshBtn.classList.remove('spinning');
+        if (refreshBtn && version === dashboardLoadVersion) refreshBtn.classList.remove('spinning');
       }
     }
 
@@ -3422,7 +3765,7 @@
 
     // Keyboard navigation
     window.addEventListener('keydown', e => {
-      if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable && !document.getElementById('detail').open) {
+      if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable && !document.querySelector('dialog[open]')) {
         e.preventDefault();
         document.getElementById('query').focus();
       } else if (e.key === 'Escape') {
@@ -3541,7 +3884,8 @@
           capabilities: discovered?.capabilities || ['shared-knowledge']
         });
         showToast(`已登记 ${displayName}，请检查接入配置和学习记录`);
-        await loadAgents();
+        agentLoadVersion++;
+        await loadAgents({force: true});
         await load(document.getElementById('project').value || initialProject);
       } catch (error) { showError(error.message); }
     });
@@ -3569,12 +3913,88 @@
       updateBulkReview();
     });
     document.getElementById('batchRemove').addEventListener('click', submitBulkRemove);
-    // Only refresh inexpensive Agent state in the background. Leave knowledge
-    // filters, selections and metrics alone; hidden pages make no poll requests.
+    let syncTimer = null, syncRunning = false, syncAgain = false;
+    function scheduleDashboardSync() {
+      syncAgain = true;
+      if (syncTimer || syncRunning || document.hidden) return;
+      syncTimer = setTimeout(async () => {
+        syncTimer = null;
+        if (state.learningReview?.busy || state.learningReview?.loading || state.bulkBusy || state.reviewBusy) return scheduleDashboardSync();
+        syncRunning = true;
+        syncAgain = false;
+        try {
+          await load(document.getElementById('project').value || initialProject);
+          await loadAgents({quiet: true, force: true});
+          if (learningDialog.open) await refreshLearningRun({background: true});
+        } finally {
+          syncRunning = false;
+          if (syncAgain) scheduleDashboardSync();
+        }
+      }, 200);
+    }
+
+    let eventsController = null, eventsReconnect = null, eventsConnected = false;
+    let reconnectDelay = 1000;
+    async function connectDashboardEvents() {
+      if (!token || document.hidden || eventsController) return;
+      const controller = new AbortController();
+      eventsController = controller;
+      try {
+        // Fetch keeps the bearer token out of URLs and browser/server histories.
+        const response = await fetch('/v1/dashboard/events', {
+          headers: {Authorization: `Bearer ${token}`, Accept: 'text/event-stream'}, signal: controller.signal
+        });
+        if (!response.ok || !response.body) throw new Error('event stream unavailable');
+        eventsConnected = true;
+        reconnectDelay = 1000;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+          while (!controller.signal.aborted) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, {stream: true});
+            let end;
+            while ((end = buffer.indexOf('\n\n')) !== -1) {
+              const event = buffer.slice(0, end);
+              buffer = buffer.slice(end + 2);
+              if (/^event: changed$/m.test(event)) scheduleDashboardSync();
+            }
+          }
+        } finally { reader.releaseLock(); }
+      } catch (error) {
+        if (!controller.signal.aborted) scheduleDashboardSync();
+      } finally {
+        if (eventsController === controller) {
+          eventsController = null;
+          eventsConnected = false;
+          if (!document.hidden && !controller.signal.aborted) {
+            eventsReconnect = setTimeout(() => { eventsReconnect = null; connectDashboardEvents(); }, reconnectDelay);
+            reconnectDelay = Math.min(10000, reconnectDelay * 2);
+          }
+        }
+      }
+    }
+
+    function stopDashboardEvents() {
+      clearTimeout(eventsReconnect); eventsReconnect = null;
+      clearTimeout(syncTimer); syncTimer = null;
+      const controller = eventsController;
+      eventsController = null; eventsConnected = false;
+      controller?.abort();
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopDashboardEvents();
+      else { scheduleDashboardSync(); connectDashboardEvents(); }
+    });
+    window.addEventListener('pagehide', stopDashboardEvents);
+    window.addEventListener('pageshow', event => { if (event.persisted && !document.hidden) connectDashboardEvents(); });
+    // Automatic fallback if a proxy/browser cannot keep the notification stream.
     setInterval(() => {
-      if (!document.hidden && token && !agentLoadPromise) loadAgents({quiet: true});
+      if (!document.hidden && token && !eventsConnected) scheduleDashboardSync();
     }, 15000);
-    (async () => { await loadAgents({discover: true}); await load(initialProject); })();
+    (async () => { await loadAgents({discover: true}); await load(initialProject); connectDashboardEvents(); })();
   </script>
 </body>
 </html>

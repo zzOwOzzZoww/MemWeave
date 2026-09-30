@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from agent_knowledge_bridge import __version__ as RUNTIME_VERSION
 from agent_knowledge_bridge.governance import Governor
-from agent_knowledge_bridge.agent_registry import configure_agent_scope, discover_agents, hook_configuration, install_native_hook
+from agent_knowledge_bridge.agent_registry import configure_agent_scope, discover_agents, hook_configuration, install_native_hook, supported_agent
 from agent_knowledge_bridge.paths import default_database_path
 from agent_knowledge_bridge.store import KnowledgeStore, utc_now
 
@@ -79,7 +79,11 @@ class KnowledgeBridgeService:
 
     def register_agent(self, agent: dict[str, Any]) -> dict[str, Any]:
         hook_install = None
-        if self.auto_install_hooks and agent.get("adapter_type") in {"claude-hook", "codex-hook"}:
+        # An existing Runtime-only Gemini registration can be repaired in place.
+        if agent.get('agent_id') == 'gemini-cli' and agent.get('adapter_type') == 'runtime-api':
+            spec = supported_agent('gemini-cli')
+            agent = {**agent, 'adapter_type': spec['adapter_type'], 'capabilities': list(spec['capabilities'])}
+        if self.auto_install_hooks and agent.get("adapter_type") in {"claude-hook", "codex-hook", "gemini-hook"}:
             hook_install = install_native_hook(str(agent["agent_id"]))
         elif self.auto_install_hooks:
             configure_agent_scope(str(agent['agent_id']))
@@ -195,6 +199,16 @@ class KnowledgeBridgeService:
         return self.store.remove_many(agent_id=self.agent_id,
             project_key=self.project_key, knowledge_ids=knowledge_ids)
 
+    def learning_run_records(self, *, run_id: str, source_agent: str,
+                             status: str = 'all', limit: int = 20, offset: int = 0) -> dict[str, Any]:
+        from .learning import LearningStore
+        self.store.assert_agent_allowed(self.agent_id)
+        self.expire_candidates()
+        return LearningStore(self.store.database_path).run_records(
+            requester_agent=self.agent_id, project_key=self.project_key,
+            run_id=run_id, source_agent=source_agent, status=status, limit=limit, offset=offset,
+        )
+
     def feedback(
         self,
         knowledge_id: str,
@@ -203,6 +217,8 @@ class KnowledgeBridgeService:
         evidence_kind: str | None = None,
         evidence_ref: str | None = None,
         supersedes: list[str] | None = None,
+        learning_run_id: str | None = None,
+        expected_status: str | None = None,
     ) -> dict[str, Any]:
         self.store.assert_agent_allowed(self.agent_id)
         return self.store.feedback(
@@ -214,6 +230,8 @@ class KnowledgeBridgeService:
             evidence_ref=evidence_ref,
             supersedes=supersedes,
             project_key=self.project_key,
+            learning_run_id=learning_run_id,
+            expected_status=expected_status,
         )
 
     # ------------------------------------------------------------------

@@ -30,11 +30,18 @@ class LearningQueue:
 
     def submit(self, payload: dict) -> dict:
         # Store a local reference, not raw assistant/user text or credentials.
+        if payload.get('turn') is not None:
+            raise ValueError('inline turn cannot be persisted in the learning queue')
         clean = {k: payload.get(k) for k in ('agent_id','project_key','session_id','turn_id','cwd','transcript_path')}
+        clean['transcript_format'] = payload.get('transcript_format', 'auto')
         path = Path(clean.get('transcript_path') or '')
         if not path.is_file():
             raise ValueError('学习任务需要可读取的本地 transcript；未接受空路径')
         clean['transcript_end'] = path.stat().st_size
+        if clean['transcript_format'] == 'gemini' or (
+                clean['transcript_format'] == 'auto' and clean['agent_id'] == 'gemini-cli'):
+            from .gemini_transcript import freeze_gemini_turn
+            clean.update(freeze_gemini_turn(path, clean['transcript_end']))
         identity = dict(clean)
         if clean['turn_id']:
             identity.pop('transcript_end')

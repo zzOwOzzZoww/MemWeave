@@ -2180,7 +2180,7 @@ class KnowledgeStore:
             try:
                 row = connection.execute(
                     """
-                    SELECT status, proposal_count, promoted_count, error,
+                    SELECT id, project_key, status, proposal_count, promoted_count, error,
                            created_at, completed_at, latency_ms
                     FROM learning_runs
                     WHERE agent_id = ?
@@ -2193,9 +2193,23 @@ class KnowledgeStore:
                 if "no such table" not in str(error).lower():
                     raise
                 row = None
+            pending_count = 0
+            if row is not None and connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='knowledge_compilation_links'"
+            ).fetchone():
+                pending_count = connection.execute(
+                    """SELECT COUNT(*) FROM knowledge_records k
+                    WHERE k.status='candidate' AND (k.scope='user' OR k.project_key=?)
+                      AND EXISTS (SELECT 1 FROM knowledge_compilation_links links
+                                  WHERE links.run_id=? AND links.knowledge_id=k.id)""",
+                    (row["project_key"], row["id"]),
+                ).fetchone()[0]
         if row is None:
             return None
         return {
+            "run_id": row["id"],
+            "project_key": row["project_key"],
+            "pending_count": pending_count,
             "status": row["status"],
             "proposal_count": int(row["proposal_count"] or 0),
             "promoted_count": int(row["promoted_count"] or 0),
@@ -2337,10 +2351,18 @@ class KnowledgeStore:
         project_key: str | None = None,
         require_no_related: bool = False,
         supersedes: list[str] | None = None,
+        learning_run_id: str | None = None,
+        expected_status: str | None = None,
     ) -> dict[str, Any]:
         self._validate_agent_id(agent_id)
         if project_key is not None:
             self._validate_project_key(project_key)
+        if expected_status not in {None, 'candidate'}:
+            raise ValueError('invalid expected status')
+        if learning_run_id is not None and (
+            project_key is None or not re.fullmatch(r'lr_[A-Za-z0-9]+', learning_run_id)
+        ):
+            raise ValueError('learning run feedback requires a valid run and project')
         if outcome not in FEEDBACK_OUTCOMES:
             raise ValueError(f"outcome must be one of {sorted(FEEDBACK_OUTCOMES)}")
         evidence_summary = self._required_text(
@@ -2383,6 +2405,18 @@ class KnowledgeStore:
             ).fetchone()
             if record is None:
                 raise ValueError("knowledge record not found")
+
+            if learning_run_id is not None:
+                member = connection.execute(
+                    """SELECT 1 FROM knowledge_compilation_links links
+                    JOIN learning_runs run ON run.id=links.run_id
+                    WHERE run.id=? AND run.project_key=? AND links.knowledge_id=?""",
+                    (learning_run_id, project_key, knowledge_id),
+                ).fetchone()
+                if member is None:
+                    raise ValueError('knowledge record is not part of this learning run')
+            if expected_status is not None and record['status'] != expected_status:
+                raise ValueError('knowledge status changed')
 
             if outcome=='verified' and record['superseded_by']:
                 raise ValueError('这条知识已被替代，不能直接重新批准；请提交新的候选。')

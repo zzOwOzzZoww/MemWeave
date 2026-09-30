@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from agent_knowledge_bridge.store import KnowledgeStore, utc_now
+from agent_knowledge_bridge import knowledge_versions as versions
 
 
 class LearningStore:
@@ -247,6 +248,66 @@ class LearningStore:
                     run_id,
                 ),
             )
+
+    def run_records(
+        self, *, requester_agent: str, project_key: str, source_agent: str,
+        run_id: str, status: str = 'all', limit: int = 20, offset: int = 0,
+    ) -> dict[str, Any]:
+        self.knowledge._validate_agent_id(requester_agent)
+        self.knowledge._validate_agent_id(source_agent)
+        self.knowledge._validate_project_key(project_key)
+        if status not in {'all', 'candidate'} or not 1 <= limit <= 100 or offset < 0:
+            raise ValueError('invalid learning run filter')
+        with self.knowledge._connect() as connection:
+            connection.execute('BEGIN')
+            run = connection.execute(
+                """SELECT id, agent_id, project_key, status, proposal_count, promoted_count,
+                          created_at, completed_at FROM learning_runs
+                   WHERE id=? AND project_key=? AND agent_id=?""",
+                (run_id, project_key, source_agent),
+            ).fetchone()
+            if run is None:
+                raise ValueError('learning run not found')
+            # EXISTS keeps retried/deduplicated compilation links from doubling rows.
+            where = """(k.scope='user' OR k.project_key=?) AND EXISTS (
+                SELECT 1 FROM knowledge_compilation_links links
+                WHERE links.run_id=? AND links.knowledge_id=k.id)"""
+            params = (project_key, run_id)
+            counts = connection.execute(
+                f"SELECT COUNT(*), COALESCE(SUM(k.status='candidate'),0) FROM knowledge_records k WHERE {where}",
+                params,
+            ).fetchone()
+            linked_count, pending_count = map(int, counts)
+            if status == 'candidate':
+                where += " AND k.status='candidate'"
+            rows = connection.execute(
+                f"SELECT k.* FROM knowledge_records k WHERE {where} ORDER BY k.created_at, k.id LIMIT ? OFFSET ?",
+                (*params, limit, offset),
+            ).fetchall()
+            results = []
+            for row in rows:
+                evidence = connection.execute(
+                    """SELECT agent_id, outcome, summary, evidence_kind, evidence_ref,
+                              status_before, status_after, created_at
+                       FROM knowledge_evidence WHERE knowledge_id=? ORDER BY created_at, rowid""",
+                    (row['id'],),
+                ).fetchall()
+                relations = connection.execute(
+                    "SELECT relation FROM knowledge_compilation_links WHERE run_id=? AND knowledge_id=? ORDER BY relation",
+                    (run_id, row['id']),
+                ).fetchall()
+                results.append({
+                    'knowledge': self.knowledge._public_record(row, requester_agent, include_content=True),
+                    'evidence': [dict(item) for item in evidence],
+                    'versions': versions.details(connection, row),
+                    'relations': [item[0] for item in relations],
+                })
+        return {
+            'run': dict(run), 'results': results, 'count': len(results),
+            'total': pending_count if status == 'candidate' else linked_count,
+            'linked_count': linked_count, 'pending_count': pending_count,
+            'offset': offset, 'limit': limit,
+        }
 
     def record_event(
         self,

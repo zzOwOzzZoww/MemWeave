@@ -140,7 +140,11 @@ memweave doctor --check-api  # 发送一次短请求检查 API，可能产生少
 memweave shortcut            # 修复 Windows 桌面入口
 ~~~
 
-在管理页的“Agent 维护”中选择 Claude Code 或 Codex，才会安装对应的全局 Hook。安装后可能需要重启客户端。
+在管理页的“Agent 维护”中选择 Claude Code、Codex 或 Gemini CLI，会安装对应的全局 Hook。安装后可能需要重启客户端。已经登记为 Runtime API 的 Gemini CLI 可以点击“修复接入”升级；其它 Agent 的登记不等于自动学习接通，需要客户端适配器调用 Runtime。[接入说明与通用学习 API](docs/Agent接入与通用学习API.md)。
+
+三个原生入口共用一个接入执行器。提供事件回调和上下文注入能力的新客户端，可以通过 JSON 配置映射事件、字段与输出，再调用通用入口，不必新增专属 Hook 脚本；私有会话格式仍需薄解析器。配置示例见上述接入说明。
+
+管理页中，“生成 N 条候选”可查看该次学习关联的知识、来源和证据，“待审核 N 条”可逐条或批量批准、隔离。学习 Hook 或其它窗口更新数据后，弹窗和数量会自动同步；历史生成数量不随审核减少。停用 Agent 会立即从当前列表移除，登记与历史知识保留，之后仍可重新加入。
 
 ### 已安装用户升级
 
@@ -182,13 +186,13 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-截至 2026-09-30，当前源码对应的正式回归测试为 **489 passed**，包含全局 Hook 安装修复、跨目录共享池、显式项目隔离，以及新增的 22 项 Sibling 排位与 LFHV 预算恢复回归。已有隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
+截至 2026-09-30，当前源码对应的正式回归测试为 **638 passed**，覆盖全局 Hook 安装、跨目录共享池、显式项目隔离、Sibling 排位与 LFHV 预算恢复，以及统一接入执行器、Gemini/通用学习输入、按批次审核和 Agent 停用/重新加入。隔离浏览器验收覆盖桌面与手机上的审核操作、跨客户端自动同步、并发旧请求保护、断线重连及停用列表更新。已有隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 配置覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
 
 项目目录：
 
 ~~~text
 src/agent_knowledge_bridge/        Core、Runtime、CLI 和管理页
-src/agent_knowledge_bridge/hooks/  Claude Code / Codex 原生 Hook
+src/agent_knowledge_bridge/hooks/  Claude Code / Codex / Gemini CLI 原生 Hook
 scripts/                           开发、安装验收和评测脚本
 tests/                             回归测试与产品安装测试
 docs/                              设计说明和历史验收记录

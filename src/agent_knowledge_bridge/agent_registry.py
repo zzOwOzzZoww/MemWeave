@@ -10,12 +10,12 @@ from __future__ import annotations
 import os
 import shutil
 import json
-import re
-import sys
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .integration_profiles import PROFILES
+from .integration_installation import prepare_hook_installation, install_hook_plan, inspect_hook_plan, is_owned_hook
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -47,9 +47,9 @@ SUPPORTED_AGENTS: tuple[dict[str, Any], ...] = (
     },
     {
         "agent_id": "gemini-cli", "display_name": "Gemini CLI",
-        "adapter_type": "runtime-api", "executables": ("gemini",),
+        "adapter_type": "gemini-hook", "executables": ("gemini",),
         "config_paths": ("~/.gemini",),
-        "capabilities": ("shared-knowledge",),
+        "capabilities": ("recall", "learn", "shared-knowledge"),
     },
     {
         "agent_id": "aider", "display_name": "Aider",
@@ -117,9 +117,16 @@ def _expand(value: str) -> Path:
     return Path(os.path.expandvars(value)).expanduser()
 
 
+NATIVE_HOOKS = {
+    agent: (profile.launcher, profile.config_file, (profile.recall_event, profile.learn_event))
+    for agent, profile in PROFILES.items()
+}
+
+
 def _agent_home(agent_id: str) -> Path:
-    variable = 'CLAUDE_CONFIG_DIR' if agent_id == 'claude-code' else 'CODEX_HOME'
-    return _expand(os.getenv(variable) or ('~/.claude' if agent_id == 'claude-code' else '~/.codex'))
+    profile = PROFILES[agent_id]
+    selected = os.getenv(profile.home_env)
+    return _expand(selected) / profile.home_subdir if selected else _expand(profile.config_home)
 
 
 def configure_agent_scope(agent_id: str) -> dict[str, Any]:
@@ -143,11 +150,7 @@ def configure_agent_scope(agent_id: str) -> dict[str, Any]:
     return {'scope': 'user-global', 'shared_project': shared_project, 'scope_changed': changed}
 
 
-def _is_memweave_hook(item: Any, marker: str) -> bool:
-    return isinstance(item, dict) and any(
-        re.search(r'(?<![\w-])' + re.escape(marker) + r'(?![\w.-])', str(item.get(key, '')))
-        for key in ('command', 'commandWindows')
-    )
+_is_memweave_hook = is_owned_hook
 
 
 def _existing_config(pattern: str) -> Path | None:
@@ -167,7 +170,7 @@ def discover_agents() -> list[dict[str, Any]]:
             (shutil.which(name) for name in spec["executables"] if shutil.which(name)),
             None,
         )
-        if spec['agent_id'] in {'claude-code', 'codex'}:
+        if spec['agent_id'] in NATIVE_HOOKS:
             home = _agent_home(spec['agent_id'])
             config_path = str(home) if home.exists() else None
         else:
@@ -260,205 +263,41 @@ def _codex_hooks_feature_enabled() -> bool:
 
 
 def hook_configuration(agent_id: str, *, database_path: Path | None = None) -> dict[str, Any]:
-    """Inspect whether the native MemWeave hook is present.
-
-    This is deliberately read-only and checks global configuration only. A
-    project-level hook may exist in a different workspace, so its status
-    cannot establish whether ordinary client sessions are connected.
-    """
-    if agent_id == "claude-code":
-        candidates = [_agent_home(agent_id) / 'settings.json']
-        marker = "claude_learning_hook.py"
-    elif agent_id == "codex":
-        candidates = [_agent_home(agent_id) / 'hooks.json']
-        marker = "codex_learning_hook.py"
-    else:
-        from .runtime_state import agent_shared_project
-        return {
-            "supported": False,
-            "configured": False,
-            "config_paths": [],
-            "matched_paths": [],
-            "scope": "user-global",
-            "shared_project": agent_shared_project(agent_id),
-        }
-
-    from .paths import memweave_home
+    """Inspect native configuration and its actual unified executor without writes."""
     from .runtime_state import agent_shared_project
-    scope = {'scope': 'user-global', 'shared_project': agent_shared_project(agent_id)}
-    existing: list[str] = []
-    matched: list[str] = []
-    for path in candidates:
-        if not path.is_file():
-            continue
-        existing.append(str(path))
-        try:
-            config = json.loads(path.read_text(encoding="utf-8-sig"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            continue
-        hooks = config.get('hooks', {}) if isinstance(config, dict) else {}
-        valid = isinstance(config, dict) and isinstance(hooks, dict) and not config.get('disableAllHooks', False)
-        launcher = memweave_home() / 'launchers' / marker
-        for event in ('UserPromptSubmit', 'Stop'):
-            entries = hooks.get(event, []) if isinstance(hooks, dict) else []
-            matches = [(group, item) for group in entries if isinstance(group, dict)
-                       and isinstance(group.get('hooks'), list)
-                       for item in group['hooks'] if _is_memweave_hook(item, marker)] if isinstance(entries, list) else []
-            if len(matches) != 1:
-                valid = False
-                continue
-            group, item = matches[0]
-            commands = [str(item.get('command', '')), str(item.get('commandWindows', item.get('command', '')))]
-            valid = valid and group.get('matcher', '') in ('', '*') and item.get('type') == 'command' \
-                and item.get('async', False) is False and 'shell' not in item and 'timeoutSec' not in item \
-                and launcher.is_file() and all(str(launcher) in command and '--workspace' not in command
-                                               and '--project' not in command for command in commands)
-        if valid:
-            matched.append(str(path))
+    scope = {"scope": "user-global", "shared_project": agent_shared_project(agent_id)}
+    if agent_id not in NATIVE_HOOKS:
+        return {"supported": False, "configured": False, "config_paths": [], "matched_paths": [], **scope}
+    profile = PROFILES[agent_id]
+    path = _agent_home(agent_id) / profile.config_file
+    try:
+        status = inspect_hook_plan(prepare_hook_installation(profile, config_path=path))
+    except (OSError, ValueError, RuntimeError):
+        status = {"configured": False, "executor_ready": False}
     configuration = {
         "supported": True,
-        "configured": bool(matched),
-        "config_paths": existing,
-        "matched_paths": matched,
+        **status,
+        "config_paths": [str(path)] if path.is_file() else [],
+        "matched_paths": [str(path)] if status["configured"] else [],
         **scope,
     }
     if agent_id == "codex":
         configuration["feature_enabled"] = _codex_hooks_feature_enabled()
         configuration["execution"] = _codex_hook_execution(
-            database_path or PROJECT_ROOT / "data" / "knowledge.db"
-        )
+            database_path or PROJECT_ROOT / "data" / "knowledge.db")
     return configuration
 
 
 def install_native_hook(agent_id: str, *, config_path: Path | None = None) -> dict[str, Any]:
-    """Install the framework hook into an Agent's global configuration.
-
-    The operation is additive and idempotent: existing settings and hooks are
-    preserved, and a timestamped backup is written before the first change.
-    Only adapters with a maintained native hook are accepted here.
-    """
-    if agent_id not in {"claude-code", "codex"}:
+    """Install a built-in confirmed profile through the unified installer."""
+    if agent_id not in NATIVE_HOOKS:
         raise ValueError(f"Agent {agent_id} has no maintained native Hook adapter")
+    profile = PROFILES[agent_id]
     if config_path is None:
-        config_path = _agent_home(agent_id) / ('settings.json' if agent_id == 'claude-code' else 'hooks.json')
-    config_path = config_path.expanduser().resolve()
-    marker = "claude_learning_hook.py" if agent_id == "claude-code" else "codex_learning_hook.py"
-    from .paths import memweave_home
-    packaged_script = Path(__file__).resolve().parent / 'hooks' / marker
-    # The small launcher pins both the installation's interpreter and data home.
-    # py.exe only bootstraps it; virtualenv dependencies are never resolved by py.
-    launcher_root = memweave_home() / 'launchers'
-    launcher_root.mkdir(parents=True, exist_ok=True)
-    script = launcher_root / marker
-    script.write_text('import os, subprocess, sys\n'
-        + 'os.environ["MEMWEAVE_HOME"] = ' + repr(str(memweave_home())) + '\n'
-        + 'raise SystemExit(subprocess.call(' + repr([str(Path(sys.executable).resolve()), '-X', 'utf8', '-m',
-            'agent_knowledge_bridge.hooks.' + marker[:-3]]) + ' + sys.argv[1:]))\n', encoding='utf-8')
-    if not packaged_script.is_file():
-        raise RuntimeError('MemWeave packaged hook is missing; reinstall the package')
-    # Codex 0.155 on Windows fails before Python starts when the executable in
-    # a command hook lives below a path containing spaces (for example
-    # ``C:\\Program Files\\Python312\\python.exe``).  Prefer the system Python
-    # launcher for Codex: its stable path has no spaces and ``-3`` still pins
-    # the intended major version.  Claude Code can keep using the exact
-    # interpreter that launched MemWeave because its hook runner handles the
-    # quoted executable correctly.
-    if agent_id == "codex" and os.name == "nt" and (launcher := shutil.which("py")):
-        command = f'{Path(launcher).resolve()} -3 "{script}" hook'
-    else:
-        command = f'"{Path(sys.executable).resolve()}" "{script}" hook'
-    hook: dict[str, Any] = {
-        "type": "command",
-        "command": command,
-        "commandWindows": command,
-        "timeout": 120,
-        # Recall must complete inside the prompt-submit turn for its output to
-        # become context the model actually sees.  An asynchronous hook returns
-        # to the client immediately, so the recalled knowledge is written to the
-        # database and to the trace tables but never reaches the model: recall
-        # "fires" while the agent stays ignorant.  Both agents therefore use a
-        # synchronous UserPromptSubmit; the retrieval is a local FTS query
-        # (P95 well under 10 ms), so the added latency is not perceptible.
-        "async": False,
-        "statusMessage": "MemWeave is reviewing this turn",
-    }
-    # No ``shell`` field for either agent.  Declaring ``shell: powershell``
-    # made the client wrap this command as ``powershell -Command "<command>"``,
-    # and PowerShell then re-tokenised it: the quoted interpreter became one
-    # string and the trailing bare ``hook`` looked like a second command, so
-    # every UserPromptSubmit and Stop died with ``UnexpectedToken`` before
-    # Python ever started.  The same wrapping also put the non-ASCII path
-    # through the console code page, which is what produced the mojibake in the
-    # error text.  Spawning the resolved argv directly avoids both: there is no
-    # interpreter left to re-split the quotes, and nothing decodes the path.
-    if agent_id != "claude-code":
-        hook["timeout"] = 30
-
-    config: dict[str, Any] = {}
-    if config_path.exists():
-        try:
-            loaded = json.loads(config_path.read_text(encoding="utf-8-sig"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise RuntimeError(f"无法读取 Agent 配置: {config_path}") from exc
-        if not isinstance(loaded, dict):
-            raise RuntimeError(f"Agent 配置不是 JSON 对象: {config_path}")
-        config = loaded
-    hooks = config.setdefault("hooks", {})
-    if not isinstance(hooks, dict):
-        raise RuntimeError(f"Agent 配置中的 hooks 不是对象: {config_path}")
-    changed = False
-    for event in ("UserPromptSubmit", "Stop"):
-        entries = hooks.setdefault(event, [])
-        if not isinstance(entries, list):
-            raise RuntimeError(f"Agent 配置中的 {event} 不是数组: {config_path}")
-        # Remove only our entries from every group, including conditional and
-        # duplicate legacy installs. Other tools retain their matchers and order.
-        cleaned = []
-        for entry in entries:
-            if not isinstance(entry, dict) or not isinstance(entry.get('hooks'), list):
-                cleaned.append(entry)
-                continue
-            remaining = [item for item in entry['hooks'] if not _is_memweave_hook(item, marker)]
-            if remaining or remaining == entry['hooks']:
-                cleaned.append({**entry, 'hooks': remaining})
-        existing = next((entry for entry in cleaned if isinstance(entry, dict)
-                         and entry.get('matcher', '') == '' and isinstance(entry.get('hooks'), list)), None)
-        if existing is None:
-            existing = {'matcher': '', 'hooks': []}
-            cleaned.append(existing)
-        existing['hooks'].append(dict(hook,
-            timeout=30 if agent_id == 'codex' and event == 'UserPromptSubmit' else 120,
-            statusMessage='MemWeave is recalling validated knowledge' if event == 'UserPromptSubmit'
-            else 'MemWeave is reviewing this turn'))
-        if cleaned != entries:
-            hooks[event] = cleaned
-            changed = True
-    if changed:
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        if config_path.exists():
-            backup = config_path.with_name(f"{config_path.name}.memweave-backup")
-            if not backup.exists():
-                shutil.copy2(config_path, backup)
-        payload = json.dumps(config, ensure_ascii=False, indent=2) + "\n"
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=config_path.parent, delete=False) as stream:
-            stream.write(payload)
-            temporary = Path(stream.name)
-        try:
-            temporary.replace(config_path)
-        finally:
-            temporary.unlink(missing_ok=True)
-    feature_result = None
-    if agent_id == "codex":
-        feature_result = _enable_codex_hooks_feature()
-    scope = configure_agent_scope(agent_id)
-    return {
-        "configured": not config.get('disableAllHooks', False),
-        "changed": changed,
-        "config_path": str(config_path),
-        "backup_path": str(config_path.with_name(f"{config_path.name}.memweave-backup")) if changed else None,
-        "feature": feature_result,
-        **scope,
-    }
+        config_path = _agent_home(agent_id) / profile.config_file
+    result = install_hook_plan(prepare_hook_installation(profile, config_path=config_path))
+    feature_result = _enable_codex_hooks_feature() if agent_id == "codex" else None
+    return {**result, "feature": feature_result, **configure_agent_scope(agent_id)}
 
 
 def _enable_codex_hooks_feature() -> dict[str, Any]:

@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from agent_knowledge_bridge.agent_registry import discover_agents, hook_configuration, install_native_hook
 from agent_knowledge_bridge.daemon import create_app
+from agent_knowledge_bridge.learning import LearningStore
 from agent_knowledge_bridge.service import KnowledgeBridgeService
 from agent_knowledge_bridge.store import KnowledgeStore
 
@@ -77,6 +78,28 @@ class AgentRegistryTest(unittest.TestCase):
         self.assertTrue(codex["supported"])
         self.assertIn("configured", claude)
         self.assertIn("matched_paths", codex)
+
+    def test_disable_and_rejoin_preserve_learning_and_knowledge(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            learning = LearningStore(Path(temp) / 'agents.db')
+            store = learning.knowledge
+            agent = dict(agent_id='workbuddy', display_name='WorkBuddy', adapter_type='runtime-api')
+            store.register_agent(**agent)
+            run_id = learning.begin_run(agent_id='workbuddy', project_key='test', session_id='fixture',
+                                        turn_hash='fixture', input_chars=10)
+            key = store.publish(source_agent='workbuddy', project_key='test', title='Historical fixture',
+                content='Synthetic knowledge survives disable.', scope='project', knowledge_type='fact',
+                evidence_summary='Synthetic observation')['knowledge']['id']
+            learning.link_compilation(run_id, key, 'produced')
+            learning.finish_run(run_id, status='completed', proposal_count=1)
+            store.disable_agent('workbuddy')
+            assert store.list_agents() == []
+            assert store.list_agents(include_disabled=True)[0]['enabled'] is False
+            assert store.get(requester_agent='human-review', knowledge_id=key)['knowledge']['source_agent'] == 'workbuddy'
+            assert store.latest_learning('workbuddy')['run_id'] == run_id
+            assert store.register_agent(**agent)['enabled'] is True
+            assert len(store.list_agents()) == 1
+            assert store.latest_learning('workbuddy')['pending_count'] == 1
 
     def test_native_hook_install_is_additive_idempotent_and_backed_up(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

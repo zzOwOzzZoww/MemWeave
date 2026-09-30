@@ -32,7 +32,14 @@ class MemWeaveRuntimeClient:
         self.project_key = project_key
         self.timeout = timeout
 
-    def recall(self, *, session_id: str, prompt: str, turn_id: str | None = None, cwd: str = "", transcript_path: str = "") -> dict[str, Any]:
+    def recall(self, *, session_id: str, prompt: str, turn_id: str | None = None, cwd: str = "",
+               transcript_path: str = "", transcript_format: str = "auto",
+               bind_transcript_boundary: bool | None = None) -> dict[str, Any]:
+        options = {}
+        if transcript_format != "auto":
+            options["transcript_format"] = transcript_format
+        if bind_transcript_boundary is not None:
+            options["bind_transcript_boundary"] = bind_transcript_boundary
         return self._post(
             "/v1/learning/recall",
             {
@@ -42,6 +49,7 @@ class MemWeaveRuntimeClient:
                 "cwd": cwd,
                 "prompt": prompt,
                 "transcript_path": transcript_path,
+                **options,
             },
         )
 
@@ -49,7 +57,9 @@ class MemWeaveRuntimeClient:
         self,
         *,
         session_id: str,
-        transcript_path: str,
+        transcript_path: str = "",
+        transcript_format: str = "auto",
+        turn: dict[str, Any] | None = None,
         last_assistant_message: str = "",
         turn_id: str | None = None,
         cwd: str = "",
@@ -62,6 +72,8 @@ class MemWeaveRuntimeClient:
                 "turn_id": turn_id,
                 "cwd": cwd,
                 "transcript_path": transcript_path,
+                "transcript_format": transcript_format,
+                "turn": turn,
                 "last_assistant_message": last_assistant_message,
             },
         )
