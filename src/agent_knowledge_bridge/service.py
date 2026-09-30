@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from agent_knowledge_bridge import __version__ as RUNTIME_VERSION
 from agent_knowledge_bridge.governance import Governor
-from agent_knowledge_bridge.agent_registry import discover_agents, hook_configuration, install_native_hook
+from agent_knowledge_bridge.agent_registry import configure_agent_scope, discover_agents, hook_configuration, install_native_hook
 from agent_knowledge_bridge.paths import default_database_path
 from agent_knowledge_bridge.store import KnowledgeStore, utc_now
 
@@ -81,10 +81,12 @@ class KnowledgeBridgeService:
         hook_install = None
         if self.auto_install_hooks and agent.get("adapter_type") in {"claude-hook", "codex-hook"}:
             hook_install = install_native_hook(str(agent["agent_id"]))
+        elif self.auto_install_hooks:
+            configure_agent_scope(str(agent['agent_id']))
         registered = self.store.register_agent(**agent)
         if hook_install is not None:
             registered["hook_install"] = hook_install
-            registered["hook"] = hook_configuration(registered["agent_id"], database_path=self.store.database_path)
+        registered["hook"] = hook_configuration(registered["agent_id"], database_path=self.store.database_path)
         return registered
 
     def disable_agent(self, agent_id: str) -> dict[str, Any]:

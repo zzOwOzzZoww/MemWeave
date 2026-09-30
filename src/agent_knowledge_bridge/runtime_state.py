@@ -150,22 +150,51 @@ def database_path() -> Path:
     return repo if repo.exists() else (memweave_home() / "data" / REPO_DATABASE_NAME).resolve()
 
 
-def project_key(default: str = "claude-codex-mvp", *, cwd: str = '') -> str:
-    """Resolve the shared project key: env, then newest state, then default."""
+def agent_shared_project(agent: str, *, config: dict[str, Any] | None = None,
+                         default: str = 'claude-codex-mvp') -> str:
+    """Read persisted global scope, independent of this process's env/cwd."""
+    if config is None:
+        path = memweave_home() / 'config.json'
+        config = json.loads(path.read_text(encoding='utf-8-sig')) if path.is_file() else {}
+    if not isinstance(config, dict) or not isinstance(config.get('agent_projects', {}), dict):
+        raise ValueError('MemWeave project configuration and agent_projects must be objects')
+    projects = config.get('agent_projects', {})
+    value = projects[agent] if agent in projects else config.get('default_project')
+    if agent in projects or 'default_project' in config:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError('MemWeave Agent shared project must be a non-empty string')
+        return value.strip()
+    for state in read_runtime_states():
+        value = state.get('project_key')
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return default
+
+
+def project_key(default: str = "claude-codex-mvp", *, cwd: str = '', agent: str | None = None) -> str:
+    """Resolve env, explicit workspace mapping, then the Agent's global pool.
+
+    An Agent-wide project is an explicit shared pool, not permission to search
+    every project. Workspace mappings can opt individual directories out.
+    """
     for name in PROJECT_KEY_VARIABLES:
         value = os.getenv(name)
         if value and value.strip():
             return value.strip()
+    config_path = memweave_home() / 'config.json'
+    config = json.loads(config_path.read_text(encoding='utf-8-sig')) if config_path.exists() else {}
+    if not isinstance(config, dict):
+        raise ValueError('MemWeave project configuration must be an object')
     if cwd:
-        import hashlib
-        from .paths import memweave_home
         path = Path(cwd).expanduser().resolve()
-        config_path = memweave_home() / 'config.json'
-        config = json.loads(config_path.read_text(encoding='utf-8-sig')) if config_path.exists() else {}
         mappings = config.get('workspace_projects', {})
         for root, key in sorted(mappings.items(), key=lambda pair: len(pair[0]), reverse=True):
             if path.is_relative_to(Path(root).resolve()):
                 return key
+    if agent:
+        return agent_shared_project(agent, config=config, default=default)
+    if cwd and not agent:
+        import hashlib
         root = next((p for p in (path, *path.parents) if (p / '.git').exists()), path)
         canonical = os.path.normcase(str(root))
         return 'workspace-' + hashlib.sha256(canonical.encode('utf-8')).hexdigest()[:20]

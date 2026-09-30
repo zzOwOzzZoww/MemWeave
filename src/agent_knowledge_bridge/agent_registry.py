@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import shutil
 import json
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -116,6 +117,39 @@ def _expand(value: str) -> Path:
     return Path(os.path.expandvars(value)).expanduser()
 
 
+def _agent_home(agent_id: str) -> Path:
+    variable = 'CLAUDE_CONFIG_DIR' if agent_id == 'claude-code' else 'CODEX_HOME'
+    return _expand(os.getenv(variable) or ('~/.claude' if agent_id == 'claude-code' else '~/.codex'))
+
+
+def configure_agent_scope(agent_id: str) -> dict[str, Any]:
+    """Persist an Agent-wide pool without overriding explicit isolation."""
+    from .paths import memweave_home
+    from .provider import atomic_json
+    from .runtime_state import agent_shared_project
+    path = memweave_home() / 'config.json'
+    config = json.loads(path.read_text(encoding='utf-8-sig')) if path.is_file() else {}
+    shared_project = agent_shared_project(agent_id, config=config)
+    changed = False
+    if path.is_file():
+        projects = config.setdefault('agent_projects', {})
+        if agent_id not in projects:
+            projects[agent_id] = shared_project
+            backup = path.with_name('config.json.memweave-backup')
+            if not backup.exists():
+                shutil.copy2(path, backup)
+            atomic_json(path, config)
+            changed = True
+    return {'scope': 'user-global', 'shared_project': shared_project, 'scope_changed': changed}
+
+
+def _is_memweave_hook(item: Any, marker: str) -> bool:
+    return isinstance(item, dict) and any(
+        re.search(r'(?<![\w-])' + re.escape(marker) + r'(?![\w.-])', str(item.get(key, '')))
+        for key in ('command', 'commandWindows')
+    )
+
+
 def _existing_config(pattern: str) -> Path | None:
     path = _expand(pattern)
     if "*" in path.name or "?" in path.name:
@@ -133,10 +167,14 @@ def discover_agents() -> list[dict[str, Any]]:
             (shutil.which(name) for name in spec["executables"] if shutil.which(name)),
             None,
         )
-        config_path = next(
-            (str(found) for pattern in spec["config_paths"] if (found := _existing_config(pattern))),
-            None,
-        )
+        if spec['agent_id'] in {'claude-code', 'codex'}:
+            home = _agent_home(spec['agent_id'])
+            config_path = str(home) if home.exists() else None
+        else:
+            config_path = next(
+                (str(found) for pattern in spec["config_paths"] if (found := _existing_config(pattern))),
+                None,
+            )
         evidence = []
         if executable_path:
             evidence.append("executable")
@@ -205,7 +243,7 @@ def _codex_hook_execution(database_path: Path) -> dict[str, Any]:
 
 
 def _codex_hooks_feature_enabled() -> bool:
-    config_path = _expand("~/.codex/config.toml")
+    config_path = _agent_home('codex') / 'config.toml'
     try:
         lines = config_path.read_text(encoding="utf-8-sig").splitlines()
     except OSError:
@@ -229,22 +267,25 @@ def hook_configuration(agent_id: str, *, database_path: Path | None = None) -> d
     cannot establish whether ordinary client sessions are connected.
     """
     if agent_id == "claude-code":
-        candidates = [
-            _expand("~/.claude/settings.json"),
-            _expand("~/.claude/settings.local.json"),
-        ]
+        candidates = [_agent_home(agent_id) / 'settings.json']
         marker = "claude_learning_hook.py"
     elif agent_id == "codex":
-        candidates = [_expand("~/.codex/hooks.json")]
+        candidates = [_agent_home(agent_id) / 'hooks.json']
         marker = "codex_learning_hook.py"
     else:
+        from .runtime_state import agent_shared_project
         return {
             "supported": False,
             "configured": False,
             "config_paths": [],
             "matched_paths": [],
+            "scope": "user-global",
+            "shared_project": agent_shared_project(agent_id),
         }
 
+    from .paths import memweave_home
+    from .runtime_state import agent_shared_project
+    scope = {'scope': 'user-global', 'shared_project': agent_shared_project(agent_id)}
     existing: list[str] = []
     matched: list[str] = []
     for path in candidates:
@@ -252,17 +293,34 @@ def hook_configuration(agent_id: str, *, database_path: Path | None = None) -> d
             continue
         existing.append(str(path))
         try:
-            raw = path.read_text(encoding="utf-8-sig")
-            json.loads(raw)
+            config = json.loads(path.read_text(encoding="utf-8-sig"))
         except (OSError, UnicodeError, json.JSONDecodeError):
             continue
-        if marker in raw:
+        hooks = config.get('hooks', {}) if isinstance(config, dict) else {}
+        valid = isinstance(config, dict) and isinstance(hooks, dict) and not config.get('disableAllHooks', False)
+        launcher = memweave_home() / 'launchers' / marker
+        for event in ('UserPromptSubmit', 'Stop'):
+            entries = hooks.get(event, []) if isinstance(hooks, dict) else []
+            matches = [(group, item) for group in entries if isinstance(group, dict)
+                       and isinstance(group.get('hooks'), list)
+                       for item in group['hooks'] if _is_memweave_hook(item, marker)] if isinstance(entries, list) else []
+            if len(matches) != 1:
+                valid = False
+                continue
+            group, item = matches[0]
+            commands = [str(item.get('command', '')), str(item.get('commandWindows', item.get('command', '')))]
+            valid = valid and group.get('matcher', '') in ('', '*') and item.get('type') == 'command' \
+                and item.get('async', False) is False and 'shell' not in item and 'timeoutSec' not in item \
+                and launcher.is_file() and all(str(launcher) in command and '--workspace' not in command
+                                               and '--project' not in command for command in commands)
+        if valid:
             matched.append(str(path))
     configuration = {
         "supported": True,
         "configured": bool(matched),
         "config_paths": existing,
         "matched_paths": matched,
+        **scope,
     }
     if agent_id == "codex":
         configuration["feature_enabled"] = _codex_hooks_feature_enabled()
@@ -282,7 +340,7 @@ def install_native_hook(agent_id: str, *, config_path: Path | None = None) -> di
     if agent_id not in {"claude-code", "codex"}:
         raise ValueError(f"Agent {agent_id} has no maintained native Hook adapter")
     if config_path is None:
-        config_path = _expand("~/.claude/settings.json" if agent_id == "claude-code" else "~/.codex/hooks.json")
+        config_path = _agent_home(agent_id) / ('settings.json' if agent_id == 'claude-code' else 'hooks.json')
     config_path = config_path.expanduser().resolve()
     marker = "claude_learning_hook.py" if agent_id == "claude-code" else "codex_learning_hook.py"
     from .paths import memweave_home
@@ -353,49 +411,28 @@ def install_native_hook(agent_id: str, *, config_path: Path | None = None) -> di
         entries = hooks.setdefault(event, [])
         if not isinstance(entries, list):
             raise RuntimeError(f"Agent 配置中的 {event} 不是数组: {config_path}")
-        existing = next((entry for entry in entries if isinstance(entry, dict) and isinstance(entry.get("hooks"), list)), None)
-        if existing is None:
-            existing = {"matcher": "", "hooks": []}
-            entries.append(existing)
-            changed = True
-        matching = [item for item in existing["hooks"] if isinstance(item, dict) and marker in str(item.get("command", ""))]
-        if matching:
-            for item in matching:
-                if item.get("command") != command or item.get("commandWindows") != command:
-                    item["command"] = command
-                    item["commandWindows"] = command
-                    changed = True
-        else:
-            existing["hooks"].append(dict(hook, statusMessage=(
-                "MemWeave is recalling validated knowledge" if event == "UserPromptSubmit"
-                else "MemWeave is reviewing this turn"
-            )))
-            changed = True
-        # Codex 0.155+ rejects the old timeoutSec spelling and requires a
-        # synchronous command hook for context injection.  Normalize existing
-        # MemWeave entries too, so clicking “加入 MemWeave” repairs old installs.
-        for item in existing["hooks"]:
-            if not isinstance(item, dict) or marker not in str(item.get("command", "")):
+        # Remove only our entries from every group, including conditional and
+        # duplicate legacy installs. Other tools retain their matchers and order.
+        cleaned = []
+        for entry in entries:
+            if not isinstance(entry, dict) or not isinstance(entry.get('hooks'), list):
+                cleaned.append(entry)
                 continue
-            desired_timeout = 30 if agent_id == "codex" and event == "UserPromptSubmit" else 120
-            if item.get("timeout") != desired_timeout:
-                item["timeout"] = desired_timeout
-                changed = True
-            if "timeoutSec" in item:
-                item.pop("timeoutSec", None)
-                changed = True
-            # Both agents stay synchronous.  This used to normalize claude-code
-            # back to ``True``, contradicting the ``"async": False`` set above:
-            # a fresh install was correct, but clicking “加入 MemWeave” a second
-            # time silently made recall asynchronous, so the retrieved context
-            # reached the trace tables and never reached the model.
-            if item.get("async") is not False:
-                item["async"] = False
-                changed = True
-            # Repair the broken PowerShell installation older versions wrote.
-            if "shell" in item:
-                item.pop("shell", None)
-                changed = True
+            remaining = [item for item in entry['hooks'] if not _is_memweave_hook(item, marker)]
+            if remaining or remaining == entry['hooks']:
+                cleaned.append({**entry, 'hooks': remaining})
+        existing = next((entry for entry in cleaned if isinstance(entry, dict)
+                         and entry.get('matcher', '') == '' and isinstance(entry.get('hooks'), list)), None)
+        if existing is None:
+            existing = {'matcher': '', 'hooks': []}
+            cleaned.append(existing)
+        existing['hooks'].append(dict(hook,
+            timeout=30 if agent_id == 'codex' and event == 'UserPromptSubmit' else 120,
+            statusMessage='MemWeave is recalling validated knowledge' if event == 'UserPromptSubmit'
+            else 'MemWeave is reviewing this turn'))
+        if cleaned != entries:
+            hooks[event] = cleaned
+            changed = True
     if changed:
         config_path.parent.mkdir(parents=True, exist_ok=True)
         if config_path.exists():
@@ -413,12 +450,14 @@ def install_native_hook(agent_id: str, *, config_path: Path | None = None) -> di
     feature_result = None
     if agent_id == "codex":
         feature_result = _enable_codex_hooks_feature()
+    scope = configure_agent_scope(agent_id)
     return {
-        "configured": True,
+        "configured": not config.get('disableAllHooks', False),
         "changed": changed,
         "config_path": str(config_path),
         "backup_path": str(config_path.with_name(f"{config_path.name}.memweave-backup")) if changed else None,
         "feature": feature_result,
+        **scope,
     }
 
 
@@ -429,7 +468,7 @@ def _enable_codex_hooks_feature() -> dict[str, Any]:
     is false. Keep this update additive and create a timestamp-free backup only
     once, matching the hook configuration install behavior.
     """
-    config_path = _expand("~/.codex/config.toml")
+    config_path = _agent_home('codex') / 'config.toml'
     try:
         text = config_path.read_text(encoding="utf-8-sig") if config_path.exists() else ""
     except OSError as exc:

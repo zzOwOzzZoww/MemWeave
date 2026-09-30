@@ -13,7 +13,7 @@ class MemWeaveRuntimeClient:
         base_url: str,
         token: str,
         agent_id: str,
-        project_key: str,
+        project_key: str | None = None,
         timeout: float = 120.0,
     ) -> None:
         if not base_url.strip():
@@ -23,6 +23,12 @@ class MemWeaveRuntimeClient:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.agent_id = agent_id
+        self._automatic_project = project_key is None
+        if project_key is None:
+            from .runtime_state import project_key as resolve_project
+            project_key = resolve_project(agent=agent_id)
+        if not project_key.strip():
+            raise ValueError('project_key must be non-empty')
         self.project_key = project_key
         self.timeout = timeout
 
@@ -30,7 +36,7 @@ class MemWeaveRuntimeClient:
         return self._post(
             "/v1/learning/recall",
             {
-                **self._context(),
+                **self._context(cwd=cwd),
                 "session_id": session_id,
                 "turn_id": turn_id,
                 "cwd": cwd,
@@ -51,7 +57,7 @@ class MemWeaveRuntimeClient:
         return self._post(
             "/v1/learning/turn",
             {
-                **self._context(),
+                **self._context(cwd=cwd),
                 "session_id": session_id,
                 "turn_id": turn_id,
                 "cwd": cwd,
@@ -61,7 +67,7 @@ class MemWeaveRuntimeClient:
         )
 
     def enqueue_learning(self, **turn: Any) -> dict[str, Any]:
-        return self._post('/v1/learning/queue', {**self._context(), **turn})
+        return self._post('/v1/learning/queue', {**self._context(cwd=str(turn.get('cwd') or '')), **turn})
 
     def search(self, query: str, limit: int = 5) -> dict[str, Any]:
         return self._post(
@@ -120,8 +126,12 @@ class MemWeaveRuntimeClient:
     def disable_agent(self, agent_id: str) -> dict[str, Any]:
         return self._post("/v1/agents/disable", {"agent_id": agent_id})
 
-    def _context(self) -> dict[str, str]:
-        return {"agent_id": self.agent_id, "project_key": self.project_key}
+    def _context(self, *, cwd: str = '') -> dict[str, str]:
+        project = self.project_key
+        if self._automatic_project and cwd:
+            from .runtime_state import project_key as resolve_project
+            project = resolve_project(agent=self.agent_id, cwd=cwd)
+        return {"agent_id": self.agent_id, "project_key": project}
 
     def _post(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", path, payload)

@@ -57,40 +57,9 @@ MemWeave 想做的是一个小而完整的闭环：
 
 ## 架构与数据流
 
-```mermaid
-flowchart LR
-    CC[Claude Code Hook] --> RT[本地 Runtime API]
-    CX[Codex Hook] --> RT
-    UI[CLI / Web] --> RT
-    MCP[可选 MCP] -.-> RT
+![MemWeave 架构：Agent 接入、证据准入、DBSA 召回仲裁与 LFHV 归档恢复](docs/assets/memweave-architecture.zh.svg)
 
-    subgraph WRITE[写入与治理]
-        RT --> CAP[增量捕获]
-        CAP --> CAND[Candidate 候选]
-        CAND --> VERIFY{人工确认或客观证据?}
-        VERIFY -- 通过 --> ACTIVE[Active 可召回]
-        VERIFY -- 未通过 --> HOLD[保留候选或拒绝]
-        ACTIVE --> STALE[stale 低活跃]
-        STALE --> ARCHIVED[archived 已归档]
-        ACTIVE --> RETIRED[replaced / removed]
-    end
-
-    subgraph READ[检索与注入]
-        QUERY[当前问题] --> FTS[SQLite FTS5 / BM25]
-        QUERY -. 主检索仍有空位 .-> LFHV[LFHV 归档反事实检索]
-        FTS --> GATE[项目范围 + 状态 + 证据 + 相关性仲裁]
-        ARCHIVED --> LFHV
-        LFHV --> GATE
-        GATE --> HIT{存在可靠相关知识?}
-        HIT -- 是 --> INJECT[注入 Agent 上下文]
-        HIT -- 否 --> ZERO[返回零结果，不注入噪声]
-        INJECT --> COMMIT[提交 trace、命中与恢复]
-    end
-
-    ACTIVE --> FTS
-    STALE --> FTS
-    COMMIT -. LFHV 记录同事务恢复 .-> ACTIVE
-```
+**DBSA 四路召回**：Direct 直接命中、Bridge 术语桥接、Sibling 同主题扩展、Anchor 锚点补充；所有路径都要通过统一仲裁，检索到不等于可以注入。
 
 检索热路径不调用模型，主要使用 SQLite FTS5/BM25，再做有限的中英文术语桥接、同主题扩展和证据门禁。它不是通用语义搜索引擎，目标是让固定的知识治理闭环保持可解释、可审计。
 
@@ -173,6 +142,19 @@ memweave shortcut            # 修复 Windows 桌面入口
 
 在管理页的“Agent 维护”中选择 Claude Code 或 Codex，才会安装对应的全局 Hook。安装后可能需要重启客户端。
 
+### 已安装用户升级
+
+~~~shell
+python -m pip install --upgrade --force-reinstall "git+https://github.com/zzOwOzzZoww/MemWeave.git"
+memweave ui
+~~~
+
+在“Agent 维护”中重新加入 Agent，或点击“修复接入”，补齐全局 Hook 和默认共享池配置；修改 Hook 后建议重启客户端。本次修复了因启动目录不同而拆分知识池、导致 Claude Code / Codex 无法共享知识的问题。
+
+`--force-reinstall` 用于确保同版本号的修复代码也被安装，不会清空本地知识库。
+
+未单独映射的目录使用该 Agent 配置的共享池；显式项目设置和 `workspace_projects` 映射仍可隔离。共享池不是搜索整个数据库：不同客户或需要隔离的仓库应明确配置项目映射。详见[全局接入与共享项目说明](docs/Claude全局接入与共享项目_20260930.md)。
+
 ## 知识怎么生效
 
 MemWeave 不会把“模型说过”当成“已经证实”。常见状态包括：
@@ -200,7 +182,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-截至 2026-09-29，全量测试为 **417 passed, 9 subtests passed**。隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
+截至 2026-09-30，本次提交的全量测试结果为 **467 passed**，包含全局 Hook 安装修复、跨目录共享池和显式项目隔离回归。已有隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
 
 项目目录：
 

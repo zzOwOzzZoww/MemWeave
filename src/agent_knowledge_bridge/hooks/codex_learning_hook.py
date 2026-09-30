@@ -38,7 +38,7 @@ def selected_database() -> Path:
 
 
 def selected_project(cwd: str = "") -> str:
-    return runtime_state.project_key(cwd=cwd)
+    return runtime_state.project_key(cwd=cwd, agent=selected_agent())
 
 
 def selected_agent() -> str:

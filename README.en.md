@@ -57,40 +57,9 @@ As a rough guide: consider Mem0 for general application memory, Letta when build
 
 ## Architecture and data flow
 
-```mermaid
-flowchart LR
-    CC[Claude Code Hook] --> RT[Local Runtime API]
-    CX[Codex Hook] --> RT
-    UI[CLI / Web] --> RT
-    MCP[Optional MCP] -.-> RT
+![MemWeave architecture: agent adapters, evidence promotion, DBSA arbitration, and LFHV archive recovery](docs/assets/memweave-architecture.en.svg)
 
-    subgraph WRITE[Capture and governance]
-        RT --> CAP[Incremental capture]
-        CAP --> CAND[Candidate]
-        CAND --> VERIFY{Human review or objective evidence?}
-        VERIFY -- Verified --> ACTIVE[Active and recallable]
-        VERIFY -- Not verified --> HOLD[Keep candidate or reject]
-        ACTIVE --> STALE[stale]
-        STALE --> ARCHIVED[archived]
-        ACTIVE --> RETIRED[replaced / removed]
-    end
-
-    subgraph READ[Retrieval and injection]
-        QUERY[Current query] --> FTS[SQLite FTS5 / BM25]
-        QUERY -. main retrieval has room .-> LFHV[LFHV counterfactual archive search]
-        FTS --> GATE[Project + status + evidence + relevance gates]
-        ARCHIVED --> LFHV
-        LFHV --> GATE
-        GATE --> HIT{Reliable relevant knowledge?}
-        HIT -- Yes --> INJECT[Inject into agent context]
-        HIT -- No --> ZERO[Return zero results; inject no noise]
-        INJECT --> COMMIT[Commit trace, hit, and restoration]
-    end
-
-    ACTIVE --> FTS
-    STALE --> FTS
-    COMMIT -. restore emitted LFHV item in the same transaction .-> ACTIVE
-```
+**DBSA retrieval**: Direct matches, Bridge term normalization, Sibling topic expansion, and Anchor support. All paths pass shared arbitration; retrieval alone does not authorize context injection.
 
 The retrieval hot path does not call a model. It starts with SQLite FTS5/BM25, then applies limited bilingual term bridges, topic expansion, and evidence gates. MemWeave is not trying to be a general-purpose semantic search engine; it is designed to keep a focused knowledge-governance loop explainable and auditable.
 
@@ -173,6 +142,19 @@ memweave shortcut            # repair the Windows desktop shortcut
 
 Use “Agent Maintenance” in the management UI to enable Claude Code or Codex. This installs the corresponding global hook, and the client may need to be restarted afterward.
 
+### Upgrade an existing installation
+
+~~~shell
+python -m pip install --upgrade --force-reinstall "git+https://github.com/zzOwOzzZoww/MemWeave.git"
+memweave ui
+~~~
+
+Re-enable the agent or select “Repair access” in Agent Maintenance to update global hooks and shared-pool configuration. Restart the client after hook changes. This update fixes directory-dependent knowledge pools that prevented Claude Code and Codex from sharing knowledge.
+
+`--force-reinstall` ensures fixes are installed even when the version number has not changed. It does not clear your local knowledge database.
+
+Unmapped directories use the agent's configured shared pool; explicit projects and `workspace_projects` mappings still provide isolation. A shared pool does not search the entire database. Map unrelated client projects or repositories explicitly. See the [global access and project-scope notes (Chinese)](docs/Claude全局接入与共享项目_20260930.md).
+
 ## When does knowledge become active?
 
 MemWeave does not treat “the model said it” as proof. Common states include:
@@ -200,7 +182,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-09-29, the full suite reports **417 passed, 9 subtests passed**. Isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI covers Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-09-30, the full suite included in this commit reports **467 passed**, including global-hook repair, cross-directory shared-pool access, and explicit project-isolation regressions. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI covers Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 

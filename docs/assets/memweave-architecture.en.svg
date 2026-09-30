@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="952" viewBox="0 0 1080 952" role="img" aria-labelledby="title desc">
+  <title id="title">MemWeave: shared memory and governance for coding agents</title>
+  <desc id="desc">Native hooks and optional gateways connect to the local Runtime. Candidates require verification before activation. DBSA retrieval passes shared arbitration gates before context injection or zero recall. LFHV checks archives and restores only records actually emitted, atomically with hit accounting and trace.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#7b8794" stroke-width="1.5"/></marker>
+    <marker id="green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#168578" stroke-width="1.5"/></marker>
+    <style>
+      text{font-family:Arial,sans-serif;fill:#24313b;letter-spacing:0}
+      .heading{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#566774}
+      .label{font-size:16px;font-weight:700;fill:#168578}.line{fill:none;stroke:#7b8794;stroke-width:1.7;marker-end:url(#arrow)}
+      .feedback{fill:none;stroke:#168578;stroke-width:1.8;stroke-dasharray:6 5;marker-end:url(#green)}
+    </style>
+  </defs>
+  <rect width="1080" height="952" rx="8" fill="#ffffff"/>
+  <path d="M0 0H1080V8H0Z" fill="#168578"/>
+  <text x="40" y="60" font-size="34" font-weight="700">MemWeave</text>
+  <text x="260" y="59" font-size="22" fill="#566774">Share verified knowledge. Make forgetting reversible.</text>
+  <text x="40" y="91" class="small">Local first · Keep existing agents · No model calls in the retrieval hot path</text>
+  <g fill="#f5f7f9" stroke="#d7dfe5">
+    <rect x="40" y="120" width="300" height="66" rx="6"/>
+    <rect x="390" y="120" width="300" height="66" rx="6"/>
+    <rect x="740" y="120" width="300" height="66" rx="6"/>
+  </g>
+  <text x="190" y="148" class="heading" text-anchor="middle">Claude Code / Codex</text>
+  <text x="190" y="173" class="small" text-anchor="middle">Native session hooks</text>
+  <text x="540" y="148" class="heading" text-anchor="middle">CLI / Web dashboard</text>
+  <text x="540" y="173" class="small" text-anchor="middle">Review, governance, agent setup</text>
+  <text x="890" y="148" class="heading" text-anchor="middle">Runtime API / optional MCP</text>
+  <text x="890" y="173" class="small" text-anchor="middle">Adapters; Core is independent of MCP</text>
+  <path class="line" d="M190 186V209"/><path class="line" d="M540 186V209"/><path class="line" d="M890 186V209"/>
+  <rect x="40" y="216" width="1000" height="60" rx="6" fill="#24313b"/>
+  <text x="65" y="252" font-size="21" font-weight="700" style="fill:#ffffff">Local Runtime API</text>
+  <text x="350" y="252" class="body" style="fill:#e4edf0">Shared pools / explicit project isolation · Source sessions · Evidence · Traces</text>
+  <text x="40" y="322" class="label">01 / EVIDENCE FIRST</text>
+  <text x="270" y="322" class="small">Unverified candidates cannot enter normal recall.</text>
+  <g fill="#f0faf6" stroke="#b9dace">
+    <rect x="40" y="343" width="300" height="105" rx="6"/>
+    <rect x="390" y="343" width="300" height="105" rx="6"/>
+    <rect x="740" y="343" width="300" height="105" rx="6"/>
+  </g>
+  <text x="62" y="376" class="heading">Capture → Candidate</text>
+  <text x="62" y="405" class="body">Extract potentially reusable notes</text>
+  <text x="62" y="429" class="small">Preserve project, agent and session</text>
+  <text x="412" y="376" class="heading">Review / evidence</text>
+  <text x="412" y="405" class="body">Promote only after verification</text>
+  <text x="412" y="429" class="small">Otherwise: keep candidate or reject</text>
+  <text x="762" y="376" class="heading">Active · verified notes</text>
+  <text x="762" y="405" class="body">Local SQLite WAL / FTS5 storage</text>
+  <text x="762" y="429" class="small">stale can be recalled; archives stay out</text>
+  <path class="line" d="M341 395H383"/><path class="line" d="M691 395H733"/>
+  <path class="line" d="M890 448V474H20V626H33"/>
+  <text x="40" y="515" class="label">02 / QUERY-DRIVEN RECALL</text>
+  <text x="390" y="515" class="small">Current query + verified knowledge → controlled context</text>
+  <rect x="40" y="542" width="300" height="168" rx="6" fill="#f5f7f9" stroke="#d7dfe5"/>
+  <text x="62" y="574" class="heading">DBSA · four retrieval paths</text>
+  <text x="62" y="602" class="small">SQLite FTS5 / BM25</text>
+  <text x="62" y="634" class="body">D  Direct · lexical matches</text>
+  <text x="62" y="657" class="body">B  Bridge · term normalization</text>
+  <text x="62" y="680" class="body">S  Sibling · same-topic expansion</text>
+  <text x="62" y="703" class="body">A  Anchor · supporting anchors</text>
+  <rect x="390" y="542" width="300" height="168" rx="6" fill="#eef7fa" stroke="#bcd6df"/>
+  <text x="412" y="574" class="heading">Shared arbitration gates</text>
+  <text x="412" y="610" class="body">Project / lifecycle / version</text>
+  <text x="412" y="640" class="body">Evidence / query relevance</text>
+  <text x="412" y="670" class="body">Context budget / deduplication</text>
+  <text x="412" y="698" class="small">A retrieval candidate is not yet context.</text>
+  <path class="line" d="M341 626H383"/>
+  <rect x="740" y="542" width="300" height="76" rx="6" fill="#f0faf6" stroke="#b9dace"/>
+  <text x="762" y="574" class="heading">Relevant → agent context</text>
+  <text x="762" y="603" class="small">Track actual output and reuse traces</text>
+  <rect x="740" y="634" width="300" height="76" rx="6" fill="#fff8ee" stroke="#e9d3b2"/>
+  <text x="762" y="666" class="heading">No match → zero recall</text>
+  <text x="762" y="695" class="small">No forced matches. No noise injection.</text>
+  <path class="line" d="M690 626H715V580H733"/><path class="line" d="M715 626V672H733"/>
+  <text x="40" y="765" class="label">03 / LFHV · TESTABLE FORGETTING</text>
+  <text x="440" y="765" class="small">Lost Future Hit Value</text>
+  <g fill="#f5f7f9" stroke="#d7dfe5">
+    <rect x="40" y="785" width="300" height="104" rx="6"/>
+    <rect x="390" y="785" width="300" height="104" rx="6"/>
+    <rect x="740" y="785" width="300" height="104" rx="6"/>
+  </g>
+  <text x="62" y="819" class="heading">Archived · retain history</text>
+  <text x="62" y="849" class="body">Retirement is not permanent loss</text>
+  <text x="62" y="875" class="small">Quarantined / replaced items stay out</text>
+  <text x="412" y="819" class="heading">On-demand archive check</text>
+  <text x="412" y="849" class="body">Probe when normal recall has room</text>
+  <text x="412" y="875" class="small">Recheck the same gates and budget</text>
+  <text x="762" y="819" class="heading">Emit first, then restore</text>
+  <text x="762" y="849" class="body">Active + hit accounting + trace</text>
+  <text x="762" y="875" class="small">Atomic commit; no output, no recovery</text>
+  <path class="line" d="M341 837H383"/>
+  <path class="feedback" d="M650 785V717"/>
+  <path class="feedback" d="M691 837H733"/>
+  <path d="M40 913H1040" stroke="#e4e9ed"/>
+  <text x="40" y="938" class="small">Evidence enables activation · Gates control injection · Actual reuse enables restoration</text>
+  <text x="1040" y="938" class="small" text-anchor="end">MemWeave / local governance</text>
+</svg>

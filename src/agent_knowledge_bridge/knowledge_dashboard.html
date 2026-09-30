@@ -1972,10 +1972,11 @@
     }
     .agent-table th:nth-child(1) { width: 16%; }
     .agent-table th:nth-child(2) { width: 24%; }
-    .agent-table th:nth-child(3) { width: 16%; }
+    .agent-table th:nth-child(3) { width: 14%; }
     .agent-table th:nth-child(4) { width: 15%; }
-    .agent-table th:nth-child(5) { width: 21%; }
-    .agent-table th:nth-child(6) { width: 8%; }
+    .agent-table th:nth-child(5) { width: 18%; }
+    .agent-table th:nth-child(6) { width: 13%; }
+    .agent-table td:nth-child(6) .small-button { display: block; max-width: 100%; margin-bottom: 6px; }
     .agent-table td:nth-child(2) .badge { max-width: 100%; white-space: normal; }
 
     .styled-select { position: relative; min-width: 0; width: 100%; }
@@ -2732,7 +2733,7 @@
     const detectionLabel = item => {
       if (!item.enabled) return '已停用';
       if (connectionNeedsRepair(item)) return '接入待修复';
-      return isNativeHook(item) ? '已接入' : '已登记';
+      return isNativeHook(item) ? (item.hook?.execution?.observed ? '已记录执行' : '已配置') : '已登记';
     };
     const detectionKind = item => {
       if (!item.enabled) return 'none';
@@ -2742,10 +2743,9 @@
     const connectionDetail = item => {
       if (!item.enabled) return '不参与默认共享';
       if (!isNativeHook(item)) return item.installed ? '等待客户端适配器调用 Runtime' : '未检测到本机安装';
-      if (!item.hook?.configured) return '全局 Hook 未配置';
+      if (!item.hook?.configured) return '全局 Hook 缺失、受限或被禁用';
       if (item.adapter_type === 'codex-hook' && item.hook?.feature_enabled === false) return 'Codex Hook 功能未启用';
-      if (!item.hook?.execution) return '全局 Hook 已配置';
-      return item.hook?.execution?.observed ? '全局 Hook 已配置 · 已记录执行' : '全局 Hook 已配置 · 执行证据待确认';
+      return item.hook?.execution?.observed ? '用户全局 Hook · 已记录执行' : '用户全局 Hook · 执行证据待确认';
     };
 
     function fillAgentForm(item) {
@@ -2817,12 +2817,30 @@
         const evidence = item.detected_by?.length ? item.detected_by.join('、') : '无探测证据';
         const hookPath = item.hook?.matched_paths?.[0] || '';
         row.innerHTML = `<td><span class="agent-name">${escapeHtml(item.display_name)}</span><span class="agent-id">${escapeHtml(item.agent_id)}</span></td>
-          <td>${badge(detectionLabel(item), detectionKind(item))}<div class="knowledge-meta">${escapeHtml(connectionDetail(item))}</div><div class="knowledge-meta">${escapeHtml(evidence)}</div>${hookPath ? `<div class="knowledge-meta">Hook ${escapeHtml(hookPath)}</div>` : ''}</td>
+          <td>${badge(detectionLabel(item), detectionKind(item))}<div class="knowledge-meta">${escapeHtml(connectionDetail(item))}</div><div class="knowledge-meta">默认共享池：${escapeHtml(item.hook?.shared_project || '未配置')}</div><div class="knowledge-meta">${escapeHtml(evidence)}</div>${hookPath ? `<div class="knowledge-meta">Hook ${escapeHtml(hookPath)}</div>` : ''}</td>
           <td>${escapeHtml(adapterLabel(item.adapter_type))}</td>
           <td>${escapeHtml((item.capabilities || []).join('、') || '未声明')}</td>
           <td>${escapeHtml(learningLabel(item))}<div class="knowledge-meta">${escapeHtml(item.learning?.completed_at || item.learning?.created_at ? new Date(item.learning.completed_at || item.learning.created_at).toLocaleString() : (item.last_checked_at ? new Date(item.last_checked_at).toLocaleString() : '从未检测'))}</div></td>
-          <td><button type="button" class="small-button danger-button" data-disable-agent="${escapeHtml(item.agent_id)}">停用</button></td>`;
+          <td>${isNativeHook(item) && item.enabled ? `<button type="button" class="small-button" data-repair-agent="${escapeHtml(item.agent_id)}">修复接入</button>` : ''}<button type="button" class="small-button danger-button" data-disable-agent="${escapeHtml(item.agent_id)}">停用</button></td>`;
         body.appendChild(row);
+      });
+      body.querySelectorAll('[data-repair-agent]').forEach(button => {
+        button.addEventListener('click', async event => {
+          event.stopPropagation();
+          const item = items.find(agent => agent.agent_id === button.dataset.repairAgent);
+          button.disabled = true;
+          try {
+            await post('/v1/agents/register', {
+              agent_id: item.agent_id, display_name: item.display_name, adapter_type: item.adapter_type,
+              installed: item.installed, detected_by: item.detected_by || [],
+              executable_path: item.executable_path, config_path: item.config_path,
+              capabilities: item.capabilities || ['shared-knowledge']
+            });
+            showToast(`已更新 ${item.display_name} 的全局接入配置`);
+            await loadAgents();
+          } catch (error) { showError(error.message); }
+          finally { button.disabled = false; }
+        });
       });
       body.querySelectorAll('[data-disable-agent]').forEach(button => {
         button.addEventListener('click', async event => {

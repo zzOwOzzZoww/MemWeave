@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="952" viewBox="0 0 1080 952" role="img" aria-labelledby="title desc">
+  <title id="title">MemWeave：跨 Agent 共享记忆与治理闭环</title>
+  <desc id="desc">Claude Code、Codex 和可选入口连接本地 Runtime。增量捕获的候选需经证据验证才可生效。DBSA 四路召回经过范围、证据和相关性仲裁，输出上下文或零结果。LFHV 检查归档知识，只有实际注入后才在同一事务恢复。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#7b8794" stroke-width="1.5"/></marker>
+    <marker id="green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#168578" stroke-width="1.5"/></marker>
+    <style>
+      text{font-family:Arial,'Microsoft YaHei','Noto Sans CJK SC',sans-serif;fill:#24313b;letter-spacing:0}
+      .heading{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#566774}
+      .label{font-size:16px;font-weight:700;fill:#168578}.line{fill:none;stroke:#7b8794;stroke-width:1.7;marker-end:url(#arrow)}
+      .feedback{fill:none;stroke:#168578;stroke-width:1.8;stroke-dasharray:6 5;marker-end:url(#green)}
+    </style>
+  </defs>
+  <rect width="1080" height="952" rx="8" fill="#ffffff"/>
+  <path d="M0 0H1080V8H0Z" fill="#168578"/>
+  <text x="40" y="60" font-size="34" font-weight="700">MemWeave</text>
+  <text x="260" y="59" font-size="22" fill="#566774">共享已验证知识，让遗忘可检查、可撤销</text>
+  <text x="40" y="91" class="small">本地优先 · 不替换现有 Agent · 检索热路径不调用模型</text>
+
+  <g fill="#f5f7f9" stroke="#d7dfe5">
+    <rect x="40" y="120" width="300" height="66" rx="6"/>
+    <rect x="390" y="120" width="300" height="66" rx="6"/>
+    <rect x="740" y="120" width="300" height="66" rx="6"/>
+  </g>
+  <text x="190" y="148" class="heading" text-anchor="middle">Claude Code / Codex</text>
+  <text x="190" y="173" class="small" text-anchor="middle">原生会话 Hook</text>
+  <text x="540" y="148" class="heading" text-anchor="middle">CLI / Web 管理页</text>
+  <text x="540" y="173" class="small" text-anchor="middle">审核、治理与接入维护</text>
+  <text x="890" y="148" class="heading" text-anchor="middle">Runtime API / 可选 MCP</text>
+  <text x="890" y="173" class="small" text-anchor="middle">Adapter 接入；Core 不依赖 MCP</text>
+  <path class="line" d="M190 186V209"/><path class="line" d="M540 186V209"/><path class="line" d="M890 186V209"/>
+  <rect x="40" y="216" width="1000" height="60" rx="6" fill="#24313b"/>
+  <text x="65" y="252" font-size="21" font-weight="700" style="fill:#ffffff">本地 Runtime API</text>
+  <text x="350" y="252" class="body" style="fill:#e4edf0">共享池 / 显式项目隔离 · 来源会话 · 证据引用 · 复用 Trace</text>
+
+  <text x="40" y="322" class="label">01 / 证据准入</text>
+  <text x="235" y="322" class="small">未经验证的候选，不进入日常召回</text>
+  <g fill="#f0faf6" stroke="#b9dace">
+    <rect x="40" y="343" width="300" height="105" rx="6"/>
+    <rect x="390" y="343" width="300" height="105" rx="6"/>
+    <rect x="740" y="343" width="300" height="105" rx="6"/>
+  </g>
+  <text x="62" y="376" class="heading">增量捕获 → Candidate</text>
+  <text x="62" y="405" class="body">提炼可能复用的知识</text>
+  <text x="62" y="429" class="small">保留项目、Agent 与会话来源</text>
+  <text x="412" y="376" class="heading">人工确认 / 客观证据</text>
+  <text x="412" y="405" class="body">验证后才允许晋升</text>
+  <text x="412" y="429" class="small">未通过：保留候选或拒绝</text>
+  <text x="762" y="376" class="heading">Active · 可复用知识</text>
+  <text x="762" y="405" class="body">SQLite WAL / FTS5 本地存储</text>
+  <text x="762" y="429" class="small">stale 可召回；归档不默认注入</text>
+  <path class="line" d="M341 395H383"/><path class="line" d="M691 395H733"/>
+  <path class="line" d="M890 448V474H20V626H33"/>
+
+  <text x="40" y="515" class="label">02 / 问题驱动的召回与仲裁</text>
+  <text x="390" y="515" class="small">当前问题 + 已验证知识 → 受控上下文</text>
+  <rect x="40" y="542" width="300" height="168" rx="6" fill="#f5f7f9" stroke="#d7dfe5"/>
+  <text x="62" y="574" class="heading">DBSA · 四路召回</text>
+  <text x="62" y="602" class="small">SQLite FTS5 / BM25</text>
+  <text x="62" y="634" class="body">D  Direct · 直接命中</text>
+  <text x="62" y="657" class="body">B  Bridge · 术语桥接</text>
+  <text x="62" y="680" class="body">S  Sibling · 同主题扩展</text>
+  <text x="62" y="703" class="body">A  Anchor · 锚点补充</text>
+  <rect x="390" y="542" width="300" height="168" rx="6" fill="#eef7fa" stroke="#bcd6df"/>
+  <text x="412" y="574" class="heading">统一仲裁门禁</text>
+  <text x="412" y="610" class="body">项目范围 / 生命周期 / 版本</text>
+  <text x="412" y="640" class="body">已有证据 / 问题相关性</text>
+  <text x="412" y="670" class="body">上下文预算 / 去重</text>
+  <text x="412" y="698" class="small">检索候选不等于可以注入</text>
+  <path class="line" d="M341 626H383"/>
+  <rect x="740" y="542" width="300" height="76" rx="6" fill="#f0faf6" stroke="#b9dace"/>
+  <text x="762" y="574" class="heading">相关 → 注入 Agent 上下文</text>
+  <text x="762" y="603" class="small">记录真实输出与复用 Trace</text>
+  <rect x="740" y="634" width="300" height="76" rx="6" fill="#fff8ee" stroke="#e9d3b2"/>
+  <text x="762" y="666" class="heading">无可靠结果 → 零召回</text>
+  <text x="762" y="695" class="small">不强塞相似片段，不注入噪声</text>
+  <path class="line" d="M690 626H715V580H733"/><path class="line" d="M715 626V672H733"/>
+
+  <text x="40" y="765" class="label">03 / LFHV · 让遗忘可证伪</text>
+  <text x="390" y="765" class="small">Lost Future Hit Value</text>
+  <g fill="#f5f7f9" stroke="#d7dfe5">
+    <rect x="40" y="785" width="300" height="104" rx="6"/>
+    <rect x="390" y="785" width="300" height="104" rx="6"/>
+    <rect x="740" y="785" width="300" height="104" rx="6"/>
+  </g>
+  <text x="62" y="819" class="heading">Archived · 保留历史</text>
+  <text x="62" y="849" class="body">退役不等于永久遗忘</text>
+  <text x="62" y="875" class="small">隔离 / 已替代内容不走恢复路径</text>
+  <text x="412" y="819" class="heading">按需检查归档知识</text>
+  <text x="412" y="849" class="body">普通召回有空位时探测</text>
+  <text x="412" y="875" class="small">重新通过同一套仲裁与预算检查</text>
+  <text x="762" y="819" class="heading">实际注入后，原子恢复</text>
+  <text x="762" y="849" class="body">Active + 命中计数 + Trace</text>
+  <text x="762" y="875" class="small">同一事务提交；未输出则不恢复</text>
+  <path class="line" d="M341 837H383"/>
+  <path class="feedback" d="M650 785V717"/>
+  <path class="feedback" d="M691 837H733"/>
+  <path d="M40 913H1040" stroke="#e4e9ed"/>
+  <text x="40" y="938" class="small">证据决定能否生效 · 仲裁决定是否注入 · 实际复用决定是否恢复</text>
+  <text x="1040" y="938" class="small" text-anchor="end">MemWeave / 本地治理闭环</text>
+</svg>
