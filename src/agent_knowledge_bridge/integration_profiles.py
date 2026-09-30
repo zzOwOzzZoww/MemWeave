@@ -99,6 +99,10 @@ PROFILES = {
         bind_transcript_boundary=True, launcher="gemini_learning_hook.py", config_file="settings.json",
         config_home="~/.gemini", home_env="GEMINI_CLI_HOME", home_subdir=".gemini",
         fields={**STANDARD_FIELDS, "last_assistant_message": "prompt_response"}, hook_protocol="gemini-json"),
+    "workbuddy": IntegrationProfile("workbuddy", "UserPromptSubmit", "Stop", "codebuddy",
+        bind_transcript_boundary=True, launcher="workbuddy_learning_hook.py", config_file="settings.json",
+        config_home="~/.workbuddy", home_env="WORKBUDDY_CONFIG_DIR",
+        hook_protocol="codebuddy-json", audit_suffix=".workbuddy-hook-runs.jsonl"),
 }
 
 
@@ -129,7 +133,7 @@ def parse_profile(value: Any) -> IntegrationProfile:
     if value["recall_event"] == value["learn_event"]:
         raise ValueError("recall and learn events must differ")
     selected_format = value.get("transcript_format", "auto")
-    if not isinstance(selected_format, str) or selected_format not in {"auto", "claude", "codex", "gemini"}:
+    if not isinstance(selected_format, str) or selected_format not in {"auto", "claude", "codex", "gemini", "codebuddy"}:
         raise ValueError("unsupported transcript format")
     fields = value.get("fields", {})
     if not isinstance(fields, dict) or set(fields) - set(STANDARD_FIELDS):

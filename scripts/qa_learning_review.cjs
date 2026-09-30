@@ -46,11 +46,58 @@ async function main() {
     assert.equal(bounds.bodyOverflow,false,JSON.stringify(bounds));
     assert.ok(bounds.right <= bounds.viewportWidth && bounds.bottom <= bounds.viewportHeight && bounds.footerBottom <= bounds.viewportHeight);
   };
+  const checkToast = async theme => {
+    await page.evaluate(theme => {
+      document.documentElement.setAttribute('data-theme',theme);
+      showToast('已配置 WorkBuddy 的接入，等待客户端触发执行');
+    },theme);
+    await page.waitForFunction(() => {
+      const style = getComputedStyle(document.querySelector('#toast'));
+      return Number(style.opacity) > .99 && Math.abs(new DOMMatrixReadOnly(style.transform).m42) < .1;
+    });
+    const style = await page.locator('#toast').evaluate(element => {
+      const text = element.querySelector('#toastMsg');
+      const rect = element.getBoundingClientRect();
+      const textRect = text.getBoundingClientRect();
+      return {foreground:getComputedStyle(text).color,background:getComputedStyle(element).backgroundColor,
+        left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,viewport:innerWidth,viewportHeight:innerHeight,
+        overflow:element.scrollWidth>element.clientWidth+1,
+        textLeft:textRect.left,textRight:textRect.right,textTop:textRect.top,textBottom:textRect.bottom};
+    });
+    const luminance = rgb => {
+      const values=rgb.match(/\d+/g).slice(0,3).map(value=>{
+        const x=Number(value)/255;return x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4);
+      });
+      return values[0]*.2126+values[1]*.7152+values[2]*.0722;
+    };
+    const light=luminance(style.foreground),dark=luminance(style.background);
+    assert.ok((Math.max(light,dark)+.05)/(Math.min(light,dark)+.05)>=4.5,JSON.stringify(style));
+    assert.ok(style.left>=0&&style.right<=style.viewport&&style.textLeft>=style.left&&style.textRight<=style.right);
+    assert.ok(style.top>=0&&style.bottom<=style.viewportHeight&&style.textTop>=style.top&&style.textBottom<=style.bottom);
+    assert.equal(style.overflow,false);
+    await page.locator('#toast').screenshot({path:output(`toast-${theme}.png`),animations:'disabled'});
+  };
   try {
     await page.goto(url,{waitUntil:'domcontentloaded'});
     const workbuddy = page.locator('#agentRows tr').filter({hasText:'workbuddy'});
     await workbuddy.waitFor();
     await page.waitForFunction(() => !!state.overview && !agentLoadPromise && !syncRunning);
+    assert.ok((await workbuddy.innerText()).includes('接入待修复'),'old runtime-only WorkBuddy must offer a real repair');
+    assert.equal(await workbuddy.getByRole('button',{name:'修复接入',exact:true}).count(),1);
+    await checkToast('light');
+    await page.setViewportSize({width:390,height:844});
+    await checkToast('dark');
+    await page.setViewportSize({width:1440,height:1000});
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme','light'));
+    await page.locator('#agentId').fill('unknown-fixture');
+    await page.locator('#agentName').fill('Unknown fixture');
+    await page.locator('#registerAgent').click();
+    const unknown=page.locator('#agentRows tr').filter({hasText:'unknown-fixture'});
+    await unknown.waitFor();
+    assert.ok((await unknown.innerText()).includes('已登记，未接入'));
+    await page.waitForFunction(() => document.querySelector('#toastMsg').textContent==='已登记 Unknown fixture，尚未接入自动召回和学习');
+    assert.equal(await page.locator('#toast').getAttribute('data-kind'),'warning');
+    assert.equal(await unknown.getByRole('button',{name:'修复接入',exact:true}).count(),0);
     const beforeDisable = Number(await page.locator('#connectedAgents').innerText());
     // Hold an old registry snapshot while the disable request commits.
     let captured, releaseRegistry;
@@ -83,6 +130,12 @@ async function main() {
     await workbuddyOption.click();
     await page.locator('#registerAgent').click();
     await workbuddy.waitFor();
+    await page.waitForFunction(() => state.registeredAgents.find(item=>item.agent_id==='workbuddy')?.hook?.configured===true);
+    assert.ok((await workbuddy.innerText()).includes('通用事件 Hook'));
+    assert.ok((await workbuddy.innerText()).includes('已配置'));
+    assert.ok(!(await workbuddy.innerText()).includes('已记录执行'),'configuration cannot claim live agent execution');
+    assert.equal(await workbuddy.getByRole('button',{name:'修复接入',exact:true}).count(),1);
+    await page.waitForFunction(() => document.querySelector('#toastMsg').textContent==='已配置 WorkBuddy 的接入，等待客户端触发执行');
     assert.equal(Number(await page.locator('#connectedAgents').innerText()),beforeDisable);
     // A rejected mutation must leave the enabled row intact and retryable.
     await page.route('**/v1/agents/disable', route => route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'QA disable failure'})}));
@@ -241,7 +294,8 @@ async function main() {
       originalBatchPreserved:true, emptyState:true, readFailureAutoRetry:true, lateResponseGuard:true, pagination:true,
       mobileLayout:true, desktopLayout:true, lightAndDark:true, escapedContent:true, streamReconnect:true,
       disabledAgentHidden:true, staleRegistryGuard:true, agentRejoin:true, failedDisablePreservesRow:true,
-      externalDisableAutoSync:true, emptyAgentList:true, pageErrors:errors};
+      externalDisableAutoSync:true, emptyAgentList:true, toastContrast:true, mobileToastLayout:true,
+      workbuddyUpgrade:true, honestRegistrationStatus:true, pageErrors:errors};
     fs.writeFileSync(output('report.json'),JSON.stringify(report,null,2));
     console.log(JSON.stringify(report,null,2));
   } finally { await browser.close(); }

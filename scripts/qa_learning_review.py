@@ -99,6 +99,7 @@ def main():
         url = f'http://127.0.0.1:{port}'
         env = {**os.environ, 'PYTHONUTF8':'1', 'PYTHONPATH':str(ROOT/'src'), 'MW_DB_PATH':str(database),
             'MEMWEAVE_HOME':str(temp/'home'), 'MW_DAEMON_TOKEN':token, 'MW_DAEMON_URL':url,
+            'WORKBUDDY_CONFIG_DIR':str(temp/'workbuddy'), 'CODEBUDDY_CONFIG_DIR':str(temp/'workbuddy'),
             'MW_QA_URL':url, 'MW_QA_TOKEN':token, 'MW_QA_OUTPUT':str(out),
             'MW_QA_DATABASE':str(database), 'MW_QA_PYTHON':sys.executable, 'MW_QA_FIXTURE':json.dumps(data)}
         flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0

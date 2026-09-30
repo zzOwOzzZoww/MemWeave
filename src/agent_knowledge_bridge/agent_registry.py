@@ -104,11 +104,11 @@ SUPPORTED_AGENTS: tuple[dict[str, Any], ...] = (
     },
     {
         "agent_id": "workbuddy", "display_name": "WorkBuddy",
-        "adapter_type": "runtime-api", "executables": ("workbuddy", "WorkBuddy"),
+        "adapter_type": "protocol-hook", "executables": ("workbuddy", "WorkBuddy"),
         "config_paths": (
             "%APPDATA%/WorkBuddy", "%LOCALAPPDATA%/Programs/WorkBuddy",
         ),
-        "capabilities": ("shared-knowledge",),
+        "capabilities": ("recall", "learn", "shared-knowledge"),
     },
 )
 
@@ -126,6 +126,8 @@ NATIVE_HOOKS = {
 def _agent_home(agent_id: str) -> Path:
     profile = PROFILES[agent_id]
     selected = os.getenv(profile.home_env)
+    if agent_id == 'workbuddy' and not selected:
+        selected = os.getenv('CODEBUDDY_CONFIG_DIR')
     return _expand(selected) / profile.home_subdir if selected else _expand(profile.config_home)
 
 
@@ -262,6 +264,38 @@ def _codex_hooks_feature_enabled() -> bool:
     return False
 
 
+def _workbuddy_hook_execution(database_path: Path) -> dict[str, Any]:
+    result = {"observed": False, "last_prompt_at": None, "last_stop_at": None}
+    audit = database_path.with_suffix(PROFILES['workbuddy'].audit_suffix)
+    if not audit.is_file():
+        return result
+    try:
+        with audit.open('rb') as stream:
+            stream.seek(max(0, audit.stat().st_size - 262144))
+            lines = stream.read(262144).decode('utf-8', errors='replace').splitlines()[-400:]
+        root = (_agent_home('workbuddy') / 'projects').resolve()
+        for line in reversed(lines):
+            try:
+                row = json.loads(line)
+                if not isinstance(row, dict):
+                    continue
+                transcript = Path(row.get('transcript_path') or '').resolve()
+                session = str(row.get('session_id') or '')
+                if (row.get('status') != 'completed' or row.get('agent_id') != 'workbuddy'
+                        or not session or transcript.stem != session or not transcript.is_relative_to(root)
+                        or not transcript.is_file()):
+                    continue
+                key = {'UserPromptSubmit': 'last_prompt_at', 'Stop': 'last_stop_at'}.get(row.get('event'))
+                if key and result[key] is None:
+                    result[key] = row.get('created_at')
+            except (ValueError, TypeError, OSError):
+                continue
+        result['observed'] = bool(result['last_prompt_at'])
+    except OSError:
+        pass
+    return result
+
+
 def hook_configuration(agent_id: str, *, database_path: Path | None = None) -> dict[str, Any]:
     """Inspect native configuration and its actual unified executor without writes."""
     from .runtime_state import agent_shared_project
@@ -285,6 +319,9 @@ def hook_configuration(agent_id: str, *, database_path: Path | None = None) -> d
         configuration["feature_enabled"] = _codex_hooks_feature_enabled()
         configuration["execution"] = _codex_hook_execution(
             database_path or PROJECT_ROOT / "data" / "knowledge.db")
+    elif agent_id == 'workbuddy':
+        configuration['execution'] = _workbuddy_hook_execution(
+            database_path or PROJECT_ROOT / 'data' / 'knowledge.db')
     return configuration
 
 

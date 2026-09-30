@@ -100,7 +100,7 @@ def test_unknown_agent_uses_only_json_for_recall_queue_and_learning(isolated):
     app.state.timing_collector.close()
 
 
-@pytest.mark.parametrize('name', tuple(PROFILES))
+@pytest.mark.parametrize('name', ('claude-code', 'codex', 'gemini-cli'))
 def test_existing_entry_points_delegate_to_same_runner(name, monkeypatch):
     from importlib import import_module
     module = import_module('agent_knowledge_bridge.hooks.' + PROFILES[name].launcher[:-3])

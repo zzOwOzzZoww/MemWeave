@@ -10,7 +10,7 @@ Claude、Codex、Gemini 的旧脚本保留为兼容入口，实际都调用 `hoo
 
 ### 接入方案执行接口
 
-`integration_installation.py` 为后续能力探测层提供三个接口：`prepare_hook_installation` 只读校验方案与目标配置；`install_hook_plan` 根据已确认的协议安装；`inspect_hook_plan` 只读检查安装是否匹配。支持的协议格式是 `command-json` 和 `gemini-json`，不会根据 Agent 名称猜测未知协议。
+`integration_installation.py` 为后续能力探测层提供三个接口：`prepare_hook_installation` 只读校验方案与目标配置；`install_hook_plan` 根据已确认的协议安装；`inspect_hook_plan` 只读检查安装是否匹配。支持的协议格式是 `command-json`、`gemini-json` 和 `codebuddy-json`，不会根据 Agent 名称猜测未知协议。
 
 ```python
 from pathlib import Path
@@ -30,7 +30,15 @@ installed = install_hook_plan(plan)  # Call only after the user chooses to conne
 
 安装保留其它设置和第三方 Hook，首次修改前备份，重复安装不重写未变化的文件。自定义方案保存为 MemWeave 托管副本，启动器固定使用当前安装的 Python 与 MemWeave 数据目录，从仓库外也能运行；不会在启动时执行探测脚本或模型生成的任意代码。安装时重新读取并校验目标配置，不盲信准备时的旧内容。`configured` 只说明安装匹配，不证明客户端真正触发过事件。
 
-这一轮落实的是方案执行底座，尚未实现未知 Agent 的后台能力探测与自动方案准备。WorkBuddy 等客户端仍不能仅凭登记自动接通；这里的开发接口供已确认方案或后续探测层使用，不要求普通用户自行编写适配代码。
+未知 Agent 的后台能力探测与自动方案准备仍未实现。WorkBuddy 的本机 CodeBuddy 执行内核已核对支持命令 Hook，因此现在有已确认的声明式接入方案；其它未知客户端仍不能仅凭登记自动接通。这里的开发接口供已确认方案或后续探测层使用，不要求普通用户自行编写适配代码。
+
+### WorkBuddy
+
+在管理页加入 WorkBuddy，或对旧的 Runtime-only 登记点击“修复接入”，会将 `UserPromptSubmit` 和 `Stop` 写入 `~/.workbuddy/settings.json`。目录优先使用 `WORKBUDDY_CONFIG_DIR`，其次为 `CODEBUDDY_CONFIG_DIR`。已有设置、第三方 Hook 和凭据字段原样保留，修改前备份；不会复制会话或凭据到仓库。
+
+WorkBuddy 直接调用统一执行器，不新增专属运行脚本。`codebuddy_transcript.py` 只解析有界的本地 JSONL，保留当前分支、用户轮次与工具证据；支持原生 `callId`、嵌套命令退出码，排除注入消息和推理内容。Windows 使用隐藏的 PowerShell 命令调用带标准输入输出的 Python，避免 Bash 对 Windows 路径的重解析以及 `pythonw.exe` 无标准流的问题。
+
+安装后重启 WorkBuddy，或新开会话。状态先显示“已配置”；只有记录到与本地项目会话对应的 Hook 执行证据后才显示“已记录执行”。`disableAllHooks` 或 `allowManagedHooksOnly` 限制不会被擅自关闭，项目设置、企业策略仍可能覆盖全局配置。回归验证使用合成会话和本地模拟学习服务，不代表用户真实任务已经成功。
 
 ### 配置式接入新客户端
 
@@ -150,7 +158,7 @@ result = client.learn(
 
 All maintained native entry points now delegate to one shared executor. Client event names, fields, configuration locations, and context output are declarative profiles; memory policy runs in the protocol-neutral `LearningEngine`. Legacy imports, installed entry points, and the Runtime HTTP envelope remain compatible.
 
-Native registration and repair now install launchers that invoke `generic_learning_hook` directly. `prepare_hook_installation` is read-only, `install_hook_plan` applies a confirmed protocol, and `inspect_hook_plan` verifies the actual launcher and configuration. Installation preserves third-party hooks, backs up existing settings, and does not rewrite unchanged files. Custom profiles are stored as managed snapshots; installed launchers work outside the repository. Configuration readiness does not prove a live client event. Automatic capability discovery for unknown clients, including WorkBuddy, is not implemented in this stage.
+Native registration and repair now install launchers that invoke `generic_learning_hook` directly. `prepare_hook_installation` is read-only, `install_hook_plan` applies a confirmed protocol, and `inspect_hook_plan` verifies the actual launcher and configuration. Installation preserves third-party hooks, backs up existing settings, and does not rewrite unchanged files. Custom profiles are stored as managed snapshots; installed launchers work outside the repository. Configuration readiness does not prove a live client event. Automatic capability discovery for unknown clients is not implemented. WorkBuddy now has a confirmed `codebuddy-json` profile: registration or repair installs prompt/stop hooks in its settings and uses a thin parser for native JSONL. Tests use synthetic sessions; actual client execution is reported separately from configuration readiness.
 
 Clients outside the built-in registry can use `python -m agent_knowledge_bridge.hooks.generic_learning_hook --profile /absolute/path/profile.json`. Profiles map JSON object paths and output placeholders; they do not execute arbitrary code or load plugins. Supported transcript files use the persistent reference-only queue. Inline turns require a live Runtime and are never spooled to disk. Private transcript formats still need thin parsers, and the client must provide an event callback and context-injection capability.
 

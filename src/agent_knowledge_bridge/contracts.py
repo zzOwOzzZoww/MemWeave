@@ -67,7 +67,7 @@ class KnowledgeOverviewRequest(Contract):
 class AgentRegisterRequest(Contract):
     agent_id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
     display_name: str = Field(min_length=1, max_length=120)
-    adapter_type: Literal["claude-hook", "codex-hook", "gemini-hook", "runtime-api", "custom"] = "runtime-api"
+    adapter_type: Literal["claude-hook", "codex-hook", "gemini-hook", "protocol-hook", "runtime-api", "custom"] = "runtime-api"
     installed: bool = False
     detected_by: list[str] = Field(default_factory=list, max_length=8)
     executable_path: str | None = Field(default=None, max_length=1000)
@@ -114,7 +114,7 @@ class RecallRequest(AgentContext):
     session_id: str = Field(min_length=1, max_length=160)
     prompt: str = Field(min_length=1, max_length=20_000)
     transcript_path: str = Field(default="", max_length=2000)
-    transcript_format: Literal["auto", "claude", "codex", "gemini"] = "auto"
+    transcript_format: Literal["auto", "claude", "codex", "gemini", "codebuddy"] = "auto"
     bind_transcript_boundary: bool | None = Field(default=None, strict=True)
 
 
@@ -153,7 +153,7 @@ class LearnTurnRequest(AgentContext):
     cwd: str = Field(default="", max_length=2000)
     session_id: str = Field(min_length=1, max_length=160)
     transcript_path: str = Field(default="", max_length=2000)
-    transcript_format: Literal["auto", "claude", "codex", "gemini"] = "auto"
+    transcript_format: Literal["auto", "claude", "codex", "gemini", "codebuddy"] = "auto"
     turn: RuntimeTurnRequest | None = None
     last_assistant_message: str = Field(default="", max_length=20_000)
 

@@ -1,6 +1,7 @@
 """Prepare and install confirmed hook protocols without Agent-specific executors."""
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -18,7 +19,7 @@ from .paths import memweave_home
 
 EXECUTOR_MODULE = "agent_knowledge_bridge.hooks.generic_learning_hook"
 EXECUTOR_PATH = Path(__file__).with_name("hooks") / "generic_learning_hook.py"
-PROTOCOLS = frozenset({"command-json", "gemini-json"})
+PROTOCOLS = frozenset({"command-json", "gemini-json", "codebuddy-json"})
 MAX_CONFIG_BYTES = 2_000_000
 
 
@@ -52,16 +53,33 @@ def prepare_hook_installation(profile: IntegrationProfile, *, config_path: Path,
     if not isinstance(selected, str) or selected not in PROTOCOLS:
         raise ValueError("unconfirmed hook protocol")
     marker = profile.launcher if builtin else profile.agent_id + "_learning_hook.py"
+    python = Path(sys.executable).resolve()
+    if selected == 'codebuddy-json' and python.name.lower() == 'pythonw.exe':
+        console = python.with_name('python.exe')
+        if not console.is_file():
+            raise RuntimeError('WorkBuddy hooks require a Python interpreter with standard streams')
+        python = console
     plan = HookInstallationPlan(profile, Path(config_path).expanduser().resolve(),
-        memweave_home().resolve(), Path(sys.executable).resolve(), selected, marker, builtin)
+        memweave_home().resolve(), python, selected, marker, builtin)
     _patch_config(plan, _read_config(plan.config_path))
     return plan
 
 
 def is_owned_hook(item, marker: str) -> bool:
-    return isinstance(item, dict) and any(
-        re.search(r"(?<![\w-])" + re.escape(marker) + r"(?![\w.-])", str(item.get(key, "")))
-        for key in ("command", "commandWindows"))
+    if not isinstance(item, dict):
+        return False
+    for key in ("command", "commandWindows"):
+        command = str(item.get(key, ""))
+        if command.startswith('powershell.exe ') and len(command) <= 32_768:
+            encoded = re.search(r'(?:^|\s)-EncodedCommand\s+([A-Za-z0-9+/=]+)(?:\s|$)', command)
+            if encoded:
+                try:
+                    command = base64.b64decode(encoded[1], validate=True).decode('utf-16le')
+                except (ValueError, UnicodeError):
+                    continue
+        if re.search(r"(?<![\w-])" + re.escape(marker) + r"(?![\w.-])", command):
+            return True
+    return False
 
 
 def _read_config(path: Path) -> dict:
@@ -82,6 +100,11 @@ def _read_config(path: Path) -> dict:
 
 def _command(plan: HookInstallationPlan) -> str:
     script = str(plan.launcher_path)
+    if os.name == "nt" and plan.protocol == "codebuddy-json":
+        # CodeBuddy normally runs commands through Bash; use its direct PowerShell path on Windows.
+        code = "& '" + str(plan.python).replace("'", "''") + "' '" + script.replace("'", "''") + "' hook"
+        encoded = base64.b64encode(code.encode("utf-16le")).decode("ascii")
+        return "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand " + encoded
     if os.name == "nt" and plan.protocol == "gemini-json":
         return "& '" + str(plan.python).replace("'", "''") + "' '" + script.replace("'", "''") + "' hook"
     args = [str(plan.python), script, "hook"]
@@ -182,6 +205,8 @@ def inspect_hook_plan(plan: HookInstallationPlan) -> dict:
     except (OSError, RuntimeError, UnicodeError):
         return {"configured": False, "executor_ready": False}
     valid = launcher_ready and not config.get("disableAllHooks", False)
+    if plan.protocol == "codebuddy-json":
+        valid = valid and not config.get("allowManagedHooksOnly", False)
     settings = config.get("hooksConfig", {})
     if plan.protocol == "gemini-json":
         valid = valid and isinstance(settings, dict) and settings.get("enabled", True) is True

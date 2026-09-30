@@ -140,9 +140,9 @@ memweave doctor --check-api  # send a small API request; this may have a small c
 memweave shortcut            # repair the Windows desktop shortcut
 ~~~
 
-Use “Agent Maintenance” to enable Claude Code, Codex, or Gemini CLI. This installs the corresponding global hook; restart the client afterward. Existing Runtime-only Gemini registrations can use “Repair access” to upgrade. Other agents still require a client adapter to call the Runtime; registration alone does not enable automatic learning. See [agent integration and normalized learning API](docs/Agent接入与通用学习API.md).
+Use “Agent Maintenance” to enable Claude Code, Codex, Gemini CLI, or WorkBuddy. This installs the corresponding global hook; restart the client afterward. Existing Runtime-only Gemini and WorkBuddy registrations can use “Repair access” to upgrade. Other agents still require a client adapter to call the Runtime; registration alone does not enable automatic learning. “Configured” confirms installation checks, not a live client event. See [agent integration and normalized learning API](docs/Agent接入与通用学习API.md).
 
-All three native entry points share one integration executor. New clients with event callbacks and context injection can map events, fields, and output through a JSON profile and use the generic entry point without adding an agent-specific hook script. Private transcript formats still need thin parsers; configuration examples are in the integration guide above.
+All hook entry points share one integration executor, including WorkBuddy through a declarative protocol profile. New clients with event callbacks and context injection can map events, fields, and output through a JSON profile and use the generic entry point without adding an agent-specific hook script. Private transcript formats still need thin parsers; configuration examples are in the integration guide above.
 
 In the management UI, the generated-candidate count opens the knowledge, sources, and evidence linked to that learning run. The pending-review count opens individual or bulk approval and quarantine actions. Learning-hook writes and changes from other clients update the dialog and counts automatically; historical generation counts do not shrink after review. Disabling an agent removes it from the current list while preserving its registration and historical knowledge for later re-enablement.
 
@@ -186,13 +186,13 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-09-30, the regression suite for the current source reports **638 passed**, covering global-hook installation, cross-directory shared-pool access, explicit project isolation, sibling ranking, LFHV budget recovery, the unified integration executor, Gemini and normalized learning inputs, batch review, and agent disable/re-enablement. Isolated browser acceptance covers desktop and mobile review, cross-client live synchronization, stale-request protection, reconnects, and disabled-agent list updates. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI is configured for Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-09-30, the regression suite for the current source reports **658 passed**, covering global-hook installation, cross-directory shared-pool access, explicit project isolation, sibling ranking, LFHV budget recovery, the unified integration executor, Gemini, WorkBuddy and normalized learning inputs, batch review, and agent disable/re-enablement. Isolated browser acceptance covers desktop and mobile review, cross-client live synchronization, stale-request protection, reconnects, disabled-agent list updates, and notification text contrast. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI is configured for Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 
 ~~~text
 src/agent_knowledge_bridge/        Core, Runtime, CLI, and management UI
-src/agent_knowledge_bridge/hooks/  Native Claude Code, Codex, and Gemini CLI hooks
+src/agent_knowledge_bridge/hooks/  Shared executor, generic entry, and legacy native hooks
 scripts/                           Development, installation, and evaluation tools
 tests/                             Regression and product-installation tests
 docs/                              Design notes and historical validation records

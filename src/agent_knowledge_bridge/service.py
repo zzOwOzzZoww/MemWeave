@@ -79,11 +79,11 @@ class KnowledgeBridgeService:
 
     def register_agent(self, agent: dict[str, Any]) -> dict[str, Any]:
         hook_install = None
-        # An existing Runtime-only Gemini registration can be repaired in place.
-        if agent.get('agent_id') == 'gemini-cli' and agent.get('adapter_type') == 'runtime-api':
-            spec = supported_agent('gemini-cli')
+        # Upgrade old registration-only clients when a confirmed protocol becomes available.
+        if agent.get('agent_id') in {'gemini-cli', 'workbuddy'} and agent.get('adapter_type') == 'runtime-api':
+            spec = supported_agent(agent['agent_id'])
             agent = {**agent, 'adapter_type': spec['adapter_type'], 'capabilities': list(spec['capabilities'])}
-        if self.auto_install_hooks and agent.get("adapter_type") in {"claude-hook", "codex-hook", "gemini-hook"}:
+        if self.auto_install_hooks and agent.get("adapter_type") in {"claude-hook", "codex-hook", "gemini-hook", "protocol-hook"}:
             hook_install = install_native_hook(str(agent["agent_id"]))
         elif self.auto_install_hooks:
             configure_agent_scope(str(agent['agent_id']))

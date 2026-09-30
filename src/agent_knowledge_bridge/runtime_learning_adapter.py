@@ -12,13 +12,14 @@ from .claude_transcript import (
 )
 from .codex_transcript import parse_latest_codex_turn
 from .gemini_transcript import parse_latest_gemini_turn
+from .codebuddy_transcript import parse_latest_codebuddy_turn
 
 
 def transcript_parser(agent_id: str, transcript_format: str = "auto"):
     profile = PROFILES.get(agent_id)
     selected = (profile.transcript_format if profile else None) if transcript_format == "auto" else transcript_format
     parsers = {"claude": parse_latest_turn, "codex": parse_latest_codex_turn,
-               "gemini": parse_latest_gemini_turn}
+               "gemini": parse_latest_gemini_turn, "codebuddy": parse_latest_codebuddy_turn}
     if selected not in parsers:
         raise ValueError("Agent transcript format is unknown; supply turn or an explicit transcript_format")
     return parsers[selected]

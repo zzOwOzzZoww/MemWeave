@@ -1731,7 +1731,10 @@
       right: 24px;
       background: #0f172a;
       border: 1px solid var(--emerald-border);
-      color: var(--text);
+      color: #f8fafc;
+      max-width: calc(100vw - 48px);
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
       padding: 10px 18px;
       border-radius: var(--radius-pill);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.2);
@@ -1751,6 +1754,10 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    .toast svg { flex: 0 0 15px; }
+    .toast[data-kind="warning"] { border-color: var(--amber-border); }
+    .toast[data-kind="warning"] svg { stroke: #fbbf24; }
 
     /* 动态徽章与状态标签 */
     .badge {
@@ -2218,6 +2225,7 @@
                 <option value="claude-hook">Claude 原生 Hook</option>
                 <option value="codex-hook">Codex 原生 Hook</option>
                 <option value="gemini-hook">Gemini 原生 Hook</option>
+                <option value="protocol-hook">通用事件 Hook</option>
                 <option value="custom">自定义适配器</option>
               </select>
             </div>
@@ -2228,7 +2236,7 @@
           </div>
           <p class="agent-help">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px;color:var(--cyan)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>加入会登记 Agent，并为 Claude Code / Codex / Gemini CLI 配置全局 Hook；其它 Agent 需要客户端适配器调用 Runtime。普通对话仍需实际触发学习，天气等时效性回答不会自动成为可复用知识。</span>
+            <span>加入会登记 Agent，并为 Claude Code / Codex / Gemini CLI / WorkBuddy 配置全局 Hook；其它 Agent 需要客户端适配器调用 Runtime。普通对话仍需实际触发学习，天气等时效性回答不会自动成为可复用知识。</span>
           </p>
           <div class="table-wrap">
             <table class="agent-table">
@@ -2547,19 +2555,29 @@
       <div class="settings-actions"><button type="button" id="providerClose" class="btn">关闭</button><button type="button" id="providerCheck" class="btn">检查已保存配置</button><button type="submit" class="btn primary">保存</button></div>
     </form>
   </dialog>
-  <div id="toast" class="toast">
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
     <span id="toastMsg">操作成功</span>
   </div>
 
   <script>
     // Toast Notification Utility
-    function showToast(msg) {
+    let toastTimer = null;
+    function showToast(msg, kind = 'success') {
       const toast = document.getElementById('toast');
       const text = document.getElementById('toastMsg');
       text.textContent = msg;
+      toast.dataset.kind = kind;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2400);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), kind === 'warning' ? 6000 : 2400);
+    }
+
+    function showRegistrationToast(item) {
+      const name = item.display_name;
+      if (item.hook?.configured) showToast(`已配置 ${name} 的接入，等待客户端触发执行`);
+      else if (item.hook?.supported) showToast(`已登记 ${name}，接入配置未就绪，请检查客户端限制`, 'warning');
+      else showToast(`已登记 ${name}，尚未接入自动召回和学习`, 'warning');
     }
 
     // Theme Management
@@ -2795,6 +2813,7 @@
     const adapterLabel = value => ({
       'claude-hook': 'Claude 原生 Hook', 'codex-hook': 'Codex 原生 Hook',
       'gemini-hook': 'Gemini 原生 Hook',
+      'protocol-hook': '通用事件 Hook',
       'runtime-api': 'Runtime API', custom: '自定义适配器'
     }[value] || value || '未指定');
     const learningLabel = item => {
@@ -2820,14 +2839,14 @@
       const label = {completed: '最近学习完成', failed: '最近学习失败', running: '正在学习…'}[learning.status] || learningLabel(item);
       return `${escapeHtml(label)} · <button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="all" aria-haspopup="dialog">生成 ${generated} 条候选</button>${promoted ? ` · 晋升 ${promoted} 条` : ''}<div><button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="candidate" aria-haspopup="dialog">待审核 ${pending} 条</button></div>`;
     }
-    const isNativeHook = item => ['claude-hook', 'codex-hook', 'gemini-hook'].includes(item.adapter_type) ||
-      (item.agent_id === 'gemini-cli' && item.adapter_type === 'runtime-api');
+    const isNativeHook = item => ['claude-hook', 'codex-hook', 'gemini-hook', 'protocol-hook'].includes(item.adapter_type) ||
+      item.hook?.supported === true;
     const connectionNeedsRepair = item => isNativeHook(item) && (!item.hook?.configured ||
       (item.adapter_type === 'codex-hook' && item.hook?.feature_enabled === false));
     const detectionLabel = item => {
       if (!item.enabled) return '已停用';
       if (connectionNeedsRepair(item)) return '接入待修复';
-      return isNativeHook(item) ? (item.hook?.execution?.observed ? '已记录执行' : '已配置') : '已登记';
+      return isNativeHook(item) ? (item.hook?.execution?.observed ? '已记录执行' : '已配置') : '已登记，未接入';
     };
     const detectionKind = item => {
       if (!item.enabled) return 'none';
@@ -2930,13 +2949,13 @@
           const item = items.find(agent => agent.agent_id === button.dataset.repairAgent);
           button.disabled = true;
           try {
-            await post('/v1/agents/register', {
+            const result = await post('/v1/agents/register', {
               agent_id: item.agent_id, display_name: item.display_name, adapter_type: item.adapter_type,
               installed: item.installed, detected_by: item.detected_by || [],
               executable_path: item.executable_path, config_path: item.config_path,
               capabilities: item.capabilities || ['shared-knowledge']
             });
-            showToast(`已更新 ${item.display_name} 的全局接入配置`);
+            showRegistrationToast(result.agent);
             agentLoadVersion++;
             await loadAgents({force: true});
           } catch (error) { showError(error.message); }
@@ -3873,7 +3892,7 @@
       if (!agentId || !displayName) return showError('请填写 Agent ID 和显示名称');
       const discovered = state.discoveredAgents.find(item => item.agent_id === agentId);
       try {
-        await post('/v1/agents/register', {
+        const result = await post('/v1/agents/register', {
           agent_id: agentId,
           display_name: displayName,
           adapter_type: document.getElementById('agentAdapter').value,
@@ -3883,7 +3902,7 @@
           config_path: discovered?.config_path || null,
           capabilities: discovered?.capabilities || ['shared-knowledge']
         });
-        showToast(`已登记 ${displayName}，请检查接入配置和学习记录`);
+        showRegistrationToast(result.agent);
         agentLoadVersion++;
         await loadAgents({force: true});
         await load(document.getElementById('project').value || initialProject);

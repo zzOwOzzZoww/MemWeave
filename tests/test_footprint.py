@@ -41,6 +41,7 @@ CORE_MODULES = (
     "claude_transcript",
     "codex_transcript",
     "gemini_transcript",
+    "codebuddy_transcript",
     "runtime_learning_adapter",
     "learning_engine",
     "integration_profiles",
