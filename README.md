@@ -12,6 +12,30 @@ MemWeave 是一个给 Coding Agent 用的本地共享记忆层。
 >
 > **核心闭环：跨 Agent 捕获候选 → 证据晋升 → 相关才召回 → 安全归档 → LFHV 检查是否退役过早。**
 
+## 半分钟演示：换 Agent，不重讲项目约定
+
+Codex 留下“使用 `uv` 管理依赖和测试”的项目约定。审核前 Claude Code 拿不到这条候选，批准后自动召回；换成天气问题，仍然不注入。
+
+![MemWeave 演示：Codex 捕获候选，人工批准，Claude Code 跨 Agent 召回，无关问题返回空](docs/assets/memweave-demo.zh.gif)
+
+演示使用隔离数据库、合成会话和本地模拟提炼组件，实际执行原生 Hook、Runtime、管理页审核与上下文注入。画面里的召回结果是 Hook 输出节选，不是模型回答，也不代表真实 Agent 任务成功率。
+
+<details>
+<summary>复现这段演示（不使用真实凭据或付费模型）</summary>
+
+需要 Python 3.11+ 和 Node.js。在仓库根目录运行：
+
+~~~bash
+python -m pip install -e ".[runtime]" pillow
+npm install --prefix outputs/readme-demo-tools --no-save --package-lock=false playwright
+node outputs/readme-demo-tools/node_modules/playwright/cli.js install chromium
+python scripts/record_readme_demo.py --output outputs/readme-demo --node-modules outputs/readme-demo-tools/node_modules
+~~~
+
+GIF、逐帧截图、完整 Hook 输出和断言报告写入 `outputs/readme-demo`。脚本不改本机 Agent 配置或已有知识库；录制源码见 [record_readme_demo.py](scripts/record_readme_demo.py)。
+
+</details>
+
 ## 它解决什么问题
 
 平时在多个 Agent 之间切换，经常会遇到这些情况：

@@ -12,6 +12,30 @@ It lets agents such as Claude Code and Codex reuse confirmed project knowledge: 
 >
 > **Core loop: capture candidates across agents → promote with evidence → recall only when relevant → retire safely → use LFHV to test whether retirement was premature.**
 
+## A 30-second demo: switch agents, keep the project rule
+
+Codex captures a project rule: use `uv` for Python dependencies and tests. Claude Code receives nothing before approval, reuses the rule afterward, and still receives no project context for an unrelated weather question.
+
+![MemWeave demo: Codex captures a candidate, a human approves it, Claude Code recalls it, and an unrelated query returns nothing](docs/assets/memweave-demo.en.gif)
+
+The recording uses an isolated database, synthetic session and local mock reviewer, with actual native hooks, Runtime, review UI and context injection. Recall results are excerpts from hook outputs, not model answers or evidence of real-agent task success. The source fixture and review UI are in Chinese; captions are in English.
+
+<details>
+<summary>Reproduce the demo without real credentials or paid models</summary>
+
+Requires Python 3.11+ and Node.js. Run from the repository root:
+
+~~~bash
+python -m pip install -e ".[runtime]" pillow
+npm install --prefix outputs/readme-demo-tools --no-save --package-lock=false playwright
+node outputs/readme-demo-tools/node_modules/playwright/cli.js install chromium
+python scripts/record_readme_demo.py --output outputs/readme-demo --node-modules outputs/readme-demo-tools/node_modules
+~~~
+
+GIFs, frames, complete hook outputs and an assertion report are written to `outputs/readme-demo`. The script does not modify real Agent settings or existing knowledge. See [record_readme_demo.py](scripts/record_readme_demo.py).
+
+</details>
+
 ## What problem does it solve?
 
 Switching between coding agents often creates the same problems:
