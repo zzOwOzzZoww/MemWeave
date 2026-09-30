@@ -2,13 +2,14 @@
 
 Stages only append immutable hits. They never reorder/delete another stage's
 output. A shared pure policy defines expansion seed views and final placement;
-viewing a prefix does not discard candidates. Legacy composition is explicit:
-bridge may seed siblings; anchors extend the primary page without displacing it.
+viewing a prefix does not discard candidates. Query matches keep the primary
+page; anchors and at most one sibling share its bounded supplementary budget.
 """
 from dataclasses import dataclass, field, replace
 from time import perf_counter
 from typing import Any, Mapping, Protocol
 from agent_knowledge_bridge.experiences import filter_rows, rank_equivalent
+from agent_knowledge_bridge.evidence import evidence_support
 
 
 @dataclass(frozen=True)
@@ -85,8 +86,7 @@ def primary_order(candidates, limit):
     base = unique(c for c in candidates if c.origin in {'direct', 'bridged'})
     base_ids = {c.id for c in base}
     siblings = unique(c for c in candidates if c.origin == 'sibling' and c.id not in base_ids)
-    reserved = max(1, (limit + 1) // 2)
-    return (*base[:reserved], *siblings, *base[reserved:])
+    return (*base, *siblings)
 
 
 class BridgeStage:
@@ -178,6 +178,8 @@ def arbitrate(candidates, fallback, limit, *, connection=None):
     bridged_ids = {c.id for c in candidates if c.origin == 'bridged'}
     extra = unique(replace(c, origin='bridged') if c.id in bridged_ids else c
                    for c in candidates if c.origin == 'anchored')
+    extra_ids = {c.id for c in extra}
+    extra += unique(c for c in candidates if c.origin == 'sibling' and c.id not in extra_ids)
     primary = tuple(primary_order(candidates, limit))
     changes = 0
     if connection is not None:
@@ -190,11 +192,19 @@ def arbitrate(candidates, fallback, limit, *, connection=None):
 
 
 def truncate(ranked, *, limit, slack):
-    selected = list(ranked.primary[:limit])
+    selected = []
+    for candidate in ranked.primary:
+        if len(selected) >= limit:
+            break
+        if candidate.origin == 'sibling' and any(c.origin == 'sibling' for c in selected):
+            continue
+        selected.append(candidate)
     used = {c.id for c in selected}
     for candidate in ranked.extra:
         if len(selected) >= limit + slack:
             break
+        if candidate.origin == 'sibling' and any(c.origin == 'sibling' for c in selected):
+            continue
         if candidate.id not in used:
             selected.append(candidate)
             used.add(candidate.id)
@@ -207,3 +217,27 @@ def truncate(ranked, *, limit, slack):
             omitted.append({'knowledge_id': candidate.id,
                             'reason': 'fallback_not_needed' if candidate in ranked.fallback else 'row_budget'})
     return selected, omitted
+
+
+def order_recovery_candidates(normal, recovered, *, query):
+    """Preserve ordinary order; insert archives only before weaker evidence.
+
+    Keep overflow records for emission-time fallback. The caller applies the
+    same row/character budget after locked live validation, never at discovery.
+    """
+    records = list(normal)
+    if not recovered:
+        return records
+    seen = {r['id'] for r in records}
+    scores = {r['id']: evidence_support(query, r)[2] for r in records}
+    for record in recovered:
+        if record['id'] in seen:
+            continue
+        supported, _, score = evidence_support(query, record)
+        if not supported:
+            continue
+        index = next((i for i, row in enumerate(records) if score > scores[row['id']]), len(records))
+        records.insert(index, record)
+        scores[record['id']] = score
+        seen.add(record['id'])
+    return records

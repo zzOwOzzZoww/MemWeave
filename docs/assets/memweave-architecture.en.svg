@@ -83,7 +83,7 @@
   <text x="62" y="849" class="body">Retirement is not permanent loss</text>
   <text x="62" y="875" class="small">Quarantined / replaced items stay out</text>
   <text x="412" y="819" class="heading">On-demand archive check</text>
-  <text x="412" y="849" class="body">Probe when normal recall has room</text>
+  <text x="412" y="849" class="body">Bounded probe; evidence first</text>
   <text x="412" y="875" class="small">Recheck the same gates and budget</text>
   <text x="762" y="819" class="heading">Emit first, then restore</text>
   <text x="762" y="849" class="body">Active + hit accounting + trace</text>

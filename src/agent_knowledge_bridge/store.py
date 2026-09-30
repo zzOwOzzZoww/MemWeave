@@ -69,9 +69,8 @@ MIN_SIBLING_OVERLAP = 2
 #: one indexed query and scored in Python, so the cost is a single scan of at
 #: most this many rows regardless of how large the project grows.
 SIBLING_CANDIDATE_CAP = 400
-#: How many siblings may be interleaved into one answer. Bounded so that a
-#: subject with a very large cluster cannot fill the caller's whole budget with
-#: supporting context and crowd out the answer to the question actually asked.
+#: Bound sibling candidate generation. Final arbitration emits at most one
+#: sibling as supplementary context without displacing the query-matched page.
 MAX_SIBLINGS = 3
 
 # ---------------------------------------------------------------------------
@@ -867,7 +866,7 @@ class KnowledgeStore:
     ) -> dict[str, Any]:
         """Run candidate generation, expansion, arbitration and truncation.
 
-        Default policy preserves the legacy composition. expand_siblings=False
+        Default policy protects query matches and bounds supplements. expand_siblings=False
         disables ALL expansion, including bridge and anchor, for governance
         counterfactuals. include_retired includes archived (never quarantined)
         records without lifecycle demotion. Policy stage names are an enablement
@@ -979,7 +978,7 @@ class KnowledgeStore:
         return {"query": original_query, "requester_agent": requester_agent, "project_key": project_key,
                 "count": len(results), "results": results,
                 "retrieval_diagnostics": {
-                    "policy": "legacy-composition-v1", "stages": reports,
+                    "policy": "protected-primary-v2", "stages": reports,
                     "decision_policy": POLICY_VERSION, "query_focus_changed": query != original_query,
                     "enabled_stages": list(policy.stages) if expand_siblings and has_terms else [],
                     "sibling_seed_origins": list(policy.sibling_seed_origins),

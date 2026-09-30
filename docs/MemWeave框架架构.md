@@ -199,6 +199,7 @@ Stage 接口为 `expand(context, candidates) -> StageResult(additions, skipped_r
 
 - bridge 在直接候选不足 limit 时扩展词共现关系。
 - sibling 需要足够种子；默认 bridge 可触发 sibling，但 sibling 不递归生成 sibling。
+- 2026-09-30 起，Direct/Bridge 保留主结果页；Anchor 与最多一条 Sibling 共用 slack 补充位置。Sibling 不再插到主结果页中间。
 - anchor 最后补充，不触发后续扩展，不挤掉已确定的主结果。
 - 多路找到同一记录只输出一次，内部 provenance 保存全部路径。
 - 正常对话可显示“来源：Claude Code”等标签，内部知识 ID 和 trace ID 留在审计界面。
@@ -217,7 +218,9 @@ Stage 接口为 `expand(context, candidates) -> StageResult(additions, skipped_r
 
 ### 6.3 LFHV 的实际成本位置
 
-Adapter 先检索 active / stale；返回条数不足召回限额且有可见 archived 时，调用 `Governor.prepare_recovery` 检索恢复候选。归档路默认 top-k=8，关闭扩展，只填剩余位置。`ReuseStore.start` 做预算与最终证据检查，再把状态恢复、审计、复用 trace 和真实输出计数放进同一写事务。没有空位或没有归档记录时跳过补充检索；这是一种保守的“填空位”策略，不能发现所有已满页但缺少关键答案的情况。
+Adapter 先检索 active / stale；有可见 archived 时，调用 `Governor.prepare_recovery` 有界检索恢复候选，不再因普通结果数量已满而跳过。归档路默认 top-k=8，关闭扩展；同一轻量证据评分更高的候选可排到较弱普通结果之前，同分仍以普通结果优先，不重排普通结果之间的相对顺序。没有归档记录时跳过恢复搜索，也不额外重算普通结果的证据评分。
+
+普通结果与归档候选共用 `recall_limit + slack` 行数上限及原有字符预算，不为恢复另开无限位置。`ReuseStore.start` 在写锁下核对实时状态、作用域、采纳证据及签名，失效恢复候选占用的位置和字符预算交还给有效普通结果。实际输出集合再通过证据门禁，只有真正输出的记录才把恢复、审计、复用 trace 和命中计数放进同一事务。事务失败则回滚恢复，Adapter 回退到普通召回。此策略仍是有界词面证据启发式，不保证找到所有归档答案或判断最终任务收益。
 
 `retrieval_ms` 包含主检索及恢复候选搜索、影子记账，仍不包含后续完整 trace / 恢复写入和 Hook 传输。`MW_LFHV_RECOVERY=0` 保留只观察的旧路径，`MW_LFHV_PROBE=0` 关闭 LFHV。它仍有同步成本，不代表后台零成本执行；P50/P95 与 TTFT 增量待重新测量。
 

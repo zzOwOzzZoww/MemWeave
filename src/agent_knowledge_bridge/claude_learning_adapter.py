@@ -226,9 +226,11 @@ class ClaudeLearningAdapter:
             limit=recall_limit,
         )
         normal_records = result['results']
-        recovered = self._recover_for_query(prompt, available=max(0, recall_limit - len(normal_records)))
-        seen = {r['id'] for r in normal_records}
-        records = normal_records + [r for r in recovered if r['id'] not in seen]
+        from .retrieval_pipeline import RetrievalPolicy, order_recovery_candidates
+        from .decisions import query_intent
+        recovered = self._recover_for_query(prompt, limit=recall_limit)
+        records = order_recovery_candidates(normal_records, recovered,
+                                           query=query_intent(prompt[:500], project_key=self.project_key).focus)
         latency_ms = (time.perf_counter() - started) * 1000
         reuse_args = dict(
             agent_id=self.agent_id, project_key=self.project_key, session_id=session_id,
@@ -236,6 +238,7 @@ class ClaudeLearningAdapter:
             turn_id=turn_id, workspace=str(hook_input.get("cwd") or ""),
             transcript_boundary=boundary,
             validate_live_records=True, record_hits=True,
+            record_limit=recall_limit + RetrievalPolicy().slack,
         )
         try:
             _, context, emitted_ids = self.reuse.start(records=records, **reuse_args)
@@ -280,20 +283,19 @@ class ClaudeLearningAdapter:
             self._governor = Governor(self.store.knowledge)
         return self._governor
 
-    def _recover_for_query(self, prompt: str, *, available: int) -> list[dict[str, Any]]:
+    def _recover_for_query(self, prompt: str, *, limit: int) -> list[dict[str, Any]]:
         if os.getenv('MW_LFHV_RECOVERY', '1') != '1':
             self._shadow_probe(prompt)
             return []
-        # Active/stale matches keep their slots, including expansion results.
-        if available <= 0:
+        if limit <= 0:
             return []
         try:
             governor = self._recall_governor()
             if governor is None:
                 return []
             candidates = governor.prepare_recovery(project_key=self.project_key,
-                query=prompt[:500], requester_agent=self.agent_id, limit=max(8, available))
-            return candidates[:available]
+                query=prompt[:500], requester_agent=self.agent_id, limit=max(8, limit))
+            return candidates
         except Exception:
             # An unavailable recovery path leaves ordinary recall usable.
             return []

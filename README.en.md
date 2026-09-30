@@ -59,7 +59,7 @@ As a rough guide: consider Mem0 for general application memory, Letta when build
 
 ![MemWeave architecture: agent adapters, evidence promotion, DBSA arbitration, and LFHV archive recovery](docs/assets/memweave-architecture.en.svg)
 
-**DBSA retrieval**: Direct matches, Bridge term normalization, Sibling topic expansion, and Anchor support. All paths pass shared arbitration; retrieval alone does not authorize context injection.
+**DBSA retrieval**: Direct matches, Bridge term normalization, Sibling topic expansion, and Anchor support. All paths pass shared arbitration; retrieval alone does not authorize context injection. Direct/Bridge keep the primary page. Anchors and at most one sibling share bounded supplementary slots; siblings no longer displace primary results.
 
 The retrieval hot path does not call a model. It starts with SQLite FTS5/BM25, then applies limited bilingual term bridges, topic expansion, and evidence gates. MemWeave is not trying to be a general-purpose semantic search engine; it is designed to keep a focused knowledge-governance loop explainable and auditable.
 
@@ -70,8 +70,8 @@ MemWeave defines **LFHV** as **Lost Future Hit Value**: the future retrieval val
 In plain language:
 
 1. `active` and `stale` records participate in normal recall; `archived` records do not enter context by default.
-2. When a query arrives and normal recall leaves room, LFHV separately checks relevant archived knowledge.
-3. An archived record must pass project, version, evidence, query-relevance, and context-budget checks again.
+2. When a query arrives, LFHV performs a bounded check for relevant archived knowledge, even if normal recall is full. It skips recovery searches when no in-scope archives exist.
+3. Archived records must pass project, version, evidence, and query-relevance checks again, then compete with ordinary results for the same fixed row and character budgets. Ordinary results win equal-evidence ties. If a recovery candidate becomes invalid, valid ordinary results can reclaim its slots and character budget.
 4. Only a record actually selected and emitted into the current context is restored to `active`, in the same transaction as its reuse trace and hit accounting. A record that does not fit the outgoing context remains archived.
 
 This lets MemWeave shrink the active memory set without treating archival as irreversible forgetting. An LFHV shadow hit only means that archived knowledge became relevant again; it does not by itself prove better task outcomes. Quarantined, superseded, or evidence-invalid records cannot use LFHV as a route back into context.
@@ -182,7 +182,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-09-30, the full suite included in this commit reports **467 passed**, including global-hook repair, cross-directory shared-pool access, and explicit project-isolation regressions. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI covers Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-09-30, the regression suite for the current source reports **489 passed**, including global-hook repair, cross-directory shared-pool access, explicit project isolation, and 22 new sibling-ranking and LFHV budget-recovery tests. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI covers Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 

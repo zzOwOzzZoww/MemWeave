@@ -13,7 +13,7 @@ from agent_knowledge_bridge.knowledge_versions import blocked
 # Bump whenever admission or retrieval boundaries change.  Existing reuse
 # traces and LFHV shadow evidence then fail closed and are recomputed under the
 # new policy instead of silently carrying forward an old decision.
-POLICY_VERSION = 'memory-decisions-v6-demand-reuse-answer-contract'
+POLICY_VERSION = 'memory-decisions-v7-budgeted-recovery'
 
 def record_digest(row):
     return hashlib.sha256((str(row['title']) + '\x1f' + str(row['content'])).encode()).hexdigest()

@@ -1,4 +1,4 @@
-"""Composition contracts, plus default-policy equivalence to the frozen oracle."""
+"""Protected-primary contracts and unexpanded compatibility with the oracle."""
 import itertools
 import json
 from types import SimpleNamespace
@@ -39,10 +39,11 @@ def test_eight_route_combinations(flags):
     ctx = context(RetrievalPolicy(stages=names))
     pool, reports = expand(ctx, [])
     selected, _ = truncate(arbitrate(pool, [], 2), limit=2, slack=2)
-    expected = (["b1", "s"] if flags[0] and flags[1] else
-                ["b1", "b2"] if flags[0] else [])
+    expected = ["b1", "b2"] if flags[0] else []
     if flags[2]:
         expected.append("a")
+    if flags[0] and flags[1]:
+        expected.append("s")
     assert [c.id for c in selected] == expected
     assert [r["stage"] for r in reports] == ["bridge", "sibling", "anchor"]
     assert not any(c.depth > 2 for c in pool)
@@ -77,8 +78,8 @@ def test_expansion_retains_pool_until_final_budget():
     pool, _ = expand(context(), [row("d1"), row("d2"), row("d3")])
     assert {"d1", "d2", "d3", "s", "a"} == {c.id for c in pool}
     selected, omitted = truncate(arbitrate(pool, [], 2), limit=2, slack=2)
-    assert [c.id for c in selected] == ["d1", "s", "a"]
-    assert {x["knowledge_id"] for x in omitted} == {"d2", "d3"}
+    assert [c.id for c in selected] == ["d1", "d2", "a", "s"]
+    assert {x["knowledge_id"] for x in omitted} == {"d3"}
     assert all(x["reason"] == "row_budget" for x in omitted)
 
 
@@ -88,8 +89,8 @@ def test_duplicate_routes_preserve_paths_and_legacy_attribution():
             Candidate(row("b"), "anchored", depth=1))
     ranked = arbitrate(pool, [], 2)
     selected, _ = truncate(ranked, limit=2, slack=2)
-    assert [c.id for c in selected] == ["d", "s", "b"]
-    assert selected[-1].origin == "bridged"
+    assert [c.id for c in selected] == ["d", "b", "s"]
+    assert next(c for c in selected if c.id == "b").origin == "bridged"
     assert {p["origin"] for p in ranked.provenance["b"]} == {"bridged", "anchored"}
     direct = Candidate(row("b"))
     selected, _ = truncate(arbitrate((direct, *pool), [], 2), limit=2, slack=2)
@@ -135,7 +136,7 @@ def publish(service, title, content, terms="", scope="project"):
 @pytest.mark.parametrize("limit", [1, 2, 3, 5, 20])
 @pytest.mark.parametrize("retired", [False, True])
 @pytest.mark.parametrize("expansion", [False, True])
-def test_default_policy_matches_oracle_across_limits_and_lifecycle(service, limit, retired, expansion):
+def test_primary_page_and_unexpanded_compatibility_across_limits_and_lifecycle(service, limit, retired, expansion):
     fixtures = [
         ("backoff procedure", "clb-v2 token present", ""),
         ("backoff procedure second", "clb-v2 alternative", ""),
@@ -159,7 +160,15 @@ def test_default_policy_matches_oracle_across_limits_and_lifecycle(service, limi
                     include_retired=retired, expand_siblings=expansion)
         before, after = legacy.search(**args), service.store.search(**args)
         signature = lambda result: [(r["id"], r["origin"], r.get("related_to")) for r in result["results"]]
-        assert signature(after) == signature(before)
+        if not expansion:
+            assert signature(after) == signature(before)
+        else:
+            direct = service.store.search(**{**args, 'expand_siblings': False})
+            # Expansion may now append a sibling, never replace a primary hit.
+            assert signature(after)[:len(direct['results'])] == signature(direct)
+            assert len(after['results']) <= limit + 2
+            assert len({r['id'] for r in after['results']}) == len(after['results'])
+            assert sum(r['origin'] == 'sibling' for r in after['results']) <= 1
         assert keys[7] not in [r["id"] for r in after["results"]]
         assert foreign not in [r["id"] for r in after["results"]]
         if not expansion:

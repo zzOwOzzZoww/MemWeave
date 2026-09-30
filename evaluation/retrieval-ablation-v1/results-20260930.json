@@ -1,0 +1,844 @@
+{
+  "date": "2026-09-30",
+  "protocol": "retrieval-ablation-v1",
+  "repeats": 3,
+  "command": "python scripts/evaluate_retrieval_ablation.py --output outputs/retrieval-ablation-20260930 --repeats 3",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "sqlite": "3.45.1"
+  },
+  "fixed": {
+    "limit": 3,
+    "slack": 2,
+    "context_character_budget": 4000,
+    "gold_profile": "on-demand-v2",
+    "split": "test",
+    "cache": "fresh per arm"
+  },
+  "variants": {
+    "full": {
+      "stages": [
+        "bridge",
+        "sibling",
+        "anchor"
+      ],
+      "lfhv": true
+    },
+    "no_bridge": {
+      "stages": [
+        "sibling",
+        "anchor"
+      ],
+      "lfhv": true
+    },
+    "no_sibling": {
+      "stages": [
+        "bridge",
+        "anchor"
+      ],
+      "lfhv": true
+    },
+    "no_anchor": {
+      "stages": [
+        "bridge",
+        "sibling"
+      ],
+      "lfhv": true
+    },
+    "no_lfhv": {
+      "stages": [
+        "bridge",
+        "sibling",
+        "anchor"
+      ],
+      "lfhv": false
+    }
+  },
+  "source_sha256": {
+    "src/agent_knowledge_bridge/__init__.py": "2df1b5439c41c798489389770059a4640baa78c2c7a5634544323ecc6ed641a5",
+    "src/agent_knowledge_bridge/agent_registry.py": "d16eb3205f3a6e38182473770c724e308389b7de9dbd83714ec1ec115ce08321",
+    "src/agent_knowledge_bridge/claude_learning_adapter.py": "d2e08635c600e02668e7ce4e5712e56a7e832a001d79a6a81ad2502a35814d87",
+    "src/agent_knowledge_bridge/claude_transcript.py": "f769cf39233d4e4508b4b7f40aa70860736d71ae3d53eabf5ddbe38f1ee797e3",
+    "src/agent_knowledge_bridge/cli.py": "ae4a8f59a9ba52e7889254fce0e39f9d34d65de55284571d4a3aeb185aefb08d",
+    "src/agent_knowledge_bridge/codex_learning_adapter.py": "b5c5f0caea2ebcfc74ac328cc692beaa3b399227fe056a17ae0cc5db2b7bfd14",
+    "src/agent_knowledge_bridge/codex_transcript.py": "3e6230a75276e947e76aaa771a32460681be596874ac9bec937df3f41463db6c",
+    "src/agent_knowledge_bridge/compiler.py": "2cc763032a635aac201a48cea286d9b351059880180ffc1f4bb456b5714c19b3",
+    "src/agent_knowledge_bridge/contracts.py": "e934be570acf375e0ded92dbec109ede6f56747df8b07806f35d859008c53ccc",
+    "src/agent_knowledge_bridge/daemon.py": "742d82486464ad1db2f8a951dbe8620bb5d6861f5c8c303cd465110061aff5b6",
+    "src/agent_knowledge_bridge/decisions.py": "da594c6dd5ae71d8f985058194ea16a7cb9f9c3cff87d608aeff742bc6c8d5ef",
+    "src/agent_knowledge_bridge/desktop.py": "25906488408eb838ec439e594e27dcf543d5013b455e269ebc5e63fb89f2a635",
+    "src/agent_knowledge_bridge/evaluation.py": "8798367a3eeab6560b7393163b6c82cc853bb0e5e297216b2e51002dd5e19a02",
+    "src/agent_knowledge_bridge/evidence.py": "0b2d96df608ff95dbf294236661a2286f25ce807bec256c678660febabb2f7bb",
+    "src/agent_knowledge_bridge/experiences.py": "32b928d4aa2ea6aa87ece83b7ed4f66c1e077ec2c7f34e9a23d9efa4e525caad",
+    "src/agent_knowledge_bridge/governance.py": "e0a14600696aba6bc7d68d6ab1b972f43dfe3ed5f5f198e32e561c02456a5cb0",
+    "src/agent_knowledge_bridge/knowledge_versions.py": "491f26d5ace84f4ca076487b63f31352ec6d26843e952e588b6f63e14743d321",
+    "src/agent_knowledge_bridge/latency_impact.py": "367d4b64d1240de01058bcb23933f9a9f46f33fee4d53555e300dd8d413d8813",
+    "src/agent_knowledge_bridge/learning.py": "2c8903654647e4d3e00f15ae1c87d305c908497aea36d7562fd2f00cd1bee680",
+    "src/agent_knowledge_bridge/learning_queue.py": "dd984ceeead888770884fc616a3116a88d2dfd3fe2d1bd37a0add9aee3f03b32",
+    "src/agent_knowledge_bridge/live_benchmark.py": "f79d58d8ab631854c213a13f3b3e18f31f322e10ed508ecf68e28c4ba4df4b22",
+    "src/agent_knowledge_bridge/paths.py": "5207bf92678ddb40df50b2d6efd54e1e0902f6544f1046571b2446824483caa3",
+    "src/agent_knowledge_bridge/process_lock.py": "93c31828c6a7d0d765e4306246fea2e97e73416c335aef055fe77cb10aca2aad",
+    "src/agent_knowledge_bridge/provider.py": "f5af7d00ddc42a323cd03f29aef8d9c48247d94ad55c8718fc2548f6f42dcc08",
+    "src/agent_knowledge_bridge/retrieval_pipeline.py": "d24d057f925e410180e7886af2ff401e8c0aec7ec0def0d5a11c1f09541b6daf",
+    "src/agent_knowledge_bridge/retrieval_stats.py": "778e951d738afd1e472f1663edd36030d8c8abdb0b9207768733f457e660d784",
+    "src/agent_knowledge_bridge/retrieval_terms.py": "01104bae85b9603745bf064a8df4cc5e7397fa27146445348d904d0430894425",
+    "src/agent_knowledge_bridge/reuse.py": "c791bdfcbd756ab315bcb1e756a3a6f61da5ba897f26a009691486787bcc8b1c",
+    "src/agent_knowledge_bridge/runtime_client.py": "21946d9631572902cf8a11fda159e65843f80bdb2a413dd2648f82080950bf32",
+    "src/agent_knowledge_bridge/runtime_state.py": "9269a4c89d5453a780217548ed9354ed3f2fb28b2c606de908b1d0d0e10d8c48",
+    "src/agent_knowledge_bridge/server.py": "2e11fc3414de6180abf9d831dbd53150b8ffd4f643d38c506e8f064834bd3ccf",
+    "src/agent_knowledge_bridge/service.py": "057913c42d94e6c6bc30e6aab1ecaee9591a850861bab9be6e5ed65852890bb4",
+    "src/agent_knowledge_bridge/store.py": "683a086e16d0d526f33b1a71fb23f1d4f181f85a4102ae89f4951a7edbb93b8f",
+    "src/agent_knowledge_bridge/turn_timing.py": "e0f9863c2e24408a00dba771389610f12a7e007249dd0157869cc879a90a0376",
+    "scripts/evaluate_retrieval_ablation.py": "2940d063aa5e171bbe315f7277025069e531768f830bea862c4cc45abf694bb7",
+    "evaluation/memweave-cross-agent-v1/evaluation_profile.py": "ab3d433462c7439324ea4949467f050149f31e5ecabf1e4d002d0e6c25a07103",
+    "evaluation/memweave-cross-agent-v1/compare_naive_fts.py": "38ef737b6e88003ca7c3197f748f66984218ee5e988db8de433ce5c05c5f9abb"
+  },
+  "data_sha256": {
+    "evaluation/memweave-cross-agent-v1/cases.jsonl": "89d54c60736d5cf77868ee8ae5123392b591a83503ade10c4eb6e16602579ebc",
+    "evaluation/retrieval-ablation-v1/cases.jsonl": "6cbab4dff8bc407b7b20007b14919178f759d8944b3ef921b98c039633d0a49d"
+  },
+  "semantic_sha256": "81ab1579e617eb0d8216deefe5edfb7fbc5eea3102257a4c567292a70dd8567d",
+  "semantic_repeat_check": "exact_match",
+  "suites": {
+    "bundled_regression": {
+      "variants": {
+        "full": {
+          "cases": 300,
+          "positive_cases": 180,
+          "negative_cases": 120,
+          "decision_accuracy": 1,
+          "positive_evidence_recall": 1,
+          "complete_clean_rate": 1,
+          "negative_injection_rate": 0,
+          "forbidden_injection_rate": 0,
+          "unexpected_records": 0,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 180,
+          "context_utf8_bytes": 194274,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 243,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 243,
+              "added_candidate_cases": 37,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 75,
+          "recall_p50_ms": 17.1596,
+          "recall_p95_ms": 30.9242,
+          "timing_samples": 900
+        },
+        "no_bridge": {
+          "cases": 300,
+          "positive_cases": 180,
+          "negative_cases": 120,
+          "decision_accuracy": 1,
+          "positive_evidence_recall": 1,
+          "complete_clean_rate": 1,
+          "negative_injection_rate": 0,
+          "forbidden_injection_rate": 0,
+          "unexpected_records": 0,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 180,
+          "context_utf8_bytes": 194274,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 243,
+              "added_candidate_cases": 37,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 75,
+          "recall_p50_ms": 17.0021,
+          "recall_p95_ms": 28.8192,
+          "timing_samples": 900
+        },
+        "no_sibling": {
+          "cases": 300,
+          "positive_cases": 180,
+          "negative_cases": 120,
+          "decision_accuracy": 1,
+          "positive_evidence_recall": 1,
+          "complete_clean_rate": 1,
+          "negative_injection_rate": 0,
+          "forbidden_injection_rate": 0,
+          "unexpected_records": 0,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 180,
+          "context_utf8_bytes": 194274,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 243,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 243,
+              "added_candidate_cases": 37,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 75,
+          "recall_p50_ms": 17.1969,
+          "recall_p95_ms": 30.5926,
+          "timing_samples": 900
+        },
+        "no_anchor": {
+          "cases": 300,
+          "positive_cases": 180,
+          "negative_cases": 120,
+          "decision_accuracy": 1,
+          "positive_evidence_recall": 1,
+          "complete_clean_rate": 1,
+          "negative_injection_rate": 0,
+          "forbidden_injection_rate": 0,
+          "unexpected_records": 0,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 180,
+          "context_utf8_bytes": 194274,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 243,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 75,
+          "recall_p50_ms": 16.4994,
+          "recall_p95_ms": 27.9121,
+          "timing_samples": 900
+        },
+        "no_lfhv": {
+          "cases": 300,
+          "positive_cases": 180,
+          "negative_cases": 120,
+          "decision_accuracy": 0.9,
+          "positive_evidence_recall": 0.833333,
+          "complete_clean_rate": 0.9,
+          "negative_injection_rate": 0,
+          "forbidden_injection_rate": 0,
+          "unexpected_records": 0,
+          "lfhv_same_turn_recovery_rate": 0,
+          "emitted_records": 150,
+          "context_utf8_bytes": 161790,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 243,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 243,
+              "added_candidate_cases": 37,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 0,
+          "recall_p50_ms": 14.9681,
+          "recall_p95_ms": 22.0978,
+          "timing_samples": 900
+        }
+      },
+      "paired_vs_full": {
+        "no_bridge": {
+          "changed_cases": 0,
+          "recall_harmed_cases": 0,
+          "recall_helped_cases": 0,
+          "details": []
+        },
+        "no_sibling": {
+          "changed_cases": 0,
+          "recall_harmed_cases": 0,
+          "recall_helped_cases": 0,
+          "details": []
+        },
+        "no_anchor": {
+          "changed_cases": 0,
+          "recall_harmed_cases": 0,
+          "recall_helped_cases": 0,
+          "details": []
+        },
+        "no_lfhv": {
+          "changed_cases": 30,
+          "recall_harmed_cases": 30,
+          "recall_helped_cases": 0,
+          "details": [
+            {
+              "case_id": "MWX-021-09",
+              "lost_ids": [
+                "MWX-021-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-022-09",
+              "lost_ids": [
+                "MWX-022-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-023-09",
+              "lost_ids": [
+                "MWX-023-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-024-09",
+              "lost_ids": [
+                "MWX-024-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-025-09",
+              "lost_ids": [
+                "MWX-025-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-026-09",
+              "lost_ids": [
+                "MWX-026-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-027-09",
+              "lost_ids": [
+                "MWX-027-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-028-09",
+              "lost_ids": [
+                "MWX-028-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-029-09",
+              "lost_ids": [
+                "MWX-029-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-030-09",
+              "lost_ids": [
+                "MWX-030-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-031-09",
+              "lost_ids": [
+                "MWX-031-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-032-09",
+              "lost_ids": [
+                "MWX-032-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-033-09",
+              "lost_ids": [
+                "MWX-033-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-034-09",
+              "lost_ids": [
+                "MWX-034-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-035-09",
+              "lost_ids": [
+                "MWX-035-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-036-09",
+              "lost_ids": [
+                "MWX-036-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-037-09",
+              "lost_ids": [
+                "MWX-037-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-038-09",
+              "lost_ids": [
+                "MWX-038-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-039-09",
+              "lost_ids": [
+                "MWX-039-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-040-09",
+              "lost_ids": [
+                "MWX-040-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-041-09",
+              "lost_ids": [
+                "MWX-041-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-042-09",
+              "lost_ids": [
+                "MWX-042-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-043-09",
+              "lost_ids": [
+                "MWX-043-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-044-09",
+              "lost_ids": [
+                "MWX-044-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-045-09",
+              "lost_ids": [
+                "MWX-045-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-046-09",
+              "lost_ids": [
+                "MWX-046-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-047-09",
+              "lost_ids": [
+                "MWX-047-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-048-09",
+              "lost_ids": [
+                "MWX-048-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-049-09",
+              "lost_ids": [
+                "MWX-049-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            },
+            {
+              "case_id": "MWX-050-09",
+              "lost_ids": [
+                "MWX-050-09-memory-1"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            }
+          ]
+        }
+      }
+    },
+    "mechanism_diagnostic": {
+      "variants": {
+        "full": {
+          "cases": 12,
+          "positive_cases": 9,
+          "negative_cases": 3,
+          "decision_accuracy": 0.916667,
+          "positive_evidence_recall": 1,
+          "complete_clean_rate": 0.916667,
+          "negative_injection_rate": 0.333333,
+          "forbidden_injection_rate": 0.083333,
+          "unexpected_records": 1,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 23,
+          "context_utf8_bytes": 13058,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 2,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "sibling": {
+              "executed_cases": 5,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "anchor": {
+              "executed_cases": 6,
+              "added_candidate_cases": 2,
+              "emitted_origin_records": 3
+            }
+          },
+          "lfhv_searched_cases": 2,
+          "recall_p50_ms": 28.0948,
+          "recall_p95_ms": 45.0284,
+          "timing_samples": 36
+        },
+        "no_bridge": {
+          "cases": 12,
+          "positive_cases": 9,
+          "negative_cases": 3,
+          "decision_accuracy": 0.916667,
+          "positive_evidence_recall": 0.888889,
+          "complete_clean_rate": 0.833333,
+          "negative_injection_rate": 0.333333,
+          "forbidden_injection_rate": 0.083333,
+          "unexpected_records": 1,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 22,
+          "context_utf8_bytes": 12711,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "sibling": {
+              "executed_cases": 4,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "anchor": {
+              "executed_cases": 6,
+              "added_candidate_cases": 2,
+              "emitted_origin_records": 3
+            }
+          },
+          "lfhv_searched_cases": 2,
+          "recall_p50_ms": 29.6131,
+          "recall_p95_ms": 45.7018,
+          "timing_samples": 36
+        },
+        "no_sibling": {
+          "cases": 12,
+          "positive_cases": 9,
+          "negative_cases": 3,
+          "decision_accuracy": 0.916667,
+          "positive_evidence_recall": 0.888889,
+          "complete_clean_rate": 0.833333,
+          "negative_injection_rate": 0.333333,
+          "forbidden_injection_rate": 0.083333,
+          "unexpected_records": 1,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 22,
+          "context_utf8_bytes": 12606,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 2,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "sibling": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            },
+            "anchor": {
+              "executed_cases": 6,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 2
+            }
+          },
+          "lfhv_searched_cases": 2,
+          "recall_p50_ms": 32.332,
+          "recall_p95_ms": 78.7997,
+          "timing_samples": 36
+        },
+        "no_anchor": {
+          "cases": 12,
+          "positive_cases": 9,
+          "negative_cases": 3,
+          "decision_accuracy": 0.916667,
+          "positive_evidence_recall": 0.955556,
+          "complete_clean_rate": 0.833333,
+          "negative_injection_rate": 0.333333,
+          "forbidden_injection_rate": 0.083333,
+          "unexpected_records": 1,
+          "lfhv_same_turn_recovery_rate": 1,
+          "emitted_records": 20,
+          "context_utf8_bytes": 11907,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 2,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "sibling": {
+              "executed_cases": 5,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "anchor": {
+              "executed_cases": 0,
+              "added_candidate_cases": 0,
+              "emitted_origin_records": 0
+            }
+          },
+          "lfhv_searched_cases": 2,
+          "recall_p50_ms": 30.5786,
+          "recall_p95_ms": 42.078,
+          "timing_samples": 36
+        },
+        "no_lfhv": {
+          "cases": 12,
+          "positive_cases": 9,
+          "negative_cases": 3,
+          "decision_accuracy": 0.833333,
+          "positive_evidence_recall": 0.888889,
+          "complete_clean_rate": 0.833333,
+          "negative_injection_rate": 0.333333,
+          "forbidden_injection_rate": 0.083333,
+          "unexpected_records": 1,
+          "lfhv_same_turn_recovery_rate": 0,
+          "emitted_records": 22,
+          "context_utf8_bytes": 12100,
+          "stage_coverage": {
+            "bridge": {
+              "executed_cases": 2,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "sibling": {
+              "executed_cases": 5,
+              "added_candidate_cases": 1,
+              "emitted_origin_records": 1
+            },
+            "anchor": {
+              "executed_cases": 6,
+              "added_candidate_cases": 2,
+              "emitted_origin_records": 3
+            }
+          },
+          "lfhv_searched_cases": 0,
+          "recall_p50_ms": 26.9954,
+          "recall_p95_ms": 37.7751,
+          "timing_samples": 36
+        }
+      },
+      "paired_vs_full": {
+        "no_bridge": {
+          "changed_cases": 1,
+          "recall_harmed_cases": 1,
+          "recall_helped_cases": 0,
+          "details": [
+            {
+              "case_id": "ABD-bridge-gap",
+              "lost_ids": [
+                "target"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            }
+          ]
+        },
+        "no_sibling": {
+          "changed_cases": 1,
+          "recall_harmed_cases": 1,
+          "recall_helped_cases": 0,
+          "details": [
+            {
+              "case_id": "ABD-sibling-gap",
+              "lost_ids": [
+                "neighbor"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            }
+          ]
+        },
+        "no_anchor": {
+          "changed_cases": 2,
+          "recall_harmed_cases": 1,
+          "recall_helped_cases": 0,
+          "details": [
+            {
+              "case_id": "ABD-sibling-gap",
+              "lost_ids": [
+                "seed-b"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 1
+            },
+            {
+              "case_id": "ABD-anchor-page",
+              "lost_ids": [
+                "d",
+                "e"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0.6
+            }
+          ]
+        },
+        "no_lfhv": {
+          "changed_cases": 1,
+          "recall_harmed_cases": 1,
+          "recall_helped_cases": 0,
+          "details": [
+            {
+              "case_id": "ABD-lfhv-demand",
+              "lost_ids": [
+                "archived"
+              ],
+              "gained_ids": [],
+              "recall_full": 1,
+              "recall_removed": 0
+            }
+          ]
+        }
+      }
+    }
+  },
+  "artifact_kind": "public summary; category breakdown and all repeat predictions remain in the reproducible local output",
+  "known_error": {
+    "case_id": "ABD-unrelated-control",
+    "query": "What is the SQLite backup policy?",
+    "emitted_content": "SQLite WAL mode improves concurrent reads and writes.",
+    "arms": "all five",
+    "note": "Observed near-miss injection retained without changing labels or runtime rules."
+  }
+}

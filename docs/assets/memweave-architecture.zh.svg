@@ -87,7 +87,7 @@
   <text x="62" y="849" class="body">退役不等于永久遗忘</text>
   <text x="62" y="875" class="small">隔离 / 已替代内容不走恢复路径</text>
   <text x="412" y="819" class="heading">按需检查归档知识</text>
-  <text x="412" y="849" class="body">普通召回有空位时探测</text>
+  <text x="412" y="849" class="body">有界探测，按证据强度竞争</text>
   <text x="412" y="875" class="small">重新通过同一套仲裁与预算检查</text>
   <text x="762" y="819" class="heading">实际注入后，原子恢复</text>
   <text x="762" y="849" class="body">Active + 命中计数 + Trace</text>

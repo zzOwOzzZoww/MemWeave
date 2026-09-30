@@ -180,7 +180,9 @@ class ReuseStore:
 
     def start(self, *, agent_id, project_key, session_id, prompt, records,
               retrieval_ms, turn_id=None, workspace="", budget=4000, transcript_boundary=None,
-              validate_live_records=False, record_hits=False):
+              validate_live_records=False, record_hits=False, record_limit=None):
+        if record_limit is not None and (not isinstance(record_limit, int) or record_limit < 1):
+            raise ValueError('record_limit must be a positive integer')
         trace_id = "rt_" + uuid.uuid4().hex[:20]
         header = (f'<memweave_context trace_id="{trace_id}">\n'
                   "Use only relevant knowledge; verify results normally. "
@@ -197,6 +199,8 @@ class ReuseStore:
         context = header
         items = []
         blocks = {}
+        records_by_id = {r['id']: r for r in records}
+        emitted_count = 0
         recoveries = {r['id']: r for r in records if r.get('lfhv_recovery')}
         # Recovery always requires live validation, including non-Adapter callers.
         validate_live_records = validate_live_records or bool(recoveries)
@@ -248,7 +252,8 @@ class ReuseStore:
             matches_scope = (applicable(experience, prompt) if experience
                              else not record['content'].startswith('{"experience":'))
             decision_rejection = rejection_reason(record, intent)
-            emitted = not decision_rejection and matches_scope and len(context) + len(block) + len(footer) <= budget
+            row_full = record_limit is not None and emitted_count >= record_limit
+            emitted = not decision_rejection and matches_scope and not row_full and len(context) + len(block) + len(footer) <= budget
             spec = constraint(record["content"])
             before = read_artifact(workspace, spec)[0] if spec and emitted else None
             items.append({"knowledge_id": record["id"], "source_agent": record["source_agent"],
@@ -261,7 +266,7 @@ class ReuseStore:
                           # retrieval hit and every recall figure is inflated.
                           "origin": origin, "related_to": anchor,
                           "provenance": record.get("provenance", [{"origin": origin}]),
-                          "omitted_reason": None if emitted else decision_rejection or ('not_applicable' if not matches_scope else 'context_budget'),
+                          "omitted_reason": None if emitted else decision_rejection or ('not_applicable' if not matches_scope else 'row_budget' if row_full else 'context_budget'),
                           "decision_policy": POLICY_VERSION,
                           "historical": intent.historical,
                           "experience": experience,
@@ -274,6 +279,7 @@ class ReuseStore:
                 items[-1]['lfhv_recovery_outcome'] = 'pending' if emitted else 'not_emitted'
             if emitted:
                 context += block
+                emitted_count += 1
         context = context + footer if any(item["emitted"] for item in items) else ""
         with self.knowledge._connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -295,7 +301,8 @@ class ReuseStore:
             if ids and validate_live_records:
                 live = {r['id']:r for r in db.execute("SELECT * FROM knowledge_records WHERE status IN ('active','stale','archived') AND (scope='user' OR project_key=?) AND id IN ("
                         + ','.join('?' for _ in ids) + ')', [project_key, *ids])}
-                invalid = {item['knowledge_id'] for item in items if item['emitted'] and (
+                invalid = {item['knowledge_id'] for item in items if (item['emitted'] or (
+                    recoveries and item['omitted_reason'] in {'context_budget', 'row_budget'})) and (
                     item['knowledge_id'] not in live
                     or rejection_reason(live[item['knowledge_id']], intent)
                     or digest(live[item['knowledge_id']]['content']) != item['content_hash']
@@ -324,6 +331,25 @@ class ReuseStore:
                 if agent and not agent['enabled']:
                     for item in items:
                         item.update(emitted=False, omitted_reason='agent_disabled')
+                if recoveries:
+                    # A rejected archive must not consume the slots/characters
+                    # needed by the valid ordinary records behind it.
+                    used_chars, used_rows = len(header) + len(footer), 0
+                    for item in items:
+                        if item['omitted_reason'] not in {None, 'context_budget', 'row_budget'}:
+                            continue
+                        key = item['knowledge_id']
+                        row_full = record_limit is not None and used_rows >= record_limit
+                        fits = not row_full and used_chars + len(blocks[key]) <= budget
+                        was_emitted = item['emitted']
+                        item.update(emitted=fits, omitted_reason=None if fits else 'row_budget' if row_full else 'context_budget')
+                        if fits:
+                            used_rows += 1
+                            used_chars += len(blocks[key])
+                            if not was_emitted:
+                                spec = constraint(records_by_id[key]['content'])
+                                item.update(check_spec=spec, before=read_artifact(workspace, spec)[0] if spec else None,
+                                            check_status='pending' if spec else 'no_verifier')
                 # Character budgets can remove half of a supporting set. Check
                 # the actual outgoing subset before any restoration is written.
                 outgoing = {i['knowledge_id'] for i in items if i['emitted']}
