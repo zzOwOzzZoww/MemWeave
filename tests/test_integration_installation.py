@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -15,11 +17,82 @@ from agent_knowledge_bridge.integration_installation import (
 from agent_knowledge_bridge.learning_queue import LearningQueue
 from agent_knowledge_bridge.provider import atomic_json
 from agent_knowledge_bridge.runtime_learning_adapter import RuntimeLearningAdapter
+from test_codex_learning import write_codex_turn
 from test_unified_integration import CONTENT, custom_profile, isolated, reviewer, seed
 
 
 def snapshot(root):
     return {str(path.relative_to(root)): path.read_bytes() for path in root.rglob('*') if path.is_file()}
+
+
+@pytest.mark.parametrize('agent', tuple(PROFILES))
+def test_gui_install_uses_console_python_for_every_native_hook(isolated, monkeypatch, agent):
+    interpreter = isolated / 'Python with spaces'
+    interpreter.mkdir()
+    (interpreter / 'pythonw.exe').touch()
+    (interpreter / 'python.exe').touch()
+    monkeypatch.setattr(sys, 'executable', str(interpreter / 'pythonw.exe'))
+    plan = prepare_hook_installation(PROFILES[agent], config_path=isolated / 'settings.json')
+    assert plan.python == interpreter / 'python.exe'
+    install_hook_plan(plan)
+    assert 'pythonw.exe' not in plan.launcher_path.read_text(encoding='utf-8')
+
+
+@pytest.mark.parametrize('protocol', ['command-json', 'gemini-json', 'codebuddy-json'])
+def test_gui_install_uses_console_python_for_custom_hooks(isolated, monkeypatch, protocol):
+    _, profile = custom_profile(isolated)
+    interpreter = isolated / 'Python with spaces'
+    interpreter.mkdir()
+    (interpreter / 'pythonw.exe').touch()
+    (interpreter / 'python.exe').touch()
+    monkeypatch.setattr(sys, 'executable', str(interpreter / 'pythonw.exe'))
+    plan = prepare_hook_installation(profile, config_path=isolated / 'settings.json', protocol=protocol)
+    assert plan.python == interpreter / 'python.exe'
+
+
+def test_gui_install_without_console_python_fails_before_writes(isolated, monkeypatch):
+    interpreter = isolated / 'Python with spaces'
+    interpreter.mkdir()
+    (interpreter / 'pythonw.exe').touch()
+    monkeypatch.setattr(sys, 'executable', str(interpreter / 'pythonw.exe'))
+    before = snapshot(isolated)
+    with pytest.raises(RuntimeError, match='standard streams'):
+        prepare_hook_installation(PROFILES['codex'], config_path=isolated / 'settings.json')
+    assert snapshot(isolated) == before
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows GUI interpreter regression')
+def test_gui_installed_codex_command_preserves_hook_streams_and_learning(isolated, monkeypatch):
+    gui_python = Path(sys.executable).with_name('pythonw.exe')
+    if not gui_python.is_file():
+        pytest.skip('GUI Python is not installed')
+    monkeypatch.setattr(sys, 'executable', str(gui_python))
+    plan = prepare_hook_installation(PROFILES['codex'], config_path=isolated / 'hooks.json')
+    install_hook_plan(plan)
+    store = seed(isolated, agent='codex')
+    outside = isolated / 'unrelated repository with spaces'
+    outside.mkdir()
+    transcript = isolated / 'synthetic-rollout.jsonl'
+    write_codex_turn(transcript, user=CONTENT, command='python tools/verify_widget.py',
+        output='Exit code: 0\nPASS')
+    payload = {'session_id': 'codex-session', 'turn_id': 'test-turn', 'cwd': str(outside),
+        'transcript_path': str(transcript), 'prompt': 'weather today'}
+    for event in ('DiagnosticNoOp', 'UserPromptSubmit', 'Stop'):
+        response = subprocess.run(installation._command(plan), shell=True, cwd=outside,
+            input=json.dumps({**payload, 'hook_event_name': event}), text=True,
+            encoding='utf-8', capture_output=True, timeout=20)
+        assert response.returncode == 0 and not response.stderr
+        assert json.loads(response.stdout) == {}
+    assert not (isolated / 'test.db').with_suffix('.codex-hook-errors.jsonl').exists()
+    adapter = RuntimeLearningAdapter(database_path=isolated / 'test.db', agent_id='codex',
+        project_key='shared', transcript_format='codex', reviewer=reviewer)
+    queue = LearningQueue(isolated / 'test.db', adapter.learn)
+    assert queue.summary() == {'queued': 1} and queue.process_one()
+    assert queue.summary() == {'completed': 1}
+    with store._connect() as db:
+        saved = db.execute('SELECT source_agent,source_session,status FROM knowledge_records '
+            'WHERE source_session=?', ('codex-session',)).fetchone()
+        assert tuple(saved) == ('codex', 'codex-session', 'candidate')
 
 
 @pytest.mark.parametrize('protocol', ['command-json', 'gemini-json'])

@@ -54,10 +54,11 @@ def prepare_hook_installation(profile: IntegrationProfile, *, config_path: Path,
         raise ValueError("unconfirmed hook protocol")
     marker = profile.launcher if builtin else profile.agent_id + "_learning_hook.py"
     python = Path(sys.executable).resolve()
-    if selected == 'codebuddy-json' and python.name.lower() == 'pythonw.exe':
+    # GUI installations must still give every command Hook standard streams.
+    if python.name.lower() == 'pythonw.exe':
         console = python.with_name('python.exe')
         if not console.is_file():
-            raise RuntimeError('WorkBuddy hooks require a Python interpreter with standard streams')
+            raise RuntimeError('Hooks require a Python interpreter with standard streams')
         python = console
     plan = HookInstallationPlan(profile, Path(config_path).expanduser().resolve(),
         memweave_home().resolve(), python, selected, marker, builtin)
