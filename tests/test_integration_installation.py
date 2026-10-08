@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 import subprocess
@@ -62,28 +63,45 @@ def test_gui_install_without_console_python_fails_before_writes(isolated, monkey
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows GUI interpreter regression')
-def test_gui_installed_codex_command_preserves_hook_streams_and_learning(isolated, monkeypatch):
+@pytest.mark.parametrize('shell', ['cmd', 'powershell'])
+def test_gui_installed_codex_command_preserves_hook_streams_and_learning(isolated, monkeypatch, shell):
     gui_python = Path(sys.executable).with_name('pythonw.exe')
     if not gui_python.is_file():
         pytest.skip('GUI Python is not installed')
     monkeypatch.setattr(sys, 'executable', str(gui_python))
+    which = installation.shutil.which
+    monkeypatch.setattr(installation.shutil, 'which', lambda name: None if name == 'py' else which(name))
+    home = isolated / 'Agent home \u4e2d\u6587 with spaces'
+    monkeypatch.setenv('MEMWEAVE_HOME', str(home))
+    atomic_json(home / 'config.json', {'default_project': 'shared'})
     plan = prepare_hook_installation(PROFILES['codex'], config_path=isolated / 'hooks.json')
     install_hook_plan(plan)
     store = seed(isolated, agent='codex')
-    outside = isolated / 'unrelated repository with spaces'
+    outside = isolated / 'unrelated repository \u4e2d\u6587 with spaces'
     outside.mkdir()
     transcript = isolated / 'synthetic-rollout.jsonl'
     write_codex_turn(transcript, user=CONTENT, command='python tools/verify_widget.py',
         output='Exit code: 0\nPASS')
     payload = {'session_id': 'codex-session', 'turn_id': 'test-turn', 'cwd': str(outside),
-        'transcript_path': str(transcript), 'prompt': 'weather today'}
+        'transcript_path': str(transcript), 'prompt': CONTENT + ' \u4e2d\u6587'}
+    command = installation._command(plan)
+    invocation = command if shell == 'cmd' else [
+        'powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command]
     for event in ('DiagnosticNoOp', 'UserPromptSubmit', 'Stop'):
-        response = subprocess.run(installation._command(plan), shell=True, cwd=outside,
+        response = subprocess.run(invocation, shell=shell == 'cmd', cwd=outside,
             input=json.dumps({**payload, 'hook_event_name': event}), text=True,
             encoding='utf-8', capture_output=True, timeout=20)
-        assert response.returncode == 0 and not response.stderr
-        assert json.loads(response.stdout) == {}
+        assert response.returncode == 0 and not response.stderr, response.stderr
+        output = json.loads(response.stdout)
+        if event == 'UserPromptSubmit':
+            assert 'Widget verifier baseline' in output['hookSpecificOutput']['additionalContext']
+        else:
+            assert output == {}
     assert not (isolated / 'test.db').with_suffix('.codex-hook-errors.jsonl').exists()
+    audit = (isolated / 'test.db').with_suffix('.codex-hook-runs.jsonl')
+    runs = [json.loads(line) for line in audit.read_text(encoding='utf-8').splitlines()]
+    assert [(run['event'], run['status']) for run in runs] == [
+        (event, status) for event in ('UserPromptSubmit', 'Stop') for status in ('started', 'completed')]
     adapter = RuntimeLearningAdapter(database_path=isolated / 'test.db', agent_id='codex',
         project_key='shared', transcript_format='codex', reviewer=reviewer)
     queue = LearningQueue(isolated / 'test.db', adapter.learn)
@@ -93,6 +111,43 @@ def test_gui_installed_codex_command_preserves_hook_streams_and_learning(isolate
         saved = db.execute('SELECT source_agent,source_session,status FROM knowledge_records '
             'WHERE source_session=?', ('codex-session',)).fetchone()
         assert tuple(saved) == ('codex', 'codex-session', 'candidate')
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows Python launcher regression')
+def test_codex_command_pins_console_python_despite_windowsapps_launcher(isolated, monkeypatch):
+    interpreter = isolated / "Python '\u4e2d\u6587 with spaces"
+    interpreter.mkdir()
+    (interpreter / 'python.exe').touch()
+    (interpreter / 'pythonw.exe').touch()
+    monkeypatch.setattr(sys, 'executable', str(interpreter / 'pythonw.exe'))
+    windowsapps = str(isolated / 'WindowsApps' / 'PythonManager_version' / 'py.exe')
+    monkeypatch.setattr(installation.shutil, 'which', lambda name: windowsapps if name == 'py' else None)
+    plan = prepare_hook_installation(PROFILES['codex'], config_path=isolated / 'hooks.json')
+    install_hook_plan(plan)
+    config = json.loads(plan.config_path.read_text(encoding='utf-8'))
+    for event in (plan.profile.recall_event, plan.profile.learn_event):
+        item = config['hooks'][event][0]['hooks'][0]
+        command = item['command']
+        assert command == item['commandWindows']
+        assert command.startswith('powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ')
+        code = base64.b64decode(command.split()[-1], validate=True).decode('utf-16le')
+        assert code == ("& '" + str(plan.python).replace("'", "''") + "' '" +
+            str(plan.launcher_path).replace("'", "''") + "' hook; exit $LASTEXITCODE")
+        assert windowsapps not in code and 'pythonw.exe' not in code
+        assert installation.is_owned_hook(item, plan.marker)
+    assert inspect_hook_plan(plan)['configured']
+    assert not install_hook_plan(plan)['changed']
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows command exit code regression')
+def test_codex_encoded_command_preserves_nonzero_launcher_exit(isolated):
+    plan = prepare_hook_installation(PROFILES['codex'], config_path=isolated / 'hooks.json')
+    install_hook_plan(plan)
+    plan.launcher_path.write_text('raise SystemExit(7)\n', encoding='utf-8')
+    result = subprocess.run(installation._command(plan), shell=True, input='{}', text=True,
+        encoding='utf-8', capture_output=True, timeout=20)
+    assert result.returncode == 7
+    assert not result.stdout and not result.stderr
 
 
 @pytest.mark.parametrize('protocol', ['command-json', 'gemini-json'])

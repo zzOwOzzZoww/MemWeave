@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from agent_knowledge_bridge.agent_registry import discover_agents, hook_configuration, install_native_hook
 from agent_knowledge_bridge.daemon import create_app
 from agent_knowledge_bridge.gemini_transcript import parse_latest_gemini_turn
+from agent_knowledge_bridge.integration_profiles import PROFILES
 from agent_knowledge_bridge.learning_queue import LearningQueue
 from agent_knowledge_bridge.provider import atomic_json
 from agent_knowledge_bridge.runtime_learning_adapter import RuntimeLearningAdapter
@@ -54,6 +55,19 @@ def test_parse_gemini_turn_and_evidence(isolated, suffix):
     assert turn.source_turn_key.startswith('transcript:')
     assert turn.tools[0].success is True and turn.tools[0].objective_kind == 'test'
     assert 'NEVER_COPY_THOUGHTS' not in turn.review_text(['test-event'])
+
+
+def test_gemini_prompt_response_accepts_known_text_shapes(isolated):
+    profile = PROFILES['gemini-cli']
+    operation, normalized = profile.normalize({
+        'hook_event_name': 'AfterAgent',
+        'prompt_response': {'content': [{'text': 'Gemini finished the task.'}]},
+    })
+    assert operation == 'learn'
+    assert normalized['last_assistant_message'] == 'Gemini finished the task.'
+
+    _, unknown = profile.normalize({'hook_event_name': 'AfterAgent', 'prompt_response': {'metadata': 1}})
+    assert unknown['last_assistant_message'] == ''
 
 
 @pytest.mark.parametrize('state,result,expected', [
@@ -174,6 +188,21 @@ def test_runtime_gemini_queue_compiles_candidate_with_source_and_evidence(isolat
     app.state.timing_collector.close()
 
 
+@pytest.mark.parametrize(('review_response', 'expected'), [
+    ({'proposals': []}, (0, 0, 'reviewer_returned_zero')),
+    ({'proposals': [None]}, (1, 1, 'all_rejected')),
+])
+def test_zero_candidate_diagnostics_distinguish_empty_review_from_rejection(isolated, review_response, expected):
+    path = isolated / 'diagnostics.jsonl'
+    write(path, messages())
+    adapter = RuntimeLearningAdapter(database_path=isolated / 'diagnostics.db', agent_id='gemini-cli',
+        project_key='shared', reviewer=lambda _: review_response)
+    result = adapter.learn({'session_id': 'diagnostics', 'transcript_path': str(path)})
+    latest = adapter.store.knowledge.latest_learning('gemini-cli')
+    assert result['proposals'] == 0
+    assert (latest['reviewer_proposal_count'], latest['rejected_proposal_count'], latest['proposal_outcome']) == expected
+
+
 def invoke(payload):
     return subprocess.run([sys.executable, '-m', 'agent_knowledge_bridge.hooks.gemini_learning_hook'],
         input=json.dumps(payload), text=True, encoding='utf-8', capture_output=True, timeout=20)
@@ -212,8 +241,41 @@ def test_gemini_hook_recalls_cross_agent_and_enqueues_without_blocking(isolated)
     assert response['hookSpecificOutput']['hookEventName'] == 'BeforeAgent'
     assert 'widget verifier' in response['hookSpecificOutput']['additionalContext']
     assert json.loads(invoke({**args, 'hook_event_name': 'BeforeAgent', 'prompt': 'weather today'}).stdout) == {}
-    result = invoke({**args, 'hook_event_name': 'AfterAgent'})
+    result = invoke({**args, 'hook_event_name': 'AfterAgent',
+        'prompt_response': {'text': 'Gemini completed the widget task.'}})
     assert result.returncode == 0 and json.loads(result.stdout) == {}
     assert LearningQueue(isolated / 'test.db', None).summary() == {'queued': 1}
     store.disable_agent('gemini-cli')
     assert json.loads(invoke({**args, 'hook_event_name': 'BeforeAgent', 'prompt': 'widget verifier deployment'}).stdout) == {}
+
+
+def test_empty_hook_stdin_fails_open_with_specific_diagnostic(isolated):
+    result = subprocess.run([sys.executable, '-m', 'agent_knowledge_bridge.hooks.gemini_learning_hook'],
+        input='', text=True, encoding='utf-8', capture_output=True, timeout=20)
+    assert result.returncode == 0 and json.loads(result.stdout) == {} and not result.stderr
+    errors = isolated / 'test.hook-errors.jsonl'
+    assert 'hook stdin is empty' in errors.read_text(encoding='utf-8')
+
+
+def test_hook_stdin_that_never_closes_is_bounded(monkeypatch):
+    import threading
+    from agent_knowledge_bridge.hooks import shared_hook
+
+    release = threading.Event()
+
+    class OpenPipe:
+        @property
+        def buffer(self):
+            return self
+
+        def read(self, _limit):
+            release.wait()
+            return b''
+
+    monkeypatch.setattr(shared_hook, 'HOOK_INPUT_TIMEOUT_SECONDS', 0.01)
+    monkeypatch.setattr(shared_hook.sys, 'stdin', OpenPipe())
+    try:
+        with pytest.raises(ValueError, match='did not close'):
+            shared_hook.read_input()
+    finally:
+        release.set()

@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import sys
+import threading
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -21,6 +22,7 @@ from agent_knowledge_bridge.store import utc_now
 
 
 MAX_INPUT_BYTES = 2_000_000
+HOOK_INPUT_TIMEOUT_SECONDS = 2.0
 TRANSCRIPT_RESOLVERS = {"codex": resolve_transcript_path}
 
 
@@ -85,9 +87,27 @@ def append_audit(profile: IntegrationProfile, payload: dict, *, status: str, det
 
 
 def read_input() -> dict:
-    raw = sys.stdin.buffer.read(MAX_INPUT_BYTES + 1)
+    completed = threading.Event()
+    result: list[bytes | BaseException] = []
+
+    def read_bounded_input():
+        try:
+            result.append(sys.stdin.buffer.read(MAX_INPUT_BYTES + 1))
+        except Exception as exc:
+            result.append(exc)
+        finally:
+            completed.set()
+
+    threading.Thread(target=read_bounded_input, name="memweave-hook-stdin", daemon=True).start()
+    if not completed.wait(HOOK_INPUT_TIMEOUT_SECONDS):
+        raise ValueError("hook stdin did not close before the input timeout")
+    raw = result[0]
+    if isinstance(raw, BaseException):
+        raise ValueError(f"hook stdin could not be read: {type(raw).__name__}") from None
     if len(raw) > MAX_INPUT_BYTES:
         raise ValueError("hook input exceeds the bounded limit")
+    if not raw.strip():
+        raise ValueError("hook stdin is empty; client did not provide a JSON payload")
     payload = json.loads(raw.decode("utf-8-sig"))
     if not isinstance(payload, dict):
         raise ValueError("hook input must be a JSON object")

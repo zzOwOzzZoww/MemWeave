@@ -101,16 +101,15 @@ def _read_config(path: Path) -> dict:
 
 def _command(plan: HookInstallationPlan) -> str:
     script = str(plan.launcher_path)
-    if os.name == "nt" and plan.protocol == "codebuddy-json":
-        # CodeBuddy normally runs commands through Bash; use its direct PowerShell path on Windows.
-        code = "& '" + str(plan.python).replace("'", "''") + "' '" + script.replace("'", "''") + "' hook"
+    if os.name == "nt" and (plan.protocol == "codebuddy-json" or plan.profile.windows_encoded_command):
+        # An encoded command keeps pinned paths intact across Windows shell parsers.
+        code = ("& '" + str(plan.python).replace("'", "''") + "' '" +
+            script.replace("'", "''") + "' hook; exit $LASTEXITCODE")
         encoded = base64.b64encode(code.encode("utf-16le")).decode("ascii")
         return "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand " + encoded
     if os.name == "nt" and plan.protocol == "gemini-json":
         return "& '" + str(plan.python).replace("'", "''") + "' '" + script.replace("'", "''") + "' hook"
     args = [str(plan.python), script, "hook"]
-    if os.name == "nt" and plan.profile.prefer_python_launcher and (launcher := shutil.which("py")):
-        args = [str(Path(launcher).resolve()), "-3", script, "hook"]
     return subprocess.list2cmdline(args) if os.name == "nt" else shlex.join(args)
 
 

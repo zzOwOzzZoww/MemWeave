@@ -14,6 +14,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from agent_knowledge_bridge.codex_learning_adapter import CodexLearningAdapter
+from agent_knowledge_bridge.claude_transcript import MAX_TRANSCRIPT_BYTES
 from agent_knowledge_bridge.codex_transcript import parse_latest_codex_turn
 from agent_knowledge_bridge.daemon import create_app
 
@@ -94,6 +95,25 @@ class CodexLearningTest(unittest.TestCase):
         self.assertEqual(len(turn.tools), 1)
         self.assertEqual(turn.tools[0].objective_kind, "test")
         self.assertTrue(turn.tools[0].success)
+
+    def test_latest_turn_survives_large_codex_tool_output_with_bounded_tail(self) -> None:
+        write_codex_turn(
+            self.transcript,
+            user="Remember the widget deployment procedure.",
+            command="pytest tests/widget.py",
+            output="PASS",
+        )
+        large_output = {"type": "response_item", "payload": {
+            "type": "message", "role": "assistant",
+            "content": [{"type": "output_text", "text": "x" * (MAX_TRANSCRIPT_BYTES + 128)}],
+        }}
+        with self.transcript.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(large_output) + "\n")
+
+        turn = parse_latest_codex_turn(self.transcript)
+        self.assertEqual(turn.user_text, "Remember the widget deployment procedure.")
+        with self.assertRaisesRegex(ValueError, "no user prompt"):
+            parse_latest_codex_turn(self.transcript, max_bytes=MAX_TRANSCRIPT_BYTES)
 
     def test_global_hook_ignores_other_workspaces(self) -> None:
         allowed = Path(self.temp.name) / "allowed"

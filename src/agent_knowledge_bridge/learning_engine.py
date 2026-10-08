@@ -53,6 +53,9 @@ Rules:
   entire request. Do not convert a question, an unverified assistant guess or
   generic advice into a lesson. If no user assertion supports ordinary knowledge,
   return zero proposals. Observed tool failure/recovery uses experience below.
+- Do not discard a directly asserted durable user fact or preference merely
+  because the same sentence also asks a question; quote only the assertion.
+  Do not infer durable facts from the question itself or transient activity.
 - With actual TOOL EVIDENCE, an ordinary observation may instead quote
   ASSISTANT RESULT with source_role="assistant"; this always awaits review.
 - Do not expand a quote with plausible but unobserved steps. The stored ordinary
@@ -378,15 +381,26 @@ class LearningEngine:
         )
 
         proposal_count = 0
+        reviewer_proposal_count = 0
+        rejected_proposal_count = 0
+        proposal_outcome = "unknown"
         promoted_count = 0
         try:
             # A credential-storage request is not evidence for a new policy,
             # even if a reviewer could rephrase the refusal as a general lesson.
             secret_only = not turn.tools and bool(SECRET_STORAGE_REQUEST.search(turn.user_text))
-            response = {"proposals": []} if secret_only or uncertain_only(turn) else self.reviewer(turn.review_text(event_ids))
+            if secret_only:
+                response = {"proposals": []}
+                proposal_outcome = "suppressed_sensitive_request"
+            elif uncertain_only(turn):
+                response = {"proposals": []}
+                proposal_outcome = "suppressed_unverified_claim"
+            else:
+                response = self.reviewer(turn.review_text(event_ids))
             proposals = response.get("proposals", [])
             if not isinstance(proposals, list):
                 raise RuntimeError("review response proposals must be a list")
+            reviewer_proposal_count = len(proposals)
             for proposal in proposals[:3]:
                 outcome = self._persist_proposal(
                     proposal,
@@ -400,10 +414,23 @@ class LearningEngine:
                     continue
                 proposal_count += 1
                 promoted_count += int(outcome)
+            rejected_proposal_count = max(0, reviewer_proposal_count - proposal_count)
+            if proposal_outcome == "unknown":
+                if not reviewer_proposal_count:
+                    proposal_outcome = "reviewer_returned_zero"
+                elif not proposal_count:
+                    proposal_outcome = "all_rejected"
+                elif rejected_proposal_count:
+                    proposal_outcome = "partial"
+                else:
+                    proposal_outcome = "accepted"
             self.store.finish_run(
                 run_id,
                 status="completed",
                 proposal_count=proposal_count,
+                reviewer_proposal_count=reviewer_proposal_count,
+                rejected_proposal_count=rejected_proposal_count,
+                proposal_outcome=proposal_outcome,
                 promoted_count=promoted_count,
                 latency_ms=(time.perf_counter() - started) * 1000,
             )
@@ -412,6 +439,9 @@ class LearningEngine:
                 run_id,
                 status="failed",
                 proposal_count=proposal_count,
+                reviewer_proposal_count=reviewer_proposal_count,
+                rejected_proposal_count=rejected_proposal_count,
+                proposal_outcome="processing_failed",
                 promoted_count=promoted_count,
                 latency_ms=(time.perf_counter() - started) * 1000,
                 error=redact_text(str(exc), 1000),
@@ -420,6 +450,9 @@ class LearningEngine:
         return {
             "status": "completed",
             "proposals": proposal_count,
+            "reviewer_proposals": reviewer_proposal_count,
+            "rejected_proposals": rejected_proposal_count,
+            "proposal_outcome": proposal_outcome,
             "promoted": promoted_count,
             "compiler": {
                 "run_id": run_id,

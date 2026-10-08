@@ -2819,11 +2819,18 @@
     const learningLabel = item => {
       const learning = item.learning;
       if (!learning) return '尚无学习记录';
+      const zeroOutcome = ({
+        reviewer_returned_zero: '模型未提出可复用知识',
+        all_rejected: `模型提出 ${Number(learning.reviewer_proposal_count) || 0} 条，但全部未通过校验`,
+        suppressed_sensitive_request: '涉及凭据保存请求，已跳过提案',
+        suppressed_unverified_claim: '仅有未经验证内容，已跳过提案',
+        processing_failed: '提案处理失败',
+      })[learning.proposal_outcome] || '未生成新候选';
       if (learning.status === 'completed') {
         const proposals = Number(learning.proposal_count) || 0;
         const promoted = Number(learning.promoted_count) || 0;
         if (proposals || promoted) return `最近学习完成 · 生成 ${proposals} 条候选${promoted ? ` · 晋升 ${promoted} 条` : ''}`;
-        return '最近学习完成 · 未生成新候选';
+        return `最近学习完成 · ${zeroOutcome}`;
       }
       if (learning.status === 'failed') return '最近学习失败';
       if (learning.status === 'running') return '正在学习…';
@@ -3076,7 +3083,16 @@
       const focusedDetail = focused?.tagName === 'SUMMARY' ? focused.closest('details')?.dataset.knowledgeId : '';
       const hadRecords = !!document.querySelector('#learningRecords .learning-entry');
       const expanded = new Set([...document.querySelectorAll('#learningRecords details[open]')].map(item => item.dataset.knowledgeId));
-      document.getElementById('learningSummary').textContent = `本次生成 ${data.run.proposal_count} 条候选 · 自动晋升 ${data.run.promoted_count} 条 · 当前关联 ${data.linked_count} 条（含去重复用） · 待审核 ${data.pending_count} 条`;
+      const outcomeLabel = ({
+        reviewer_returned_zero: '模型未提出可复用知识',
+        all_rejected: '模型提案全部未通过校验',
+        partial: '部分提案未保留',
+        accepted: '提案通过校验',
+        suppressed_sensitive_request: '凭据保存请求已跳过',
+        suppressed_unverified_claim: '未经验证内容已跳过',
+        processing_failed: '提案处理失败',
+      })[data.run.proposal_outcome] || '原因未知';
+      document.getElementById('learningSummary').textContent = `模型提案 ${data.run.reviewer_proposal_count} 条 · 通过 ${data.run.proposal_count} 条 · 未保留 ${data.run.rejected_proposal_count} 条 · ${outcomeLabel} · 自动晋升 ${data.run.promoted_count} 条 · 当前关联 ${data.linked_count} 条 · 待审核 ${data.pending_count} 条`;
       const records = document.getElementById('learningRecords');
       records.setAttribute('aria-labelledby', review.filter === 'all' ? 'learningAll' : 'learningPending');
       records.innerHTML = data.results.length ? data.results.map((item, index) => {

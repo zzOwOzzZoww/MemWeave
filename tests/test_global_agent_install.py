@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import base64
 import json
 
 import pytest
 
 from agent_knowledge_bridge.agent_registry import discover_agents, hook_configuration, install_native_hook
+from agent_knowledge_bridge.integration_installation import is_owned_hook
 from agent_knowledge_bridge.provider import atomic_json
 
 
@@ -43,11 +45,14 @@ def test_repair_all_groups_without_touching_other_hooks(native):
     for groups in config['hooks'].values():
         assert groups[0] == {'matcher': 'private/*', 'hooks': [other]}
         ours = [(group, item) for group in groups for item in group['hooks']
-                if marker in item.get('command', '')]
+                if is_owned_hook(item, marker)]
         assert len(ours) == 1
         group, item = ours[0]
         assert group.get('matcher', '') == ''
-        assert '--workspace' not in item['command']
+        command = item['command']
+        if command.startswith('powershell.exe '):
+            command = base64.b64decode(command.split()[-1], validate=True).decode('utf-16le')
+        assert '--workspace' not in command
         assert item['async'] is False
         assert 'shell' not in item and 'timeoutSec' not in item
     assert hook_configuration(agent)['configured']

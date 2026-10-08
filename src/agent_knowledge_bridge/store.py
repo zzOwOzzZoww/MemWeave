@@ -2180,7 +2180,8 @@ class KnowledgeStore:
             try:
                 row = connection.execute(
                     """
-                    SELECT id, project_key, status, proposal_count, promoted_count, error,
+                    SELECT id, project_key, status, proposal_count, reviewer_proposal_count,
+                           rejected_proposal_count, proposal_outcome, promoted_count, error,
                            created_at, completed_at, latency_ms
                     FROM learning_runs
                     WHERE agent_id = ?
@@ -2212,6 +2213,9 @@ class KnowledgeStore:
             "pending_count": pending_count,
             "status": row["status"],
             "proposal_count": int(row["proposal_count"] or 0),
+            "reviewer_proposal_count": int(row["reviewer_proposal_count"] or 0),
+            "rejected_proposal_count": int(row["rejected_proposal_count"] or 0),
+            "proposal_outcome": row["proposal_outcome"] or "unknown",
             "promoted_count": int(row["promoted_count"] or 0),
             "error": row["error"] or "",
             "created_at": row["created_at"],

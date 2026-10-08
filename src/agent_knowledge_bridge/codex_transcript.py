@@ -24,6 +24,11 @@ from agent_knowledge_bridge.claude_transcript import (
 )
 
 
+# Codex rollouts often contain verbose tool output after the latest request.
+# Keep parsing bounded while allowing a larger tail than message transcripts.
+MAX_CODEX_TRANSCRIPT_BYTES = 16_000_000
+
+
 def resolve_transcript_path(hook_input: dict) -> str:
     """Recover an omitted desktop rollout path from a bounded session scan."""
     supplied = str(hook_input.get("transcript_path") or "").strip()
@@ -159,7 +164,7 @@ def _literal_command_wrapper(arguments: dict[str, Any], output: str):
 
 
 def parse_latest_codex_turn(
-    transcript_path: str | Path, *, fallback_assistant: str = "", max_bytes: int = MAX_TRANSCRIPT_BYTES,
+    transcript_path: str | Path, *, fallback_assistant: str = "", max_bytes: int = MAX_CODEX_TRANSCRIPT_BYTES,
     end_offset: int | None = None,
 ) -> TranscriptTurn:
     path = Path(transcript_path)

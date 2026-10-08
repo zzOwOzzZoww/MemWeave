@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 import tempfile
@@ -157,7 +158,7 @@ class AgentRegistryTest(unittest.TestCase):
             settled = install_native_hook("claude-code", config_path=config)
             self.assertFalse(settled["changed"])
 
-    def test_codex_hook_avoids_space_containing_python_executable_on_windows(self) -> None:
+    def test_codex_hook_encodes_pinned_python_paths_on_windows(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             config = Path(temp) / "hooks.json"
             install_native_hook("codex", config_path=config)
@@ -169,9 +170,17 @@ class AgentRegistryTest(unittest.TestCase):
             ]
             self.assertTrue(commands)
             if os.name == "nt":
+                from agent_knowledge_bridge.integration_installation import prepare_hook_installation
+                from agent_knowledge_bridge.integration_profiles import PROFILES
+                plan = prepare_hook_installation(PROFILES['codex'], config_path=config)
                 for command in commands:
-                    self.assertTrue(command.lower().startswith("c:\\windows\\py.exe -3 "))
-                    self.assertNotIn("Program Files", command)
+                    self.assertTrue(command.startswith(
+                        'powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand '))
+                    code = base64.b64decode(command.split()[-1], validate=True).decode('utf-16le')
+                    self.assertIn(str(plan.python).replace("'", "''"), code)
+                    self.assertIn(str(plan.launcher_path).replace("'", "''"), code)
+                    self.assertTrue(code.endswith('; exit $LASTEXITCODE'))
+                    self.assertNotIn('py.exe', code)
 
     def test_registered_agent_exposes_hook_and_latest_learning_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

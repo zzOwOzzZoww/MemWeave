@@ -47,6 +47,9 @@ class LearningStore:
                     status TEXT NOT NULL,
                     input_chars INTEGER NOT NULL DEFAULT 0,
                     proposal_count INTEGER NOT NULL DEFAULT 0,
+                    reviewer_proposal_count INTEGER NOT NULL DEFAULT 0,
+                    rejected_proposal_count INTEGER NOT NULL DEFAULT 0,
+                    proposal_outcome TEXT NOT NULL DEFAULT 'unknown',
                     promoted_count INTEGER NOT NULL DEFAULT 0,
                     latency_ms REAL NOT NULL DEFAULT 0,
                     error TEXT NOT NULL DEFAULT '',
@@ -118,6 +121,9 @@ class LearningStore:
                 "TEXT NOT NULL DEFAULT 'legacy'",
             )
             self.knowledge._ensure_column(connection, 'learning_runs', 'attempts', 'INTEGER NOT NULL DEFAULT 1')
+            self.knowledge._ensure_column(connection, 'learning_runs', 'reviewer_proposal_count', 'INTEGER NOT NULL DEFAULT 0')
+            self.knowledge._ensure_column(connection, 'learning_runs', 'rejected_proposal_count', 'INTEGER NOT NULL DEFAULT 0')
+            self.knowledge._ensure_column(connection, 'learning_runs', 'proposal_outcome', "TEXT NOT NULL DEFAULT 'unknown'")
 
     def begin_run(
         self,
@@ -226,6 +232,9 @@ class LearningStore:
         *,
         status: str,
         proposal_count: int = 0,
+        reviewer_proposal_count: int | None = None,
+        rejected_proposal_count: int | None = None,
+        proposal_outcome: str | None = None,
         promoted_count: int = 0,
         latency_ms: float = 0,
         error: str = "",
@@ -234,13 +243,19 @@ class LearningStore:
             connection.execute(
                 """
                 UPDATE learning_runs
-                SET status = ?, proposal_count = ?, promoted_count = ?,
+                SET status = ?, proposal_count = ?,
+                    reviewer_proposal_count = COALESCE(?, reviewer_proposal_count),
+                    rejected_proposal_count = COALESCE(?, rejected_proposal_count),
+                    proposal_outcome = COALESCE(?, proposal_outcome), promoted_count = ?,
                     latency_ms = ?, error = ?, completed_at = ?
                 WHERE id = ?
                 """,
                 (
                     status,
                     proposal_count,
+                    reviewer_proposal_count,
+                    rejected_proposal_count,
+                    proposal_outcome,
                     promoted_count,
                     latency_ms,
                     error[:1000],
@@ -261,7 +276,8 @@ class LearningStore:
         with self.knowledge._connect() as connection:
             connection.execute('BEGIN')
             run = connection.execute(
-                """SELECT id, agent_id, project_key, status, proposal_count, promoted_count,
+                """SELECT id, agent_id, project_key, status, proposal_count,
+                          reviewer_proposal_count, rejected_proposal_count, proposal_outcome, promoted_count,
                           created_at, completed_at FROM learning_runs
                    WHERE id=? AND project_key=? AND agent_id=?""",
                 (run_id, project_key, source_agent),

@@ -39,7 +39,7 @@ class IntegrationProfile:
     transcript_resolver: str = ""
     baseline_bypass: bool = False
     hook_protocol: str = "command-json"
-    prefer_python_launcher: bool = False
+    windows_encoded_command: bool = False
     recall_timeout: int = 120
 
     def normalize(self, payload: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -53,6 +53,8 @@ class IntegrationProfile:
             if name == "turn":
                 if not isinstance(value, dict):
                     raise ValueError("normalized turn must be an object")
+            elif name == "last_assistant_message" and not isinstance(value, str):
+                result[name] = _assistant_text(value)
             elif not isinstance(value, str) or len(value) > limits[name]:
                 raise ValueError(f"invalid normalized {name} field")
         result["hook_event_name"] = event
@@ -78,6 +80,24 @@ class IntegrationProfile:
         return render(self.recall_output)
 
 
+def _assistant_text(value: Any, depth: int = 0) -> str:
+    """Extract only recognizable text from structured client response fields."""
+    if isinstance(value, str):
+        return value[:20_000]
+    if depth >= 8:
+        return ""
+    if isinstance(value, list):
+        parts = [_assistant_text(item, depth + 1) for item in value[:32]]
+        return "\n".join(part for part in parts if part)[:20_000]
+    if isinstance(value, dict):
+        for key in ("text", "response", "content", "message"):
+            if key in value:
+                result = _assistant_text(value[key], depth + 1)
+                if result:
+                    return result
+    return ""
+
+
 def _lookup(payload: dict, path: str):
     value = payload
     for key in path.split("."):
@@ -94,7 +114,7 @@ PROFILES = {
     "codex": IntegrationProfile("codex", "UserPromptSubmit", "Stop", "codex",
         launcher="codex_learning_hook.py", config_file="hooks.json", error_suffix=".codex-hook-errors.jsonl",
         audit_suffix=".codex-hook-runs.jsonl", transcript_resolver="codex", baseline_bypass=True,
-        config_home="~/.codex", home_env="CODEX_HOME", prefer_python_launcher=True, recall_timeout=30),
+        config_home="~/.codex", home_env="CODEX_HOME", windows_encoded_command=True, recall_timeout=30),
     "gemini-cli": IntegrationProfile("gemini-cli", "BeforeAgent", "AfterAgent", "gemini",
         bind_transcript_boundary=True, launcher="gemini_learning_hook.py", config_file="settings.json",
         config_home="~/.gemini", home_env="GEMINI_CLI_HOME", home_subdir=".gemini",
