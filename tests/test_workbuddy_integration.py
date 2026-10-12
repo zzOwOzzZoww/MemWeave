@@ -31,7 +31,10 @@ def client_home(isolated, monkeypatch):
 def transcript(path, rows=None):
     rows = rows or [
         {'type': 'message', 'role': 'user', 'id': 'u1', 'content': [{'type': 'input_text', 'text': CONTENT}]},
-        {'type': 'message', 'role': 'assistant', 'id': 'a1', 'parentId': 'u1',
+        {'type': 'reasoning', 'id': 'thought', 'parentId': 'u1', 'rawContent': 'Private reasoning.'},
+        {'type': 'message', 'role': 'user', 'id': 'compact', 'logicalParentId': 'thought',
+         'providerData': {'isCompactInternal': True}, 'content': 'Internal compacted summary.'},
+        {'type': 'message', 'role': 'assistant', 'id': 'a1', 'parentId': 'compact',
          'content': [{'type': 'output_text', 'text': 'Acknowledged.'}]},
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -196,6 +199,55 @@ def test_codebuddy_branch_and_queued_boundary_preserve_original_turn(isolated):
             'parentId': 'a1', 'content': 'Next request.'}) + '\n')
     assert parse_latest_codebuddy_turn(path, end_offset=boundary).turn_hash == original.turn_hash
     assert parse_latest_codebuddy_turn(path).user_text == 'Next request.'
+
+
+def test_codebuddy_reasoning_and_compaction_preserve_branch_without_private_text(isolated):
+    path = transcript(isolated / 'native.jsonl', [
+        {'type': 'message', 'role': 'user', 'id': 'u', 'content': CONTENT},
+        {'type': 'message', 'role': 'assistant', 'id': 'old', 'parentId': 'u', 'content': 'Discarded reply.'},
+        {'type': 'reasoning', 'id': 't', 'parentId': 'u', 'rawContent': 'Private thoughts.'},
+        {'type': 'message', 'role': 'user', 'id': 'compact', 'logicalParentId': 't',
+         'providerData': {'isCompactInternal': True}, 'content': 'Internal summary.'},
+        {'type': 'function_call', 'id': 'c', 'parentId': 'compact', 'callId': 'call',
+         'name': 'Bash', 'arguments': '{"command":"pytest tests -q"}'},
+        {'type': 'function_call_result', 'id': 'r', 'parentId': 'c', 'callId': 'call',
+         'output': 'Exit code: 0'},
+        {'type': 'reasoning', 'id': 't2', 'parentId': 'r', 'content': 'More private thoughts.'},
+        {'type': 'message', 'role': 'assistant', 'id': 'a', 'parentId': 't2', 'content': 'Correct reply.'},
+        {'type': 'file-history-snapshot', 'id': 'snapshot', 'snapshot': {'private': 'file history'}},
+    ])
+    result = parse_latest_codebuddy_turn(path)
+    assert result.user_text == CONTENT and result.assistant_text == 'Correct reply.'
+    assert len(result.tools) == 1 and result.tools[0].success is True
+    assert all(text not in result.review_text(['fixture-event']) for text in (
+        'Discarded reply.', 'Private thoughts.', 'More private thoughts.', 'Internal summary.', 'file history'))
+    boundary = path.stat().st_size
+    with path.open('a', encoding='utf-8') as stream:
+        stream.write(json.dumps({'type': 'message', 'role': 'user', 'id': 'next',
+            'parentId': 'a', 'content': 'Next request.'}) + '\n')
+    assert parse_latest_codebuddy_turn(path, end_offset=boundary).turn_hash == result.turn_hash
+    assert parse_latest_codebuddy_turn(path).previous_turn_key == result.source_turn_key
+
+
+def test_codebuddy_cycle_through_reasoning_is_rejected(isolated):
+    path = transcript(isolated / 'native.jsonl', [
+        {'type': 'message', 'role': 'user', 'id': 'u', 'content': CONTENT},
+        {'type': 'reasoning', 'id': 't', 'parentId': 'a'},
+        {'type': 'message', 'role': 'assistant', 'id': 'a', 'parentId': 't', 'content': 'Reply.'},
+    ])
+    with pytest.raises(ValueError, match='cycle'):
+        parse_latest_codebuddy_turn(path)
+
+
+@pytest.mark.parametrize('options', [{'parentId': 'missing'},
+    {'parentId': 'missing', 'logicalParentId': 'u'}])
+def test_codebuddy_broken_branch_does_not_borrow_unrelated_user(isolated, options):
+    path = transcript(isolated / 'native.jsonl', [
+        {'type': 'message', 'role': 'user', 'id': 'u', 'content': CONTENT},
+        {'type': 'message', 'role': 'assistant', 'id': 'a', 'content': 'Unrelated reply.', **options},
+    ])
+    with pytest.raises(ValueError, match='no user prompt'):
+        parse_latest_codebuddy_turn(path)
 
 
 @pytest.mark.parametrize('exit_code', [0, 1, None])

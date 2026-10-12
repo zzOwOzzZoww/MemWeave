@@ -124,6 +124,7 @@ class LearningStore:
             self.knowledge._ensure_column(connection, 'learning_runs', 'reviewer_proposal_count', 'INTEGER NOT NULL DEFAULT 0')
             self.knowledge._ensure_column(connection, 'learning_runs', 'rejected_proposal_count', 'INTEGER NOT NULL DEFAULT 0')
             self.knowledge._ensure_column(connection, 'learning_runs', 'proposal_outcome', "TEXT NOT NULL DEFAULT 'unknown'")
+            self.knowledge._ensure_column(connection, 'learning_runs', 'rejection_reasons_json', "TEXT NOT NULL DEFAULT '{}'")
 
     def begin_run(
         self,
@@ -235,6 +236,7 @@ class LearningStore:
         reviewer_proposal_count: int | None = None,
         rejected_proposal_count: int | None = None,
         proposal_outcome: str | None = None,
+        rejection_reasons: dict[str, int] | None = None,
         promoted_count: int = 0,
         latency_ms: float = 0,
         error: str = "",
@@ -246,7 +248,8 @@ class LearningStore:
                 SET status = ?, proposal_count = ?,
                     reviewer_proposal_count = COALESCE(?, reviewer_proposal_count),
                     rejected_proposal_count = COALESCE(?, rejected_proposal_count),
-                    proposal_outcome = COALESCE(?, proposal_outcome), promoted_count = ?,
+                    proposal_outcome = COALESCE(?, proposal_outcome),
+                    rejection_reasons_json = COALESCE(?, rejection_reasons_json), promoted_count = ?,
                     latency_ms = ?, error = ?, completed_at = ?
                 WHERE id = ?
                 """,
@@ -256,6 +259,7 @@ class LearningStore:
                     reviewer_proposal_count,
                     rejected_proposal_count,
                     proposal_outcome,
+                    json.dumps(rejection_reasons) if rejection_reasons is not None else None,
                     promoted_count,
                     latency_ms,
                     error[:1000],
@@ -277,7 +281,7 @@ class LearningStore:
             connection.execute('BEGIN')
             run = connection.execute(
                 """SELECT id, agent_id, project_key, status, proposal_count,
-                          reviewer_proposal_count, rejected_proposal_count, proposal_outcome, promoted_count,
+                          reviewer_proposal_count, rejected_proposal_count, proposal_outcome, rejection_reasons_json, promoted_count,
                           created_at, completed_at FROM learning_runs
                    WHERE id=? AND project_key=? AND agent_id=?""",
                 (run_id, project_key, source_agent),
@@ -318,8 +322,10 @@ class LearningStore:
                     'versions': versions.details(connection, row),
                     'relations': [item[0] for item in relations],
                 })
+        public_run = dict(run)
+        public_run['rejection_reasons'] = json.loads(public_run.pop('rejection_reasons_json'))
         return {
-            'run': dict(run), 'results': results, 'count': len(results),
+            'run': public_run, 'results': results, 'count': len(results),
             'total': pending_count if status == 'candidate' else linked_count,
             'linked_count': linked_count, 'pending_count': pending_count,
             'offset': offset, 'limit': limit,

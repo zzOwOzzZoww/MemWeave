@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import webbrowser
 from pathlib import Path
@@ -199,7 +200,20 @@ def _stop_owned_runtime(state: dict[str, Any] | None) -> None:
     try:
         os.kill(pid, signal.SIGTERM)
     except OSError:
-        pass
+        return
+    # SIGTERM/TerminateProcess returns before the listener releases its socket.
+    # Wait briefly for the owned loopback endpoint, otherwise _free_port would
+    # move the Runtime to a random port and strand existing dashboard tabs.
+    endpoint = urllib.parse.urlparse(url)
+    if endpoint.hostname != '127.0.0.1' or not endpoint.port:
+        return
+    for _ in range(50):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
+                sock.bind(('127.0.0.1', endpoint.port))
+                return
+            except OSError:
+                time.sleep(0.05)
 
 
 def _start_runtime(config: dict[str, Any], revision: str) -> dict[str, Any]:
@@ -208,8 +222,19 @@ def _start_runtime(config: dict[str, Any], revision: str) -> dict[str, Any]:
     paths = _paths()
     paths["logs"].mkdir(parents=True, exist_ok=True)
     port = _free_port(int(config.get("runtime_port") or 8765))
-    token = secrets.token_hex(24)
     url = f"http://127.0.0.1:{port}"
+    previous = _read_state(paths['state']) or {}
+    token = previous.get('token')
+    # A source update/recovery is not credential rotation. Existing dashboard
+    # tabs keep their bearer token, but must not gain access to another DB or
+    # endpoint. Never obtain credentials from an unauthenticated HTTP endpoint.
+    previous_database = previous.get('database_path')
+    same_database = (isinstance(previous_database, str) and bool(previous_database.strip())
+                     and Path(previous_database).expanduser().resolve()
+                     == Path(config['database_path']).expanduser().resolve())
+    if not (same_database and previous.get('url') == url
+            and isinstance(token, str) and token.strip()):
+        token = secrets.token_hex(24)
     environment = {
         **os.environ,
         "MW_DB_PATH": str(config["database_path"]),

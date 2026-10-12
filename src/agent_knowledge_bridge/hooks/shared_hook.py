@@ -18,6 +18,7 @@ from agent_knowledge_bridge.learning import LearningStore
 from agent_knowledge_bridge.learning_queue import LearningQueue
 from agent_knowledge_bridge.runtime_client import MemWeaveRuntimeClient
 from agent_knowledge_bridge.runtime_learning_adapter import RuntimeLearningAdapter, transcript_parser
+from agent_knowledge_bridge.runtime_recovery import request_recovery
 from agent_knowledge_bridge.store import utc_now
 
 
@@ -187,6 +188,11 @@ def run_hook_input(profile: IntegrationProfile, payload: dict, *, runtime_select
                 transcript_parser(agent, profile.transcript_format)
                 LearningQueue(runtime_state.database_path(), None).submit(
                     {**args, "agent_id": agent, "project_key": project})
+        if runtime is None:
+            try:
+                request_recovery()
+            except OSError as exc:
+                append_error(profile, f"background Runtime recovery failed: {type(exc).__name__}", normalized)
         append_audit(profile, normalized, status="completed", detail={"runtime": runtime is not None,
             "context_chars": len(context) if operation == "recall" else 0})
     except Exception as exc:

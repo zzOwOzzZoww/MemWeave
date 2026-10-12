@@ -17,7 +17,7 @@ from agent_knowledge_bridge.compiler import CompilationIdentity
 from agent_knowledge_bridge.governance import Governor
 from agent_knowledge_bridge.learning import LearningStore
 from agent_knowledge_bridge.reuse import ReuseStore, digest
-from agent_knowledge_bridge.decisions import grounded_user_proposal, uncertain_only
+from agent_knowledge_bridge.decisions import grounded_user_proposal
 from agent_knowledge_bridge.experiences import (
     validate_contract, encode_contract, admission_evidence, phrase_in,
 )
@@ -27,7 +27,7 @@ REVIEW_SYSTEM_PROMPT = """You are the review component of a continual-learning s
 Extract zero to three durable, reusable lessons from a completed coding-agent turn.
 
 Return one JSON object with this exact shape:
-{"proposals":[{"title":"...","content":"...","search_terms":"...","subject_terms":["..."],"knowledge_type":"fact|preference|procedure|decision","scope":"user|project","evidence_event_ids":["ae_..."]}]}
+{"proposals":[{"title":"...","content":"...","search_terms":"...","subject_terms":["..."],"knowledge_type":"fact|preference|procedure|decision","scope":"user|project","source_role":"user|assistant","source_quotes":["exact source excerpt"],"evidence_event_ids":["ae_..."]}]}
 
 Rules:
 - Return an empty proposals array when the turn contains no reusable lesson.
@@ -126,8 +126,9 @@ class DeepSeekReviewer:
         parsed = self._parse_json(content)
         proposals = parsed.get('proposals', [])
         if isinstance(proposals, list):
-            parsed['proposals'] = [p for p in proposals if isinstance(p, dict)
-                                   and ('experience' in p or 'source_quotes' in p)]
+            # Preserve raw proposal counts; admission below rejects missing
+            # evidence instead of misreporting it as an empty model response.
+            parsed['_require_source_quotes'] = True
         return parsed
 
     @staticmethod
@@ -383,6 +384,7 @@ class LearningEngine:
         proposal_count = 0
         reviewer_proposal_count = 0
         rejected_proposal_count = 0
+        rejection_reasons: dict[str, int] = {}
         proposal_outcome = "unknown"
         promoted_count = 0
         try:
@@ -392,16 +394,24 @@ class LearningEngine:
             if secret_only:
                 response = {"proposals": []}
                 proposal_outcome = "suppressed_sensitive_request"
-            elif uncertain_only(turn):
-                response = {"proposals": []}
-                proposal_outcome = "suppressed_unverified_claim"
             else:
+                # Uncertainty is checked against each proposal's evidence, not
+                # an incidental phrase anywhere in a multi-topic response.
                 response = self.reviewer(turn.review_text(event_ids))
             proposals = response.get("proposals", [])
             if not isinstance(proposals, list):
                 raise RuntimeError("review response proposals must be a list")
             reviewer_proposal_count = len(proposals)
+            if len(proposals) > 3:
+                rejection_reasons['proposal_limit'] = len(proposals) - 3
             for proposal in proposals[:3]:
+                if response.get('_require_source_quotes') and (
+                    not isinstance(proposal, dict) or
+                    ('experience' not in proposal and 'source_quotes' not in proposal)
+                ):
+                    reason = 'missing_source_quotes' if isinstance(proposal, dict) else 'invalid_proposal'
+                    rejection_reasons[reason] = rejection_reasons.get(reason, 0) + 1
+                    continue
                 outcome = self._persist_proposal(
                     proposal,
                     run_id=run_id,
@@ -409,6 +419,7 @@ class LearningEngine:
                     available_event_ids=event_ids,
                     source_text=turn.review_text(event_ids),
                     source_turn=turn,
+                    rejection_reasons=rejection_reasons,
                 )
                 if outcome is None:
                     continue
@@ -431,6 +442,7 @@ class LearningEngine:
                 reviewer_proposal_count=reviewer_proposal_count,
                 rejected_proposal_count=rejected_proposal_count,
                 proposal_outcome=proposal_outcome,
+                rejection_reasons=rejection_reasons,
                 promoted_count=promoted_count,
                 latency_ms=(time.perf_counter() - started) * 1000,
             )
@@ -442,6 +454,7 @@ class LearningEngine:
                 reviewer_proposal_count=reviewer_proposal_count,
                 rejected_proposal_count=rejected_proposal_count,
                 proposal_outcome="processing_failed",
+                rejection_reasons=rejection_reasons,
                 promoted_count=promoted_count,
                 latency_ms=(time.perf_counter() - started) * 1000,
                 error=redact_text(str(exc), 1000),
@@ -453,6 +466,7 @@ class LearningEngine:
             "reviewer_proposals": reviewer_proposal_count,
             "rejected_proposals": rejected_proposal_count,
             "proposal_outcome": proposal_outcome,
+            "rejection_reasons": rejection_reasons,
             "promoted": promoted_count,
             "compiler": {
                 "run_id": run_id,
@@ -492,11 +506,17 @@ class LearningEngine:
         available_event_ids: list[str],
         source_text: str = "",
         source_turn: TranscriptTurn | None = None,
+        rejection_reasons: dict[str, int] | None = None,
     ) -> bool | None:
+        def reject(reason):
+            if rejection_reasons is not None:
+                rejection_reasons[reason] = rejection_reasons.get(reason, 0) + 1
+            return None
+
         if not isinstance(proposal, dict):
-            return None
+            return reject('invalid_proposal')
         if not self.store.knowledge.agent_allowed(self.agent_id):
-            return None
+            return reject('agent_disabled')
         title = str(proposal.get("title") or "").strip()
         content = str(proposal.get("content") or "").strip()
         knowledge_type = str(proposal.get("knowledge_type") or "").strip()
@@ -504,7 +524,7 @@ class LearningEngine:
         search_terms = str(proposal.get("search_terms") or "").strip()
         subject_terms = proposal.get("subject_terms") or []
         if not isinstance(subject_terms, list) or len(subject_terms) > 16:
-            return None
+            return reject('invalid_subject_terms')
         subject_terms = [str(item).strip() for item in subject_terms
                          if isinstance(item, str) and 0 < len(item.strip()) <= 100]
         grounded = None
@@ -512,7 +532,7 @@ class LearningEngine:
             try:
                 grounded = grounded_user_proposal(proposal, source_turn)
             except ValueError:
-                return None
+                return reject('invalid_source_evidence')
             if grounded:
                 content, scope = grounded['content'], grounded['scope']
         if not title or not content or knowledge_type not in {
@@ -521,17 +541,17 @@ class LearningEngine:
             "procedure",
             "decision",
         }:
-            return None
+            return reject('invalid_proposal')
         if len(search_terms) > 1000:
-            return None
+            return reject('invalid_search_terms')
         if scope not in {"user", "project"}:
             scope = "project"
         if redact_text(title, len(title) + 1) != title or redact_text(
             content, len(content) + 1
         ) != content or redact_text(search_terms, len(search_terms) + 1) != search_terms:
-            return None
+            return reject('sensitive_content')
         if any(redact_text(item, len(item) + 1) != item for item in subject_terms):
-            return None
+            return reject('sensitive_content')
         cited = proposal.get("evidence_event_ids") or []
         if not isinstance(cited, list):
             cited = []
@@ -543,12 +563,12 @@ class LearningEngine:
         experience = None
         recovery = None
         if content.startswith('{"experience":') and 'experience' not in proposal:
-            return None
+            return reject('invalid_experience')
         if "experience" in proposal:
             try:
                 experience = validate_contract(proposal["experience"])
             except (ValueError, TypeError):
-                return None
+                return reject('invalid_experience')
             event_map = self.store.get_events(available_event_ids)
             # Source evidence must belong to this agent/project/session. The
             # model cannot use another session's passing test as admission.
@@ -562,7 +582,7 @@ class LearningEngine:
                         and command_from_summary(event['payload'].get('input', ''))
                         == experience['verifier']['command']]
             if not observed or not all(phrase_in(term, source_text) for term in experience['applies_when'] + experience['exclude_when']):
-                return None
+                return reject('unsupported_experience')
             recovery = admission_evidence(experience, event_map, available_event_ids, cited_ids)
             content = encode_contract(experience)
             scope, knowledge_type = 'project', 'procedure'

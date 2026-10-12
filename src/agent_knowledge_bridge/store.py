@@ -2180,9 +2180,7 @@ class KnowledgeStore:
             try:
                 row = connection.execute(
                     """
-                    SELECT id, project_key, status, proposal_count, reviewer_proposal_count,
-                           rejected_proposal_count, proposal_outcome, promoted_count, error,
-                           created_at, completed_at, latency_ms
+                    SELECT *
                     FROM learning_runs
                     WHERE agent_id = ?
                     ORDER BY created_at DESC, rowid DESC
@@ -2216,6 +2214,7 @@ class KnowledgeStore:
             "reviewer_proposal_count": int(row["reviewer_proposal_count"] or 0),
             "rejected_proposal_count": int(row["rejected_proposal_count"] or 0),
             "proposal_outcome": row["proposal_outcome"] or "unknown",
+            "rejection_reasons": json.loads(row['rejection_reasons_json']) if 'rejection_reasons_json' in row.keys() else {},
             "promoted_count": int(row["promoted_count"] or 0),
             "error": row["error"] or "",
             "created_at": row["created_at"],

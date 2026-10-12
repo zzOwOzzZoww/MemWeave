@@ -12,6 +12,9 @@ from .claude_transcript import (
 from .codex_transcript import _call_arguments, _content_text
 
 
+TURN_TYPES = {'message', 'function_call', 'function_call_output', 'function_call_result'}
+
+
 def _metadata(item):
     provider = item.get('providerData')
     return provider if isinstance(provider, dict) else {}
@@ -36,23 +39,30 @@ def parse_latest_codebuddy_turn(
             item = json.loads(line)
         except ValueError:
             continue
-        if isinstance(item, dict) and item.get('type') in {
-            'message', 'function_call', 'function_call_output', 'function_call_result',
-        }:
+        if isinstance(item, dict):
+            # Non-evidence nodes can still connect the persisted branch. Keep
+            # their edges, never their reasoning or other private contents.
+            if item.get('type') not in TURN_TYPES or _metadata(item).get('isCompactInternal'):
+                item = {key: item[key] for key in ('id', 'parentId', 'logicalParentId') if key in item}
             entries.append(item)
 
     # Follow the latest persisted branch rather than mixing superseded replies into evidence.
-    if entries and any('parentId' in item for item in entries):
+    leaves = [item for item in entries if item.get('type') in TURN_TYPES]
+    if leaves and any('parentId' in item or 'logicalParentId' in item for item in entries):
         by_id = {item['id']: item for item in entries if isinstance(item.get('id'), str)}
         branch, seen = [], set()
-        current = entries[-1]
+        current = leaves[-1]
         while current is not None:
             key = current.get('id')
-            if key in seen:
+            if key is not None and key in seen:
                 raise ValueError('CodeBuddy transcript branch contains a cycle')
-            seen.add(key)
+            if key is not None:
+                seen.add(key)
             branch.append(current)
-            current = by_id.get(current.get('parentId'))
+            # Compaction roots omit parentId and retain logicalParentId. Do
+            # not substitute a different parent for a broken explicit edge.
+            parent = current.get('parentId') or current.get('logicalParentId')
+            current = by_id.get(parent)
         entries = list(reversed(branch))
     indices = [index for index, item in enumerate(entries) if _is_user(item)]
     if not indices:

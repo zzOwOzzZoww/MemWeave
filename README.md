@@ -186,7 +186,7 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-截至 2026-09-30，当前源码对应的正式回归测试为 **658 passed**，覆盖全局 Hook 安装、跨目录共享池、显式项目隔离、Sibling 排位与 LFHV 预算恢复，以及统一接入执行器、Gemini/WorkBuddy/通用学习输入、按批次审核和 Agent 停用/重新加入。隔离浏览器验收覆盖桌面与手机上的审核操作、跨客户端自动同步、并发旧请求保护、断线重连、停用列表更新及提示文字对比度。已有隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 配置覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
+截至 2026-10-12，本次发布范围的回归测试为 **695 passed，14 subtests passed**，覆盖全局 Hook 安装、跨目录共享池、显式项目隔离、Sibling 排位与 LFHV 预算恢复，以及统一接入执行器、Gemini/WorkBuddy/通用学习输入、按批次审核和 Agent 停用/重新加入。本次补充覆盖 Runtime 离线恢复、长会话冻结、逐条来源证据校验、提案拒绝原因，以及重启后管理页凭据保持。问题与验收过程见 [Hook 学习中断与管理页鉴权 Bad Case 复盘](docs/Hook学习中断与管理页鉴权_BadCase_20261012.md)。隔离浏览器验收覆盖桌面与手机上的审核操作、跨客户端自动同步、并发旧请求保护、断线重连、停用列表更新及提示文字对比度。已有隔离 wheel 验收还覆盖了全新虚拟环境安装、`memweave setup`、Runtime、管理页、Codex/Claude Code Hook、后台学习和 Runtime 复用；整个过程只使用本地模拟模型服务，没有付费 API 调用。CI 配置覆盖 Windows、Ubuntu 与 Python 3.11、3.12。这些结果证明当前固定测试集和安装路径上的行为，不代表开放领域语义理解、真实 Agent 任务成功率或生产规模性能。
 
 项目目录：
 

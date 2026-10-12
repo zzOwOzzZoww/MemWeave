@@ -2178,13 +2178,13 @@
         </summary>
         <div class="dashboard-body">
           <div class="metrics">
-        <div class="metric"><span class="metric-label">知识总数</span><strong class="metric-value" id="total">0</strong></div>
-        <div class="metric"><span class="metric-label">双方可召回</span><strong class="metric-value" id="shared">0</strong></div>
-        <div class="metric"><span class="metric-label">双方有历史反馈</span><strong class="metric-value" id="confirmed">0</strong></div>
-        <div class="metric"><span class="metric-label">待验证</span><strong class="metric-value" id="candidate">0</strong></div>
-        <div class="metric"><span class="metric-label">已降级</span><strong class="metric-value" id="stale">0</strong></div>
-        <div class="metric"><span class="metric-label">已归档</span><strong class="metric-value" id="archived">0</strong></div>
-        <div class="metric"><span class="metric-label">已隔离</span><strong class="metric-value" id="quarantined">0</strong></div>
+        <div class="metric"><span class="metric-label">知识总数</span><strong class="metric-value" id="total">—</strong></div>
+        <div class="metric"><span class="metric-label">双方可召回</span><strong class="metric-value" id="shared">—</strong></div>
+        <div class="metric"><span class="metric-label">双方有历史反馈</span><strong class="metric-value" id="confirmed">—</strong></div>
+        <div class="metric"><span class="metric-label">待验证</span><strong class="metric-value" id="candidate">—</strong></div>
+        <div class="metric"><span class="metric-label">已降级</span><strong class="metric-value" id="stale">—</strong></div>
+        <div class="metric"><span class="metric-label">已归档</span><strong class="metric-value" id="archived">—</strong></div>
+        <div class="metric"><span class="metric-label">已隔离</span><strong class="metric-value" id="quarantined">—</strong></div>
           </div>
         </div>
       </details>
@@ -2345,7 +2345,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
             知识清单
           </h2>
-          <span class="count" id="count">0 条</span>
+          <span class="count" id="count">未加载</span>
         </summary>
         <div class="knowledge-body">
         <div class="knowledge-filters" aria-label="知识筛选">
@@ -2401,7 +2401,7 @@
         <details id="pendingModule" class="knowledge-module pending-module" open>
           <summary>
             <span class="module-summary-title"><span class="summary-chevron">›</span><span><strong id="pendingHeading">待采纳清单</strong><small id="pendingDescription">候选待审 24 小时，到期隔离；可筛选找回</small></span></span>
-            <span class="count" id="pendingCount">0 条</span>
+            <span class="count" id="pendingCount">未加载</span>
           </summary>
           <div class="bulk-review-toolbar" id="pendingBulkToolbar">
             <label for="selectAllPending">
@@ -2434,7 +2434,7 @@
         <details id="adoptedModule" class="knowledge-module adopted-module">
           <summary>
             <span class="module-summary-title"><span class="summary-chevron">›</span><span><strong>已采纳清单</strong><small>已通过证据门；Active / Stale 可召回，Archived 仅保留历史</small></span></span>
-            <span class="count" id="adoptedCount">0 条</span>
+            <span class="count" id="adoptedCount">未加载</span>
           </summary>
           <div class="bulk-review-toolbar" id="adoptedBulkToolbar">
             <label for="selectAllAdopted">
@@ -2745,6 +2745,12 @@
     const sharingLabel = value => ({confirmed_shared:'双方有历史反馈',available_shared:'双方可召回',version_conflict:'版本待核对，暂停召回',candidate:'待验证，尚不共享',archived:'已归档',quarantined:'已隔离'}[value] || value);
     const badge = (text, kind) => `<span class="badge ${kind}">${escapeHtml(text)}</span>`;
 
+    function runtimeRequestError(response, data) {
+      return new Error(response.status === 401
+        ? '管理页面凭据已失效，数据未加载。请通过桌面 MemWeave 入口或 memweave ui 重新打开管理页。'
+        : (data.detail || `HTTP ${response.status}`));
+    }
+
     async function post(path, body) {
       const response = await fetch(path, {
         method: 'POST',
@@ -2752,14 +2758,14 @@
         body: JSON.stringify(body)
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+      if (!response.ok) throw runtimeRequestError(response, data);
       return data;
     }
 
     async function get(path) {
       const response = await fetch(path, {headers: {'Authorization': `Bearer ${token}`}});
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+      if (!response.ok) throw runtimeRequestError(response, data);
       return data;
     }
 
@@ -2816,6 +2822,13 @@
       'protocol-hook': '通用事件 Hook',
       'runtime-api': 'Runtime API', custom: '自定义适配器'
     }[value] || value || '未指定');
+    const rejectionReasonLabel = learning => Object.entries(learning?.rejection_reasons || {}).map(([reason, count]) => `${({
+      missing_source_quotes: '缺少来源原文', invalid_source_evidence: '来源引用无效或证据不足',
+      invalid_proposal: '提案格式无效', agent_disabled: 'Agent 已停用',
+      invalid_subject_terms: '主题字段无效', invalid_search_terms: '检索词超限',
+      sensitive_content: '包含敏感内容', invalid_experience: '经验合约无效',
+      unsupported_experience: '经验缺少对应验证证据', proposal_limit: '超过单轮提案上限',
+    })[reason] || '其它校验未通过'} ${Number(count) || 0} 条`).join('；');
     const learningLabel = item => {
       const learning = item.learning;
       if (!learning) return '尚无学习记录';
@@ -2830,7 +2843,8 @@
         const proposals = Number(learning.proposal_count) || 0;
         const promoted = Number(learning.promoted_count) || 0;
         if (proposals || promoted) return `最近学习完成 · 生成 ${proposals} 条候选${promoted ? ` · 晋升 ${promoted} 条` : ''}`;
-        return `最近学习完成 · ${zeroOutcome}`;
+        const reasons = rejectionReasonLabel(learning);
+        return `最近学习完成 · ${zeroOutcome}${reasons ? ` · ${reasons}` : ''}`;
       }
       if (learning.status === 'failed') return '最近学习失败';
       if (learning.status === 'running') return '正在学习…';
@@ -2843,7 +2857,8 @@
       const generated = Number(learning.proposal_count) || 0;
       const promoted = Number(learning.promoted_count) || 0;
       const pending = Number(learning.pending_count) || 0;
-      const label = {completed: '最近学习完成', failed: '最近学习失败', running: '正在学习…'}[learning.status] || learningLabel(item);
+      const label = !generated && learning.status === 'completed' ? learningLabel(item) :
+        ({completed: '最近学习完成', failed: '最近学习失败', running: '正在学习…'}[learning.status] || learningLabel(item));
       return `${escapeHtml(label)} · <button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="all" aria-haspopup="dialog">生成 ${generated} 条候选</button>${promoted ? ` · 晋升 ${promoted} 条` : ''}<div><button type="button" class="learning-link" data-learning-agent="${escapeHtml(item.agent_id)}" data-learning-filter="candidate" aria-haspopup="dialog">待审核 ${pending} 条</button></div>`;
     }
     const isNativeHook = item => ['claude-hook', 'codex-hook', 'gemini-hook', 'protocol-hook'].includes(item.adapter_type) ||
@@ -3092,7 +3107,8 @@
         suppressed_unverified_claim: '未经验证内容已跳过',
         processing_failed: '提案处理失败',
       })[data.run.proposal_outcome] || '原因未知';
-      document.getElementById('learningSummary').textContent = `模型提案 ${data.run.reviewer_proposal_count} 条 · 通过 ${data.run.proposal_count} 条 · 未保留 ${data.run.rejected_proposal_count} 条 · ${outcomeLabel} · 自动晋升 ${data.run.promoted_count} 条 · 当前关联 ${data.linked_count} 条 · 待审核 ${data.pending_count} 条`;
+      const reasons = rejectionReasonLabel(data.run);
+      document.getElementById('learningSummary').textContent = `模型提案 ${data.run.reviewer_proposal_count} 条 · 通过 ${data.run.proposal_count} 条 · 未保留 ${data.run.rejected_proposal_count} 条 · ${outcomeLabel}${reasons ? ` · ${reasons}` : ''} · 自动晋升 ${data.run.promoted_count} 条 · 当前关联 ${data.linked_count} 条 · 待审核 ${data.pending_count} 条`;
       const records = document.getElementById('learningRecords');
       records.setAttribute('aria-labelledby', review.filter === 'all' ? 'learningAll' : 'learningPending');
       records.innerHTML = data.results.length ? data.results.map((item, index) => {
@@ -3746,12 +3762,18 @@
     async function load(projectKey) {
       const version = ++dashboardLoadVersion;
       document.getElementById('error').hidden = true;
+      for (const id of ['total', 'shared', 'confirmed', 'candidate', 'stale', 'archived', 'quarantined']) {
+        document.getElementById(id).textContent = '—';
+      }
+      for (const id of ['count', 'pendingCount', 'adoptedCount']) {
+        document.getElementById(id).textContent = '未加载';
+      }
       document.querySelectorAll('.relation-value:not(#connectedAgents)').forEach(element => { element.textContent = '—'; });
       const refreshBtn = document.getElementById('refresh');
       if (refreshBtn) refreshBtn.classList.add('spinning');
       if (!token) {
         if (refreshBtn) refreshBtn.classList.remove('spinning');
-        return showError('Dashboard token missing');
+        return showError('管理页面缺少凭据，请通过桌面 MemWeave 入口或 memweave ui 打开。');
       }
       try {
         const [overview, metrics, traces] = await Promise.all([

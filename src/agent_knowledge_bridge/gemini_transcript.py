@@ -7,9 +7,13 @@ from pathlib import Path
 from typing import Any
 
 from .claude_transcript import (
-    MAX_TRANSCRIPT_BYTES, TranscriptTurn, ToolEvent, _json_summary, _objective_kind,
+    TranscriptTurn, ToolEvent, _json_summary, _objective_kind,
     _tail_lines, redact_text, tool_success,
 )
+
+# Native checkpoint/update records can exceed the generic 2 MB tail and
+# strand their user message outside it. Match the bounded Codex allowance.
+MAX_GEMINI_TRANSCRIPT_BYTES = 16_000_000
 
 
 def _content(value: Any) -> str:
@@ -123,12 +127,14 @@ def _turn(messages: list[dict], path: Path, fallback_assistant: str) -> Transcri
 
 
 def parse_latest_gemini_turn(
-    transcript_path: str | Path, *, fallback_assistant: str = "", max_bytes: int = MAX_TRANSCRIPT_BYTES,
+    transcript_path: str | Path, *, fallback_assistant: str = "", max_bytes: int = MAX_GEMINI_TRANSCRIPT_BYTES,
     end_offset: int | None = None, message_count: int | None = None, expected_turn_hash: str | None = None,
 ) -> TranscriptTurn:
     path = Path(transcript_path)
     messages = _messages(path, max_bytes=max_bytes, end_offset=end_offset)
-    if message_count is not None:
+    # JSONL is frozen by byte offset; the count is relative to the old tail
+    # budget and must not slice a larger window after a parser upgrade.
+    if message_count is not None and (path.suffix == '.json' or end_offset is None):
         if not 0 < message_count <= len(messages):
             raise ValueError("Gemini queued transcript was truncated")
         messages = messages[:message_count]
@@ -139,6 +145,6 @@ def parse_latest_gemini_turn(
 
 
 def freeze_gemini_turn(path: Path, end_offset: int) -> dict:
-    messages = _messages(path, max_bytes=MAX_TRANSCRIPT_BYTES, end_offset=end_offset)
+    messages = _messages(path, max_bytes=MAX_GEMINI_TRANSCRIPT_BYTES, end_offset=end_offset)
     turn = _turn(messages, path, "")
     return {"transcript_message_count": len(messages), "transcript_expected_turn_hash": turn.turn_hash}
