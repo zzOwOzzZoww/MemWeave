@@ -8,7 +8,7 @@ It lets agents such as Claude Code and Codex reuse confirmed project knowledge: 
 
 **In one sentence: MemWeave is not about whether an agent can remember; it is about how existing coding agents share verified, traceable project knowledge while making forgetting testable and reversible.**
 
-> Current version: 0.5.0a1 (Alpha). The core loop is working and ready for evaluation in test projects.
+> Current version: 0.5.0a2 (Alpha). The core loop is working and ready for evaluation in test projects.
 >
 > **Core loop: capture candidates across agents → promote with evidence → recall only when relevant → retire safely → use LFHV to test whether retirement was premature.**
 

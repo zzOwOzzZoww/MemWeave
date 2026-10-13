@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memweave-runtime"
-version = "0.5.0a1"
+version = "0.5.0a2"
 description = "A protocol-independent continual-learning runtime for AI agents"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = "Apache-2.0"

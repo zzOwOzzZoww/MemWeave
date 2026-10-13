@@ -43,7 +43,7 @@ def main():
         wheel_dir=OUT/'wheel'
         wheel_dir.mkdir(exist_ok=True)
         run([sys.executable,'-m','pip','wheel','--no-deps',str(stage),'-w',str(wheel_dir)],timeout=120)
-        wheel=wheel_dir/'memweave_runtime-0.5.0a1-py3-none-any.whl'
+        wheel=wheel_dir/'memweave_runtime-0.5.0a2-py3-none-any.whl'
         with zipfile.ZipFile(wheel) as archive:
             names=archive.namelist()
             assert any(n.endswith('hooks/claude_learning_hook.py') for n in names)
@@ -57,7 +57,7 @@ def main():
         python=root/'venv with space'/'Scripts'/'python.exe' if os.name=='nt' else root/'venv with space'/'bin'/'python'
         run([str(python),'-m','pip','install',str(wheel)],timeout=180)
         entry=python.parent/('memweave.exe' if os.name=='nt' else 'memweave')
-        assert run([str(entry),'--version'],timeout=15).strip()=='0.5.0a1'
+        assert run([str(entry),'--version'],timeout=15).strip()=='0.5.0a2'
         report['clean_install']=True
 
         calls=[]
