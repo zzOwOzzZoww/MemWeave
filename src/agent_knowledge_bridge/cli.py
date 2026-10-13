@@ -178,6 +178,9 @@ def _runtime_healthy(state: dict[str, Any] | None, revision: str) -> bool:
 def _free_port(preferred: int) -> int:
     for port in (preferred, 0):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Match Uvicorn's listener behavior so TIME_WAIT connections from
+            # the previous Runtime do not make an otherwise reusable port look busy.
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 sock.bind(("127.0.0.1", port))
             except OSError:
