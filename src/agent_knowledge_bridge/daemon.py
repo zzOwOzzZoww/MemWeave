@@ -31,6 +31,10 @@ from agent_knowledge_bridge.contracts import (
     AgentDisableRequest,
     AgentRegisterRequest,
     GovernanceRequest,
+    GovernancePreviewRequest,
+    GovernancePlanRequest,
+    GovernancePlansRequest,
+    GovernanceOperatorRequest,
     KnowledgeFeedbackRequest,
     KnowledgeRemoveRequest,
     KnowledgeGetRequest,
@@ -158,6 +162,35 @@ def create_app(
         return files("agent_knowledge_bridge").joinpath("knowledge_dashboard.html").read_text(
             encoding="utf-8"
         )
+
+    @app.get('/governance', response_class=HTMLResponse)
+    def governance_console():
+        return files('agent_knowledge_bridge').joinpath('governance_dashboard.html').read_text(encoding='utf-8')
+
+    @app.post('/v1/governance/preview', dependencies=[Depends(authorize)])
+    def governance_preview(request: GovernancePreviewRequest):
+        return service(request.agent_id, request.project_key).governance_preview(
+            [action.model_dump(exclude_none=True) for action in request.actions])
+
+    @app.post('/v1/governance/plans', dependencies=[Depends(authorize)])
+    def governance_plans(request: GovernancePlansRequest):
+        return service(request.agent_id, request.project_key).governance_plans(request.limit)
+
+    @app.post('/v1/governance/plan', dependencies=[Depends(authorize)])
+    def governance_plan(request: GovernancePlanRequest):
+        return service(request.agent_id, request.project_key).governance_plan(request.plan_id)
+
+    @app.post('/v1/governance/apply', dependencies=[Depends(authorize)])
+    def governance_apply(request: GovernancePlanRequest):
+        return service(request.agent_id, request.project_key).governance_apply(request.plan_id)
+
+    @app.post('/v1/governance/approve', dependencies=[Depends(authorize)])
+    def governance_approve(request: GovernanceOperatorRequest):
+        return service('memweave-console', request.project_key).governance_control().approve(request.plan_id)
+
+    @app.post('/v1/governance/undo', dependencies=[Depends(authorize)])
+    def governance_undo(request: GovernanceOperatorRequest):
+        return service('memweave-console', request.project_key).governance_control().undo(request.plan_id)
 
     @app.get("/v1/instance/status", dependencies=[Depends(authorize)])
     def instance_status() -> dict[str, Any]:

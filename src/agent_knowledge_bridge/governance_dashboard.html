@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>MemWeave · 治理预览</title>
+<style>
+:root{color-scheme:light dark;font:15px/1.7 system-ui,sans-serif}body{max-width:960px;margin:40px auto;padding:0 20px;background:light-dark(#f5f7fa,#12161e);color:light-dark(#243047,#e0e7f2)}
+h1{font-size:25px;margin-bottom:5px}small,.muted{color:light-dark(#53647c,#abbcd3)}article{border:1px solid #71809a55;border-radius:14px;padding:22px;margin:18px 0;background:light-dark(white,#1c2330)}
+button{font:inherit;padding:7px 15px;border-radius:8px;border:1px solid #71809a88;cursor:pointer;margin:6px 8px 0 0}button:disabled{opacity:.5;cursor:wait}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}details{padding:10px 0;border-top:1px solid #71809a33}#notice{white-space:pre-wrap;color:light-dark(#a02c2c,#ffabab)}nav{display:flex;gap:12px;align-items:center}a{color:light-dark(#285eab,#8cbeff)}.action{padding:8px 0}
+</style>
+</head>
+<body>
+<h1>知识治理预览</h1>
+<p class="muted">AI 提建议，Core 守边界。批准、隔离、归档和版本替代由你确认；完全重复的项目候选可自动归并。原文与来源保留，不永久删除。</p>
+<nav><a id="back" href="/knowledge">返回知识管理</a><button id="refresh">更新列表</button><span id="project"></span></nav>
+<p id="notice" role="status" aria-live="polite"></p><main id="plans"></main>
+<script>
+'use strict';
+const params=new URLSearchParams(location.hash.slice(1));
+const token=params.get('token')||'';
+const project=params.get('project')||'claude-codex-mvp';
+const context={agent_id:'memweave-console',project_key:project};
+const labels={approve:'批准生效',quarantine:'隔离停用',archive:'归档',merge:'归并重复候选',supersede:'采纳新版并替代旧版'};
+const statuses={preview:'待核对',approved:'已确认，待执行',applied:'已执行',undone:'已撤销'};
+const notice=document.getElementById('notice');
+let loading=false, reloadPending=false, refreshTimer=null;
+document.getElementById('project').textContent='项目：'+project;
+document.getElementById('back').href='/knowledge#'+params.toString();
+async function post(path,body){
+ const response=await fetch(path,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const value=await response.json();if(!response.ok)throw Error(value.detail||'请求失败');return value;
+}
+function element(tag,text){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;}
+function button(parent,text,run){const node=element('button',text);node.type='button';node.onclick=async()=>{node.disabled=true;try{await run();notice.textContent='操作完成';await load();}catch(error){notice.textContent=error.message;await load();}finally{node.disabled=false;}};parent.append(node);}
+async function load(){
+ if(!token){notice.textContent='缺少管理凭据，请从 MemWeave 知识管理页进入。';return;}
+ if(loading){reloadPending=true;return;}loading=true;
+ try{
+ const data=await post('/v1/governance/plans',{...context,limit:50});
+ const container=document.getElementById('plans');container.replaceChildren();
+ if(!data.results.length)container.append(element('p','还没有治理预览。可让 AI 查看候选和证据后，调用 MCP 生成治理预览。'));
+ for(const plan of data.results){
+  const article=element('article');article.append(element('h2',statuses[plan.status]||plan.status));
+  article.append(element('small','发起方：'+plan.actor+' · 创建：'+plan.created_at+' · 预览有效至：'+plan.expires_at));
+  for(const action of plan.actions){
+   const record=plan.records.find(row=>row.id===action.knowledge_id);
+   const target=plan.records.find(row=>row.id===action.target_id);
+   const section=element('div');section.className='action';
+   section.append(element('strong',labels[action.action]+' · '+(record?.title||'已删除记录')));
+   section.append(element('p',action.reason));
+   if(target)section.append(element('p','关联版本：'+target.title));
+   if(record?.scope==='user')section.append(element('p','注意：这是跨项目共享的用户级知识。'));
+   for(const key of [action.knowledge_id,action.target_id].filter(Boolean)){
+    const details=element('details');details.append(element('summary',key===action.knowledge_id?'查看原文、证据和冲突':'查看关联版本的原文与证据'));
+    details.ontoggle=async()=>{if(!details.open||details.dataset.loaded)return;try{
+     const value=await post('/v1/knowledge/get',{...context,knowledge_id:key});
+     details.append(element('pre',value.knowledge.content));
+     for(const evidence of value.evidence)details.append(element('p',`${evidence.evidence_kind} · ${evidence.outcome} · ${evidence.summary} · ${evidence.evidence_ref}`));
+     if(value.versions.conflicts.length)details.append(element('pre','冲突：\n'+value.versions.conflicts.map(row=>row.title+'：'+row.content).join('\n')));
+     details.dataset.loaded='1';
+    }catch(error){notice.textContent=error.message;}};section.append(details);
+   }
+   article.append(section);
+  }
+  if(plan.status==='preview'||plan.status==='approved'){
+   button(article,plan.requires_approval?'确认并执行':'执行确定性归并',async()=>{
+    if(!window.confirm('确认执行当前预览？系统会再次校验知识、证据及版本，变化后不会强行覆盖。'))return;
+    if(plan.requires_approval)await post('/v1/governance/approve',{project_key:project,plan_id:plan.id,confirm:true});
+    await post('/v1/governance/apply',{...context,plan_id:plan.id});
+   });
+  }
+  if(plan.status==='applied')button(article,'撤销本次治理',async()=>{
+   if(window.confirm('撤销这次治理？如果后续已有知识活动，系统会阻止自动撤销以保护新状态。'))await post('/v1/governance/undo',{project_key:project,plan_id:plan.id,confirm:true});
+  });
+  container.append(article);
+ }
+ }catch(error){notice.textContent=error.message;}
+ finally{loading=false;if(reloadPending&&!document.querySelector('details[open]')){reloadPending=false;scheduleRefresh();}}
+}
+function scheduleRefresh(){
+ clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{
+  if(document.hidden||document.querySelector('details[open]')){reloadPending=true;return;}
+  load();
+ },200);
+}
+document.addEventListener('toggle',()=>{if(reloadPending&&!document.querySelector('details[open]')){reloadPending=false;scheduleRefresh();}},true);
+document.getElementById('refresh').onclick=load;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
+let eventsController=null;
+async function events(){
+ if(!token||eventsController)return;
+ eventsController=new AbortController();
+ try{
+  const response=await fetch('/v1/dashboard/events',{headers:{Authorization:'Bearer '+token,Accept:'text/event-stream'},signal:eventsController.signal});
+  if(!response.ok)throw Error('治理状态订阅失败');
+  const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
+  while(true){const {value,done}=await reader.read();if(done)break;
+   buffer+=decoder.decode(value,{stream:true});let end;
+   while((end=buffer.indexOf('\n\n'))>=0){const frame=buffer.slice(0,end);buffer=buffer.slice(end+2);if(frame.includes('event: changed'))scheduleRefresh();}
+  }
+ }catch(error){if(error.name!=='AbortError')notice.textContent='实时同步暂不可用，正在重连。';}
+ finally{eventsController=null;if(!document.hidden)setTimeout(events,3000);}
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)eventsController?.abort();else events();});
+window.addEventListener('pagehide',()=>eventsController?.abort());
+load();
+events();
+</script>
+</body></html>

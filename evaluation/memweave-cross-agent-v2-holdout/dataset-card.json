@@ -1,0 +1,44 @@
+{
+  "version": "mw-holdout-v2.0.0-draft",
+  "valid": true,
+  "cases": 120,
+  "kernels": 20,
+  "splits": {
+    "dev": 30,
+    "test": 90
+  },
+  "categories": {
+    "cross_language": 20,
+    "direct_fact": 20,
+    "insufficient_detail": 20,
+    "distractor_ranking": 20,
+    "knowledge_update": 20,
+    "project_isolation": 20
+  },
+  "dataset_sha256": "19f71cfbe33cbd5392b227abf52979030fd0d86d7d60f868e91b39ccc7670a24",
+  "label_author": "Codex assistant; not independently adjudicated",
+  "prior_dataset_sha256": "89d54c60736d5cf77868ee8ae5123392b591a83503ade10c4eb6e16602579ebc",
+  "overlap_check": "No exact record content reuse; semantic topic separation is design-reviewed, not mathematically guaranteed.",
+  "kernel_splits": {
+    "H2-001": "dev",
+    "H2-002": "test",
+    "H2-003": "test",
+    "H2-004": "test",
+    "H2-005": "dev",
+    "H2-006": "test",
+    "H2-007": "test",
+    "H2-008": "test",
+    "H2-009": "dev",
+    "H2-010": "test",
+    "H2-011": "test",
+    "H2-012": "test",
+    "H2-013": "dev",
+    "H2-014": "test",
+    "H2-015": "test",
+    "H2-016": "test",
+    "H2-017": "dev",
+    "H2-018": "test",
+    "H2-019": "test",
+    "H2-020": "test"
+  }
+}

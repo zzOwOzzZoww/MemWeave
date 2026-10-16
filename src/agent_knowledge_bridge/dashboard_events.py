@@ -10,6 +10,8 @@ from .learning import LearningStore
 class DashboardChanges:
     def __init__(self, learning: LearningStore) -> None:
         self.store = learning.knowledge
+        from .governance_control import GovernanceControl
+        GovernanceControl(self.store, actor='memweave-console', project_key='runtime-governance')
         with self.store._connect() as connection:
             connection.executescript('''
                 CREATE TABLE IF NOT EXISTS dashboard_revision (
@@ -19,7 +21,7 @@ class DashboardChanges:
                 INSERT OR IGNORE INTO dashboard_revision(singleton) VALUES (1);
             ''')
             # Database triggers also observe hooks running outside this process.
-            for table in ('learning_runs', 'knowledge_compilation_links', 'knowledge_evidence'):
+            for table in ('learning_runs', 'knowledge_compilation_links', 'knowledge_evidence', 'governance_plans'):
                 for event in ('INSERT', 'UPDATE', 'DELETE'):
                     connection.execute(f'''CREATE TRIGGER IF NOT EXISTS mw_ui_{table}_{event.lower()}
                         AFTER {event} ON {table} BEGIN

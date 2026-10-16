@@ -204,7 +204,9 @@ def test_parallel_initialization_is_idempotent(store):
 def test_migrate_pre_version_schema_concurrently_preserves_content(store):
     old=publish(store); approve(store,old)
     with store._connect() as db:
-        for index in ('idx_claim_slot','idx_claim_user','idx_superseded_by'):
+        # Recreate an actual pre-version schema: newer indexes must disappear
+        # together with the columns they reference before migration is tested.
+        for index in ('idx_claim_slot','idx_claim_user','idx_superseded_by','idx_candidate_body_lookup'):
             db.execute(f'DROP INDEX {index}')
         for column in ('claim_topic','claim_value','claim_fingerprint','claim_conflicted',
                        'superseded_by','valid_from','valid_until'):
@@ -215,6 +217,8 @@ def test_migrate_pre_version_schema_concurrently_preserves_content(store):
     assert all(record(s,old)['claim_topic']=='审核期限' for s in copies)
     assert record(store,old)['content']=='审核期限正式定为24小时。'
     assert record(store,old)['status']=='active'
+    with store._connect() as db:
+        assert db.execute("SELECT 1 FROM sqlite_master WHERE name='idx_candidate_body_lookup'").fetchone()
 
 
 def test_modified_conflict_cannot_be_replaced_using_stale_selection(store):

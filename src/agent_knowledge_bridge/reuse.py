@@ -37,13 +37,18 @@ def source_label(agent_id: str) -> str:
     return spec["display_name"] if spec else re.sub(r"[`\r\n<>]", "", agent_id)[:80]
 
 
-def observed_source_labels(assistant_text: str) -> set[str]:
+def observed_source_labels(assistant_text: str, *, expected_labels=None) -> set[str]:
     """Observe standalone source badges, excluding quoted/fenced examples.
 
     A source badge cannot identify which of that Agent's records was used.
     It must never be promoted to per-record citation or constraint-pass credit.
     """
     labels: set[str] = set()
+    # Match complete known labels before separators, so a custom Agent name
+    # containing “和” or “、” is not mistaken for several sources.
+    names = sorted(set(expected_labels or ()), key=lambda name: (-len(name), name))
+    label_pattern = '|'.join(re.escape(name) for name in names) if names else r'[^、和]+'
+    merged_pattern = rf'(?:{label_pattern})(?:\s*[、和]\s*(?:{label_pattern}))*'
     fence = None
     text = re.sub(r"<!--[\s\S]*?-->", "", assistant_text)
     for line in text.splitlines():
@@ -59,7 +64,9 @@ def observed_source_labels(assistant_text: str) -> set[str]:
             continue
         match = re.fullmatch(r"[ \t]*`来源[：:][ \t]*([^`\r\n]+)`[ \t]*", line)
         if match:
-            labels.add(match.group(1).strip())
+            value = match.group(1).strip()
+            if re.fullmatch(merged_pattern, value):
+                labels.update(part.group().strip() for part in re.finditer(label_pattern, value))
     return labels
 
 
@@ -190,9 +197,12 @@ class ReuseStore:
                   "Never print knowledge IDs, trace IDs, session IDs, or raw metadata "
                   "in user-facing answers (including code spans, links, or HTML comments). "
                   "If you actually use recalled knowledge and the requested answer format permits, "
-                  "end your answer with one standalone inline-code source badge per used Agent, "
-                  "using that item's source_label: `来源：Claude Code` or `来源：Codex`. "
-                  "Deduplicate sources; omit badges for unused knowledge. "
+                  "end your answer with a single standalone inline-code source badge, "
+                  "merging the used items' source_label values. Deduplicate sources. "
+                  "Use 来源： only once: one source `来源：Claude Code`; "
+                  "two sources `来源：Codex和Gemini CLI`; three or more sources "
+                  "`来源：Claude Code、Codex和Gemini CLI` (、 between earlier sources, 和 before the last). "
+                  "Never emit separate badges per Agent; omit the badge for unused knowledge. "
                   "Do not cite internal IDs even if earlier turns did. "
                   "Source attribution is not proof of per-item use or task success.\n")
         footer = "</memweave_context>"
@@ -410,7 +420,6 @@ class ReuseStore:
     def complete(self, *, agent_id, project_key, session_id, turn, turn_id=None):
         # Only agent-authored text/inputs count; echoed tool outputs do not.
         observed = turn.assistant_text + "\n" + "\n".join(t.input_summary for t in turn.tools)
-        source_labels = observed_source_labels(turn.assistant_text)
         trace_ids = set(re.findall(r"\brt_[a-f0-9]{20}\b", observed))
         with self.knowledge._connect() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -442,6 +451,10 @@ class ReuseStore:
             if row['prompt_hash'] != digest(turn.user_text.strip()):
                 return None
             items = json.loads(row["items_json"])
+            source_labels = observed_source_labels(turn.assistant_text, expected_labels={
+                item.get("source_label", source_label(item["source_agent"]))
+                for item in items if item["emitted"] and not item.get('removed')
+            })
             for item in items:
                 if not item["emitted"] or item.get('removed'):
                     continue

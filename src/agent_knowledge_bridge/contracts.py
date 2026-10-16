@@ -103,6 +103,31 @@ class LearningRunRecordsRequest(AgentContext):
     offset: int = Field(default=0, ge=0)
 
 
+class GovernanceAction(Contract):
+    action: Literal['approve', 'quarantine', 'archive', 'merge', 'supersede']
+    knowledge_id: str = Field(pattern=r'^kn_[A-Za-z0-9]+$')
+    target_id: str | None = Field(default=None, pattern=r'^kn_[A-Za-z0-9]+$')
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class GovernancePreviewRequest(AgentContext):
+    actions: list[GovernanceAction] = Field(min_length=1, max_length=20)
+
+
+class GovernancePlanRequest(AgentContext):
+    plan_id: str = Field(pattern=r'^gp_[a-f0-9]{32}$')
+
+
+class GovernancePlansRequest(AgentContext):
+    limit: int = Field(default=20, ge=1, le=100)
+
+
+class GovernanceOperatorRequest(Contract):
+    project_key: str = Field(pattern=r'^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$')
+    plan_id: str = Field(pattern=r'^gp_[a-f0-9]{32}$')
+    confirm: Literal[True]
+
+
 class KnowledgeRemoveRequest(AgentContext):
     knowledge_ids: list[str] = Field(min_length=1, max_length=100)
     confirm_permanent: Literal[True]

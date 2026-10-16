@@ -114,6 +114,61 @@ def test_gui_installed_codex_command_preserves_hook_streams_and_learning(isolate
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows Python launcher regression')
+@pytest.mark.parametrize('home_name', ['home', "Agent home '\u4e2d\u6587 with spaces"])
+def test_claude_installed_command_preserves_git_bash_learning(isolated, monkeypatch, home_name):
+    git = installation.shutil.which('git')
+    candidates = ([Path(git).resolve().parent.parent / 'usr' / 'bin' / 'bash.exe'] if git else [])
+    candidates.append(Path('C:/Program Files/Git/usr/bin/bash.exe'))
+    bash = next((path for path in candidates if path.is_file()), None)
+    if bash is None:
+        pytest.skip('Git Bash is not installed')
+    home = isolated / home_name
+    monkeypatch.setenv('MEMWEAVE_HOME', str(home))
+    atomic_json(home / 'config.json', {'default_project': 'shared'})
+    settings = isolated / 'settings-gemini.json'
+    atomic_json(settings, {'model': 'keep-model', 'env': {'KEEP': 'yes'}, 'hooks': {
+        'Stop': [{'matcher': '', 'hooks': [{'type': 'command', 'command': 'other-tool'}]}]}})
+    plan = prepare_hook_installation(PROFILES['claude-code'], config_path=settings)
+    install_hook_plan(plan)
+    config = json.loads(settings.read_text(encoding='utf-8'))
+    assert config['model'] == 'keep-model' and config['env'] == {'KEEP': 'yes'}
+    assert config['hooks']['Stop'][0]['hooks'][0]['command'] == 'other-tool'
+    store = seed(isolated, agent='claude-code')
+    outside = isolated / 'unrelated repository \u4e2d\u6587 with spaces'
+    outside.mkdir()
+    transcript = isolated / 'synthetic-claude.jsonl'
+    transcript.write_text(json.dumps({'type': 'user', 'uuid': 'u1',
+        'message': {'role': 'user', 'content': CONTENT}}) + '\n', encoding='utf-8')
+    payload = {'session_id': 'claude-session', 'cwd': str(outside),
+        'transcript_path': str(transcript), 'prompt': CONTENT + ' \u4e2d\u6587'}
+    for event in ('UserPromptSubmit', 'Stop'):
+        hook = next(item for group in config['hooks'][event] for item in group['hooks']
+                    if installation.is_owned_hook(item, plan.marker))
+        # Execute command itself: Claude must not rely on commandWindows.
+        assert hook['command'] == hook['commandWindows']
+        result = subprocess.run([str(bash), '-c', hook['command']], cwd=outside,
+            input=json.dumps({**payload, 'hook_event_name': event}).encode('utf-8'),
+            capture_output=True, timeout=20)
+        assert result.returncode == 0 and not result.stderr, repr(result.stderr)
+        output = json.loads(result.stdout)
+        if event == 'UserPromptSubmit':
+            assert 'Widget verifier baseline' in output['hookSpecificOutput']['additionalContext']
+        else:
+            assert output == {}
+    adapter = RuntimeLearningAdapter(database_path=isolated / 'test.db', agent_id='claude-code',
+        project_key='shared', reviewer=reviewer)
+    queue = LearningQueue(isolated / 'test.db', adapter.learn)
+    assert queue.summary() == {'queued': 1} and queue.process_one()
+    assert queue.summary() == {'completed': 1}
+    with store._connect() as db:
+        record = db.execute('SELECT source_agent,status FROM knowledge_records WHERE source_session=?',
+                            ('claude-session',)).fetchone()
+        assert tuple(record) == ('claude-code', 'candidate')
+    assert not (isolated / 'test.db').with_suffix('.hook-errors.jsonl').exists()
+    assert not install_hook_plan(plan)['changed']
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows Python launcher regression')
 def test_codex_command_pins_console_python_despite_windowsapps_launcher(isolated, monkeypatch):
     interpreter = isolated / "Python '\u4e2d\u6587 with spaces"
     interpreter.mkdir()

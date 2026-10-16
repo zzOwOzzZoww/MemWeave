@@ -8,7 +8,7 @@ It lets agents such as Claude Code and Codex reuse confirmed project knowledge: 
 
 **In one sentence: MemWeave is not about whether an agent can remember; it is about how existing coding agents share verified, traceable project knowledge while making forgetting testable and reversible.**
 
-> Current version: 0.5.0a2 (Alpha). The core loop is working and ready for evaluation in test projects.
+> Latest tag: 0.5.0a2 (Alpha). This README also covers subsequent changes on `main`; see the [changelog](CHANGELOG.md). The core loop is working and ready for evaluation in test projects.
 >
 > **Core loop: capture candidates across agents → promote with evidence → recall only when relevant → retire safely → use LFHV to test whether retirement was premature.**
 
@@ -28,6 +28,10 @@ MemWeave focuses on a small, complete loop:
 2. A candidate becomes usable only after human approval or objective evidence.
 3. A new task receives only knowledge relevant to the current project and query.
 4. Old knowledge can be archived, quarantined, replaced, or deleted; LFHV counterfactually checks whether archival was premature and restores a record only after it is actually emitted again.
+
+**Tiered admission reduces manual review**: exact, stable user preferences/decisions can be promoted automatically when no related accepted record exists. Other useful knowledge awaits review. Temporary status and uncertain claims are skipped by default; an explicit long-term tracking request retains them only as qualified candidates, not active facts. Model confidence is not verification. See the [admission policy (Chinese)](docs/分级知识治理.md).
+
+**AI-assisted governance (optional MCP)**: an AI can inspect candidates and evidence and propose a governance preview. Core permits deterministic duplicate merges; approval, isolation, retirement, and version replacement require confirmation in the local console. Changes are audited and can be undone if no subsequent knowledge activity has occurred. Hook learning and recall remain independent of MCP. See the [control-plane guide (Chinese)](docs/知识治理控制面.md).
 
 ## Core difference: a closed memory-governance loop
 
@@ -186,7 +190,11 @@ python -m pytest tests -q
 python -m pip wheel . --no-deps --wheel-dir dist
 ~~~
 
-As of 2026-10-12, the regression suite for this published scope reports **695 passed, 14 subtests passed**, covering global-hook installation, cross-directory shared-pool access, explicit project isolation, sibling ranking, LFHV budget recovery, the unified integration executor, Gemini, WorkBuddy and normalized learning inputs, batch review, and agent disable/re-enablement. This update adds coverage for offline Runtime recovery, long-transcript boundaries, per-proposal source validation, rejection reasons, and dashboard credentials across restarts. See the [incident report (Chinese)](docs/Hook学习中断与管理页鉴权_BadCase_20261012.md) for causes and validation. Isolated browser acceptance covers desktop and mobile review, cross-client live synchronization, stale-request protection, reconnects, disabled-agent list updates, and notification text contrast. Existing isolated-wheel acceptance also covers a clean virtual-environment install, `memweave setup`, the Runtime, management UI, Codex and Claude Code hooks, background learning, and Runtime reuse. It uses a local mock model service and makes no paid API calls. CI is configured for Windows, Ubuntu, Python 3.11, and Python 3.12. These results validate the fixed suites and installation path only; they are not claims about open-domain understanding, real-agent task success, or production-scale performance.
+As of 2026-10-17, the full local regression suite reports **1260 passed, 25 subtests passed**, covering Hook installation and the unified executor, project isolation, DBSA/LFHV, learning recovery, evidence-scoped admission, tiered governance, and MCP control-plane permissions, atomic rollback, and undo. These are functional regression tests, not public-dataset effectiveness scores. See the [changelog](CHANGELOG.md) and the historical [incident report (Chinese)](docs/Hook学习中断与管理页鉴权_BadCase_20261012.md).
+
+This round's isolated-wheel acceptance covers a clean virtual environment, Chinese/space-containing paths, `memweave setup`, the Runtime, management UI, Codex/Claude Code hooks, background learning, and Runtime reuse. The installed Codex, Claude Code, and Gemini CLI Hook commands were also executed against an isolated Runtime to check recall, candidate creation, duplicate events, and zero results. These checks use fixed local model services with no paid API calls; they are not complete acceptance of new sessions in the actual clients.
+
+Earlier isolated-browser acceptance covered desktop/mobile review, cross-client synchronization, stale-request protection, reconnects, disabled-agent list updates, and notification contrast; browser interactions were not rerun this round. CI is configured for Windows, Ubuntu, Python 3.11, and Python 3.12; that configuration is not proof that this update's remote matrix has already passed. These checks do not establish open-domain understanding, real-agent task success, or production-scale performance.
 
 Project layout:
 

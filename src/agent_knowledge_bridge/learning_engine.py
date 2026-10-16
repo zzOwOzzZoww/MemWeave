@@ -18,8 +18,12 @@ from agent_knowledge_bridge.governance import Governor
 from agent_knowledge_bridge.learning import LearningStore
 from agent_knowledge_bridge.reuse import ReuseStore, digest
 from agent_knowledge_bridge.decisions import grounded_user_proposal
+from agent_knowledge_bridge.admission import (
+    AdmissionRejected, retention, storage_denied, sensitive_storage_only, SECRET_STORAGE_REQUEST,
+    stable_user_directive,
+)
 from agent_knowledge_bridge.experiences import (
-    validate_contract, encode_contract, admission_evidence, phrase_in,
+    validate_contract, encode_contract, admission_evidence, phrase_in, bounded_failure,
 )
 
 
@@ -27,19 +31,35 @@ REVIEW_SYSTEM_PROMPT = """You are the review component of a continual-learning s
 Extract zero to three durable, reusable lessons from a completed coding-agent turn.
 
 Return one JSON object with this exact shape:
-{"proposals":[{"title":"...","content":"...","search_terms":"...","subject_terms":["..."],"knowledge_type":"fact|preference|procedure|decision","scope":"user|project","source_role":"user|assistant","source_quotes":["exact source excerpt"],"evidence_event_ids":["ae_..."]}]}
+{"proposals":[{"title":"...","content":"...","search_terms":"...","subject_terms":["..."],"knowledge_type":"fact|preference|procedure|decision","retention":"durable|temporary|uncertain","scope":"user|project","source_role":"user|assistant","source_quotes":["exact source excerpt"],"evidence_event_ids":["ae_..."]}]}
 
 Rules:
 - Return an empty proposals array when the turn contains no reusable lesson.
 - Save procedures, stable project facts, explicit preferences, or durable decisions.
+- Classify each proposal by its own evidence, not the topic or the user's interests.
+  Temporary activity/status, one-off instructions, tentative plans and uncertain
+  claims should produce NO candidate by default. Only retain these when the USER
+  explicitly requests long-term storage/tracking of that same information; mark
+  retention as temporary/uncertain, preserve its qualifiers and quote the request.
+  Such a request is not confirmation of truth or permission to activate it.
+- Stable, unconditional user preferences/decisions need not contain "remember".
+  Do not turn arbitrary user facts or model confidence into automatic approval.
 - Set scope to `user` only for a durable, project-independent rule or preference that
   another project can safely reuse; use `project` for repository, service, or task
   specific knowledge. When uncertain, choose `project`.
-- Do not save incident narration, task-specific output, credentials, private conversation, or guesses.
+- Do not save incident narration, task-specific output, credentials, raw private
+  conversations, or model-invented guesses. A USER's own uncertain statement may
+  be retained only under the explicit long-term tracking exception above; never
+  describe it as a verified fact.
 - A failure may yield a bounded, reusable caution/procedure candidate. State only the observed failure; do not invent a root cause or successful remedy.
+- A bounded caution backed by a failed tool command may have retention=durable
+  even when recovery is unconfirmed: the caution is reusable, the incident status
+  is not a permanent fact. Use experience with the observed verifier. Never label
+  a guessed cause durable. Do not extract a one-off task command as a project fact.
 - State procedures as instructions that a future agent can execute.
 - Add 6 to 12 compact Chinese and English retrieval terms or short aliases in search_terms.
 - search_terms is index metadata, not a place for instructions, evidence, or secrets.
+- Return only compact aliases, with no reasoning notes, questions or corrections.
 - When the lesson is about a named person, service, repository or other entity,
   add up to 16 exact subject_terms. Use only names explicitly present in the
   source turn; leave it empty when the subject is ambiguous. These terms are
@@ -53,9 +73,35 @@ Rules:
   entire request. Do not convert a question, an unverified assistant guess or
   generic advice into a lesson. If no user assertion supports ordinary knowledge,
   return zero proposals. Observed tool failure/recovery uses experience below.
-- Do not discard a directly asserted durable user fact or preference merely
-  because the same sentence also asks a question; quote only the assertion.
-  Do not infer durable facts from the question itself or transient activity.
+- Do not discard an independent durable assertion merely because another
+  sentence asks a question. Quote each assertion with its negation, scope,
+  temporal and uncertainty qualifiers, including adjacent qualifying sentences.
+  Never clip a qualifier to make a proposal pass admission. Separate unrelated
+  facts from directives; one directive does not authorize other assertions.
+  Do not infer durable facts from a question or transient activity.
+- Prefer one self-contained assertion per proposal. A comma or a new sentence
+  does not cancel a qualifier: keep "maybe", "only today", negation and local
+  scope attached to their assertion. Questions about a different claim must not
+  invalidate an independently asserted fact. Core may retain only bounded,
+  verbatim independent assertions from a mixed proposal; these always await
+  review and never inherit the whole turn's activation authorization.
+- Keep relative clauses such as "which uses SQLite" with the assertion. Do not
+  preserve plans, requests for help or orphaned "it/this/that" sentences as
+  independent reusable facts. Titles do not create distinct claims when the
+  grounded body, type and scope are exactly identical.
+- Split intent from independently asserted facts in this SAME review call, using
+  separate proposals with exact source_quotes (not a rewritten factual summary).
+  Example: "I'm considering a cache migration, our service uses SQLite."
+  Quote "our service uses SQLite." as a fact candidate; do not store the plan.
+  Example: "我打算更换编辑器，我们的服务采用 SQLite。"
+  Quote "我们的服务采用 SQLite。" and leave the editor plan out.
+  Each quote needs its own explicit subject and predicate. Never strip "maybe",
+  "not", "only today", a conditional, a quoted speaker or a local restriction.
+  "Maybe our service uses SQLite" is NOT evidence for "our service uses SQLite".
+  "I plan to buy a server" is NOT evidence that a server is already owned.
+  Embedded possessions/preferences without a self-contained verbatim assertion
+  must not be invented or rewritten to pass this contract. Return fewer proposals
+  rather than fabricate an independent statement. No additional model call is needed.
 - With actual TOOL EVIDENCE, an ordinary observation may instead quote
   ASSISTANT RESULT with source_role="assistant"; this always awaits review.
 - Do not expand a quote with plausible but unobserved steps. The stored ordinary
@@ -67,8 +113,11 @@ to a proposal (knowledge_type="procedure", scope="project"):
  "steps":["Check the precondition","Apply the observed correction"],
  "avoid":["The observed failing action"],"reason":"What was actually observed",
  "verifier":{"kind":"observed_command","command":"exact command from tool INPUT"}}
-Use 1-6 precise applicability phrases, all present in the source material. They
+Use 1-6 short entity/platform/task anchors, all present in the source material. They
 must ALL match a future request; do not use generic phrases like "task" alone.
+Do not copy a whole request as a condition or repeat overlapping long phrases.
+For "Windows widget; Linux 不适用", prefer applies_when=["Windows","widget"]
+and exclude_when=["Linux"], not exclude_when=["Linux 不适用"].
 Use up to 6 explicit exclusions only when supported by evidence. A verifier must
 be an exact observed test/check command, not an invented command. Cite both the
 failure and the later successful rerun when present. Unresolved failures remain
@@ -76,12 +125,6 @@ candidates. A matching fail-then-pass validates a recovery observation, not caus
 attribution of success to your proposed steps. Omit experience when no specific
 conditions/verifier can be justified; ordinary knowledge extraction still applies.
 """
-
-SECRET_STORAGE_REQUEST = re.compile(
-    r"(?i)(?:记住|保存|存储|remember|save|store).{0,50}"
-    r"(?:api[ _-]?key|密钥|密码|口令|password|token|credential|secret)"
-)
-
 
 class DeepSeekReviewer:
     def __init__(self) -> None:
@@ -103,6 +146,7 @@ class DeepSeekReviewer:
             ],
             "temperature": 0.1,
             "response_format": {"type": "json_object"},
+            "max_tokens": min(8192, max(512, int(os.getenv('MW_REVIEW_MAX_TOKENS', '8192')))),
         }
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions",
@@ -119,10 +163,15 @@ class DeepSeekReviewer:
                 result = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             raise RuntimeError(f"review model HTTP {exc.code}; check provider configuration and quota") from None
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise RuntimeError('review model returned an invalid JSON envelope; retry through the learning queue') from None
         try:
-            content = result["choices"][0]["message"]["content"]
+            choice = result["choices"][0]
+            content = choice["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise RuntimeError("review model returned no message content") from exc
+        if choice.get('finish_reason') in {'length', 'content_filter'}:
+            raise RuntimeError('review model response is incomplete or filtered; no proposals accepted')
         parsed = self._parse_json(content)
         proposals = parsed.get('proposals', [])
         if isinstance(proposals, list):
@@ -141,6 +190,8 @@ class DeepSeekReviewer:
         though the object itself was valid.  Decode the first complete JSON
         object while keeping the response shape validation intact.
         """
+        if not isinstance(content, str) or not content.strip():
+            raise RuntimeError('review model returned empty message content; retry through the learning queue')
         text = content.strip()
         if text.startswith("```"):
             lines = text.splitlines()
@@ -149,26 +200,76 @@ class DeepSeekReviewer:
 
         try:
             parsed = json.loads(text)
-        except json.JSONDecodeError as original:
+        except json.JSONDecodeError:
             decoder = json.JSONDecoder()
-            parsed = None
             # Find a JSON object embedded in a short preamble or followed by
             # explanatory text. raw_decode handles nested objects and braces
             # inside quoted strings correctly.
-            for offset, character in enumerate(text):
-                if character != "{":
-                    continue
-                try:
-                    candidate, _end = decoder.raw_decode(text[offset:])
-                except json.JSONDecodeError:
-                    continue
-                parsed = candidate
-                break
-            if parsed is None:
-                raise original
+            # Decode only the first object: never salvage a nested proposal
+            # from an incomplete outer object or accept multiple responses.
+            offset = text.find('{')
+            try:
+                if offset < 0 or text.startswith(('[', '{')) and offset != 0:
+                    raise ValueError
+                parsed, end = decoder.raw_decode(text[offset:])
+                tail = text[offset + end:]
+                if '{' in tail or '}' in tail:
+                    raise ValueError
+            except (ValueError, json.JSONDecodeError):
+                raise RuntimeError('review model returned malformed JSON; no proposals accepted') from None
         if not isinstance(parsed, dict):
             raise RuntimeError("review model response must be a JSON object")
+        if not isinstance(parsed.get('proposals'), list):
+            raise RuntimeError('review model response must contain a proposals list')
         return parsed
+
+
+def clean_search_terms(value):
+    """Bounded index aliases only; source text and evidence remain elsewhere."""
+    parts = value if isinstance(value, list) else re.split(r'[,，;；\n]', str(value or ''))
+    clean = []
+    for term in parts:
+        if not isinstance(term, str):
+            continue
+        term = term.strip()
+        if (not 1 <= len(term) <= 80 or re.search(r'[?？<>`\[\]{}]|\b(?:ignore|disregard|instruction|reasoning)\b', term, re.I)
+                or re.match(r'^(?:请|不要|忽略|系统指令)', term)):
+            continue
+        if term.casefold() not in {t.casefold() for t in clean}:
+            clean.append(term)
+        if len(clean) == 12:
+            break
+    return ', '.join(clean)
+
+
+def complete_directive_quotes(proposals, turn):
+    """Share full evidence only when exact quotes cover one authorized rule.
+
+    Isolated partial quotes and any uncovered factual assertion retain the
+    original candidate boundary; no permission is inferred from model summaries.
+    """
+    source = turn.user_text.strip()
+    if len(proposals) < 2 or len(source) > 1000 or not stable_user_directive(source):
+        return proposals
+    covered = [False] * len(source)
+    kinds = set()
+    for item in proposals:
+        if (not isinstance(item, dict) or item.get('source_role', 'user') != 'user'
+                or item.get('knowledge_type') not in {'preference', 'decision'}
+                or item.get('retention', 'durable') != 'durable' or 'experience' in item):
+            return proposals
+        kinds.add(item['knowledge_type'])
+        quotes = item.get('source_quotes')
+        if not isinstance(quotes, list) or not 1 <= len(quotes) <= 3:
+            return proposals
+        for quote in quotes:
+            if not isinstance(quote, str) or len(quote) < 8 or quote not in source:
+                return proposals
+            for match in re.finditer(re.escape(quote), source):
+                covered[match.start():match.end()] = [True] * len(quote)
+    if len(kinds) != 1 or any(not yes and (char.isalnum() or char in '_-') for yes, char in zip(covered, source)):
+        return proposals
+    return [{**item, 'source_quotes': [source]} for item in proposals]
 
 
 class LearningEngine:
@@ -390,10 +491,13 @@ class LearningEngine:
         try:
             # A credential-storage request is not evidence for a new policy,
             # even if a reviewer could rephrase the refusal as a general lesson.
-            secret_only = not turn.tools and bool(SECRET_STORAGE_REQUEST.search(turn.user_text))
+            secret_only = not turn.tools and sensitive_storage_only(turn.user_text)
             if secret_only:
                 response = {"proposals": []}
                 proposal_outcome = "suppressed_sensitive_request"
+                # This counts one suppressed turn, not a model proposal. Keep
+                # reviewer/rejected proposal counts at zero for this stage.
+                rejection_reasons['sensitive_storage_request'] = 1
             else:
                 # Uncertainty is checked against each proposal's evidence, not
                 # an incidental phrase anywhere in a multi-topic response.
@@ -404,7 +508,7 @@ class LearningEngine:
             reviewer_proposal_count = len(proposals)
             if len(proposals) > 3:
                 rejection_reasons['proposal_limit'] = len(proposals) - 3
-            for proposal in proposals[:3]:
+            for proposal in complete_directive_quotes(proposals[:3], turn):
                 if response.get('_require_source_quotes') and (
                     not isinstance(proposal, dict) or
                     ('experience' not in proposal and 'source_quotes' not in proposal)
@@ -517,11 +621,30 @@ class LearningEngine:
             return reject('invalid_proposal')
         if not self.store.knowledge.agent_allowed(self.agent_id):
             return reject('agent_disabled')
+        if source_turn is not None and storage_denied(source_turn.user_text):
+            return reject('memory_storage_opt_out')
+        if source_turn is not None and proposal.get('knowledge_type') == 'procedure':
+            event_map = {key: event for key, event in self.store.get_events(available_event_ids).items()
+                         if event['agent_id'] == self.agent_id and event['project_key'] == self.project_key
+                         and event['session_id'] == session_id}
+            cited = proposal.get('evidence_event_ids')
+            try:
+                observation = bounded_failure(proposal, source_turn, event_map, available_event_ids,
+                                              cited if isinstance(cited, list) else [])
+            except (ValueError, TypeError, KeyError):
+                observation = None
+            if observation:
+                # Do not relabel the model's uncertain explanation. Replace it
+                # with the much narrower event-backed observation, review-only.
+                proposal = {**proposal, 'experience': observation, 'retention': 'durable',
+                            'title': '验证失败观察：' + observation['verifier']['command'][:120],
+                            'content': observation['reason'], 'search_terms': ''}
         title = str(proposal.get("title") or "").strip()
         content = str(proposal.get("content") or "").strip()
         knowledge_type = str(proposal.get("knowledge_type") or "").strip()
         scope = str(proposal.get("scope") or "project").strip()
-        search_terms = str(proposal.get("search_terms") or "").strip()
+        raw_search_terms = proposal.get('search_terms') or ''
+        search_terms = str(raw_search_terms).strip()
         subject_terms = proposal.get("subject_terms") or []
         if not isinstance(subject_terms, list) or len(subject_terms) > 16:
             return reject('invalid_subject_terms')
@@ -531,10 +654,25 @@ class LearningEngine:
         if source_turn is not None and 'experience' not in proposal:
             try:
                 grounded = grounded_user_proposal(proposal, source_turn)
+            except AdmissionRejected as exc:
+                return reject(exc.reason)
             except ValueError:
                 return reject('invalid_source_evidence')
             if grounded:
                 content, scope = grounded['content'], grounded['scope']
+                if grounded.get('selected_quotes'):
+                    # Metadata from discarded questions/guesses must not remain
+                    # attached to a shortened, otherwise grounded record.
+                    title = re.sub(r'\s+', ' ', content)[:120]
+                    search_terms = ''
+                    subject_terms = [term for term in subject_terms if term in content]
+        if grounded is None and 'experience' not in proposal:
+            # Legacy reviewers may omit quotes. They never auto-activate, and
+            # cannot bypass explicit temporary/uncertain retention boundaries.
+            try:
+                retention(proposal, content, role='assistant')
+            except AdmissionRejected as exc:
+                return reject(exc.reason)
         if not title or not content or knowledge_type not in {
             "fact",
             "preference",
@@ -552,6 +690,7 @@ class LearningEngine:
             return reject('sensitive_content')
         if any(redact_text(item, len(item) + 1) != item for item in subject_terms):
             return reject('sensitive_content')
+        search_terms = clean_search_terms(raw_search_terms) if search_terms else ''
         cited = proposal.get("evidence_event_ids") or []
         if not isinstance(cited, list):
             cited = []
@@ -584,10 +723,20 @@ class LearningEngine:
             if not observed or not all(phrase_in(term, source_text) for term in experience['applies_when'] + experience['exclude_when']):
                 return reject('unsupported_experience')
             recovery = admission_evidence(experience, event_map, available_event_ids, cited_ids)
+            # Typed command evidence cannot turn a speculative explanation or
+            # a deliberately temporary workaround into durable knowledge.
+            try:
+                retention(proposal, experience['reason'], role='assistant')
+            except AdmissionRejected as exc:
+                return reject(exc.reason)
             content = encode_contract(experience)
             scope, knowledge_type = 'project', 'procedure'
             search_terms = ' '.join(experience['applies_when']) + (' ' + search_terms if search_terms else '')
             search_terms = search_terms[:1000]
+        if source_turn is not None:
+            # Exact source entities only, not translated/invented subjects or
+            # an unrelated named entity elsewhere in the same conversation.
+            subject_terms = [term for term in subject_terms if phrase_in(term, content)]
         # Existing related accepted knowledge makes automatic acceptance unsafe:
         # leave the new statement for conflict review. This runs on the write
         # path only and is intentionally conservative about possible conflicts.
@@ -596,22 +745,37 @@ class LearningEngine:
             related = self.store.knowledge.search(requester_agent=self.agent_id,
                 project_key=self.project_key, query=title[:500], limit=3, expand_siblings=False)
             auto_accept = not related['results']
-        published = self.store.knowledge.publish(
-            source_agent=self.agent_id,
-            project_key=self.project_key,
-            title=title,
-            content=content,
-            knowledge_type=knowledge_type,
-            scope=scope,
-            evidence_summary=f"Automatically proposed by the {self.agent_id} post-turn review.",
-            source_session=session_id,
-            evidence_speaker=(
-                getattr(source_turn, "speaker", None)
-                if source_turn is not None else None
-            ),
-            search_terms=search_terms or None,
-            subject_terms=subject_terms,
-        )
+        # The first proposal may already have activated during this SAME run.
+        # Reuse only its exact body/type/scope; never borrow another run's
+        # approval, and do not modify the general manual-publication identity.
+        with self.store.knowledge._connect() as db:
+            same_run = db.execute('''SELECT r.* FROM knowledge_records r
+                JOIN knowledge_compilation_links l ON l.knowledge_id=r.id
+                WHERE l.run_id=? AND r.project_key=? AND r.knowledge_type=? AND r.scope=?
+                AND r.content=? AND r.status IN ('candidate','active')
+                AND r.superseded_by IS NULL LIMIT 1''',
+                (run_id, self.project_key, knowledge_type, scope, content)).fetchone()
+        if same_run:
+            published = {'knowledge': dict(same_run), 'deduplicated': True}
+        else:
+            published = self.store.knowledge.publish(
+                source_agent=self.agent_id,
+                project_key=self.project_key,
+                title=title,
+                content=content,
+                knowledge_type=knowledge_type,
+                scope=scope,
+                evidence_summary=(f"Automatically proposed by the {self.agent_id} post-turn review. "
+                                  f"Admission: {grounded['admission_reason'] if grounded else 'requires_review'}."),
+                source_session=session_id,
+                evidence_speaker=(
+                    getattr(source_turn, "speaker", None)
+                    if source_turn is not None else None
+                ),
+                search_terms=search_terms or None,
+                subject_terms=subject_terms,
+                deduplicate_candidate_content=bool(grounded and 'experience' not in proposal),
+            )
         knowledge_id = published["knowledge"]["id"]
         self.store.link_compilation(
             run_id,
@@ -625,7 +789,7 @@ class LearningEngine:
             feedback = self.store.knowledge.feedback(
                 agent_id=self.agent_id, knowledge_id=knowledge_id, outcome='verified',
                 evidence_kind='user_approval', evidence_ref='explicit-user-statement:' + digest(content),
-                evidence_summary='Exact user statement explicitly requests durable storage; no related accepted record found.',
+                evidence_summary='Exact, stable user preference/decision authorizes durable use; no related accepted record found.',
                 project_key=self.project_key, require_no_related=True)
             return feedback['knowledge']['status'] == 'active'
 

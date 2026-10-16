@@ -108,9 +108,11 @@ def _lookup(payload: dict, path: str):
 
 
 PROFILES = {
+    # Claude runs Windows hooks through Git Bash too. cmd.exe quoting can
+    # leave the launcher path unquoted and Bash then consumes its backslashes.
     "claude-code": IntegrationProfile("claude-code", "UserPromptSubmit", "Stop", "claude",
         bind_transcript_boundary=True, launcher="claude_learning_hook.py", config_file="settings.json",
-        config_home="~/.claude", home_env="CLAUDE_CONFIG_DIR"),
+        config_home="~/.claude", home_env="CLAUDE_CONFIG_DIR", windows_encoded_command=True),
     "codex": IntegrationProfile("codex", "UserPromptSubmit", "Stop", "codex",
         launcher="codex_learning_hook.py", config_file="hooks.json", error_suffix=".codex-hook-errors.jsonl",
         audit_suffix=".codex-hook-runs.jsonl", transcript_resolver="codex", baseline_bypass=True,

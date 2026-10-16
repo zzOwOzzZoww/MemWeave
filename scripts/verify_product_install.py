@@ -28,7 +28,7 @@ def main():
         root=Path(directory)
         stage=root/'source'
         stage.mkdir()
-        for name in ('pyproject.toml','README.md','MANIFEST.in'):
+        for name in ('pyproject.toml','README.md','MANIFEST.in','LICENSE'):
             shutil.copy2(ROOT/name,stage/name)
         shutil.copytree(ROOT/'src',stage/'src',ignore=shutil.ignore_patterns('__pycache__','*.pyc','*.bak','*.egg-info'))
         environment={k:v for k,v in os.environ.items() if not k.startswith(('MW_','AKB_','MEMWEAVE','OPENAI_','DEEPSEEK_'))}
@@ -49,6 +49,7 @@ def main():
             assert any(n.endswith('hooks/claude_learning_hook.py') for n in names)
             assert any(n.endswith('hooks/codex_learning_hook.py') for n in names)
             assert any(n.endswith('assets/memweave-icon.ico') for n in names)
+            assert any(n.endswith('/licenses/LICENSE') for n in names)
             assert not any(n.endswith(('.db','.bak')) or '/outputs/' in n or '/data/' in n for n in names)
             user_profile_path = re.compile(rb"[A-Z]:\\\\Users\\\\[^\\\\]+", re.IGNORECASE)
             assert not any(user_profile_path.search(archive.read(n)) for n in names if n.endswith(('.py','.html','METADATA')))

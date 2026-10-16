@@ -54,6 +54,10 @@ class KnowledgeBridgeService:
                 "governance_sweep",
                 "governance_resurrect",
                 "governance_lfhv",
+                "governance_preview",
+                "governance_plans",
+                "governance_apply",
+                "governance_undo",
                 "agent_discovery",
                 "agent_registry",
             ],
@@ -239,6 +243,22 @@ class KnowledgeBridgeService:
     # runtime does not mutate lifecycle state behind an agent's back, so a
     # retirement decision can always be inspected before it is applied.
     # ------------------------------------------------------------------
+    def governance_control(self):
+        from .governance_control import GovernanceControl
+        return GovernanceControl(self.store, actor=self.agent_id, project_key=self.project_key)
+
+    def governance_preview(self, actions):
+        return self.governance_control().preview(actions)
+
+    def governance_plans(self, limit=20):
+        return self.governance_control().list(limit)
+
+    def governance_plan(self, plan_id):
+        return self.governance_control().get(plan_id)
+
+    def governance_apply(self, plan_id):
+        return self.governance_control().apply(plan_id)
+
     def governance_report(self, project_key: str | None = None) -> dict[str, Any]:
         return self.governor.report(project_key=project_key or self.project_key)
 

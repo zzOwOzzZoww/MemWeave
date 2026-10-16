@@ -74,13 +74,117 @@ def phrase_in(phrase, text):
     phrase, text = phrase.casefold(), text.casefold()
     # Latin words/identifiers must not match inside unrelated words.
     if re.fullmatch(r"[a-z0-9_. /:-]+", phrase):
-        return re.search(r"(?<![\w])" + re.escape(phrase) + r"(?![\w])", text) is not None
+        return re.search(r"(?<![a-z0-9_])" + re.escape(phrase) + r"(?![a-z0-9_])", text) is not None
     return phrase in text
 
 
+def _condition_parts(phrase):
+    """Factor only simple conjunctions of task anchors, never arbitrary logic."""
+    if re.search(r'\b(?:not|no|unless|without|or|if|only)\b|不|无|除非|或者|如果|只有|仅', phrase, re.I):
+        return [phrase]
+    phrase = re.sub(r'^(?:修复|排查|检查|处理)\s*|问题$', '', phrase).strip()
+    parts = re.findall(r'[A-Za-z0-9_./:-]+|[一-鿿]+', phrase)
+    result = []
+    for part in parts:
+        if re.fullmatch('[一-鿿]+', part):
+            part = re.sub(r'^(?:的|环境下|环境|下)|(?:时|问题)$', '', part)
+        if part:
+            result.append(part)
+    return result or [phrase]
+
+
+def _exclusion_anchor(phrase):
+    # Store/display the original contract; normalize only its predicate here.
+    text = re.sub(r'\s*(?:不适用|不支持|除外|不可用)\s*[。.!！]*$', '', phrase)
+    text = re.sub(r'\s+(?:is\s+)?(?:not applicable|unsupported|excluded)\s*[.!]*$', '', text, flags=re.I)
+    return text.strip() or phrase
+
+
+def _excluded_in_query(anchor, query):
+    # An explicitly ruled-out environment is not the environment being used.
+    # All other occurrences (including ambiguous multi-platform requests) veto.
+    pattern = re.escape(anchor)
+    if re.fullmatch(r'[a-z0-9_. /:-]+', anchor, re.I):
+        pattern = r'(?<![a-z0-9_])' + pattern + r'(?![a-z0-9_])'
+    for match in re.finditer(pattern, query, re.I):
+        before, after = query[max(0, match.start()-40):match.start()], query[match.end():match.end()+50]
+        ambiguous = (re.search(r'不能说|并非|不是|not true|cannot say|not excluding', before, re.I)
+                     or re.match(r'[^。！!；;\n]*[?？]|\s*(?:不适用|不支持)(?:吗|么)', after))
+        negative_suffix = re.match(r'\s*(?:不适用|不支持|除外|不可用)|\s+(?:is\s+)?(?:not applicable|unsupported|excluded)\b', after, re.I)
+        negative_prefix = re.search(
+            r'(?:不要(?:把[^，。；\n]{0,30})?(?:推广|应用)到|不用于|不适用于|而不是|'
+            r'\b(?:not|excluding|except))\s*$', before, re.I)
+        if ambiguous or not (negative_suffix or negative_prefix):
+            return True
+    return False
+
+
+def _positive_condition(part, query):
+    # Negated applicability cannot be used to satisfy positive anchors.
+    if not phrase_in(part, query):
+        return False
+    if re.search(r'(?:\bnot\s+|不是\s*)' + re.escape(part) + r'(?![a-z0-9_])', query, re.I):
+        return False
+    return not re.search(re.escape(part) + r'\s*(?:不适用|不支持)', query, re.I)
+
+
 def applicable(contract, query):
-    return (all(phrase_in(term, query) for term in contract["applies_when"])
-            and not any(phrase_in(term, query) for term in contract["exclude_when"]))
+    return (all(all(_positive_condition(part, query) for part in _condition_parts(term))
+                for term in contract["applies_when"])
+            and not any(_excluded_in_query(_exclusion_anchor(term), query)
+                        for term in contract["exclude_when"]))
+
+
+def bounded_failure(proposal, turn, event_map, available_ids, cited_ids):
+    """Project uncertain failure reports to objective observations, never fixes.
+
+    The model's temporary/uncertain explanation is discarded, not relabelled
+    as truth. Only a cited, observed failed command and its last state survive.
+    This path always awaits review and cannot authorize activation.
+    """
+    from .admission import AdmissionRejected, retention
+    if proposal.get('knowledge_type') != 'procedure' or proposal.get('retention', 'durable') not in {'durable', 'uncertain', 'temporary'}:
+        return None
+    try:
+        retention({'retention': 'durable'}, turn.user_text, role='assistant')
+    except AdmissionRejected:
+        return None
+    failures = [event_map[key] for key in available_ids if key in cited_ids and key in event_map
+                and event_map[key]['success'] is False
+                and event_map[key]['objective_kind'] in {'test', 'command'}]
+    commands = {command_from_summary(e['payload'].get('input', '')) for e in failures}
+    commands.discard('')
+    if len(commands) != 1:
+        return None
+    command = commands.pop()
+    if 'experience' in proposal:
+        contract = validate_contract(proposal['experience'])
+        if contract['verifier']['command'] != command:
+            return None
+    else:
+        quotes = proposal.get('source_quotes')
+        if (proposal.get('source_role') != 'assistant' or not isinstance(quotes, list)
+                or not quotes or any(not isinstance(q, str) or len(q) < 8 or q not in turn.assistant_text for q in quotes)
+                or not re.search(r'失败|退出码|\b(?:fail(?:ed|ure)?|exit code)\b', '\n'.join(quotes), re.I)):
+            return None
+        # The source request itself bounds this observation; no model-created
+        # platform or generic "task" condition may broaden its reach.
+        task = re.split(r'[，,。；;\n]', turn.user_text)[0].strip()
+        if not 8 <= len(task) <= 100:
+            return None
+        exclusions = re.findall(r'([^，,。；;\n]{1,60}?(?:不适用|不支持))', turn.user_text)
+        contract = dict(version=1, applies_when=[task], exclude_when=exclusions,
+                        verifier={'kind': 'observed_command', 'command': command})
+    matched = [event_map[key] for key in available_ids if key in event_map
+               and event_map[key]['objective_kind'] in {'test', 'command'}
+               and command_from_summary(event_map[key]['payload'].get('input', '')) == command]
+    if not matched or matched[-1]['success'] is True:
+        return None
+    contract.update(steps=['运行已观察到的验证命令，依据明确退出状态重新检查；没有通过前不得声称已修复。'],
+                    avoid=[], reason='已观察到验证命令失败；' + (
+                        '末次相同命令仍失败，未观察到恢复。' if matched[-1]['success'] is False
+                        else '后续相同命令退出状态未知，不能确认恢复。'))
+    return validate_contract(contract)
 
 
 def filter_rows(rows, query):

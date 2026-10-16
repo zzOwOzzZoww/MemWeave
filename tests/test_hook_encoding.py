@@ -41,6 +41,9 @@ class HookEncodingTest(unittest.TestCase):
                     )
                     context = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
                     self.assertIn(f"source_label={display_name}", context)
+                    self.assertIn("a single standalone inline-code source badge", context)
+                    self.assertIn("`来源：Codex和Gemini CLI`", context)
+                    self.assertIn("`来源：Claude Code、Codex和Gemini CLI`", context)
                     self.assertIn("Never print knowledge IDs, trace IDs, session IDs", context)
                     self.assertNotIn("cite its [kn_id]", context)
 

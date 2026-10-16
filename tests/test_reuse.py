@@ -127,6 +127,10 @@ class ReuseTests(unittest.TestCase):
         self.assertIn("source_label=Claude Code", context)
         self.assertIn("source_label=Codex", context)
         self.assertIn("`来源：Claude Code`", context)
+        self.assertIn("a single standalone inline-code source badge", context)
+        self.assertIn("`来源：Codex和Gemini CLI`", context)
+        self.assertIn("`来源：Claude Code、Codex和Gemini CLI`", context)
+        self.assertNotIn("one standalone inline-code source badge per used Agent", context)
         self.assertIn("Never print knowledge IDs, trace IDs, session IDs", context)
         self.assertNotIn("cite its [kn_id]", context)
         # Internal IDs still provide database traceability, without requesting
@@ -161,6 +165,39 @@ class ReuseTests(unittest.TestCase):
         self.assertFalse(self.items()[0]["source_attribution_observed"])
         self.assertEqual(self.store.metrics("p")["source_attributed_turns"], 1)
 
+    def test_merged_source_badge_observes_sources_without_per_item_credit(self):
+        self.start([self.record(), {**self.record(2), "source_agent": "codex"},
+                    {**self.record(3), "source_agent": "gemini-cli"}])
+        self.finish("", turn_id="turn1", turn=TranscriptTurn(
+            "widget", "已完成。\n`来源：Claude Code、Codex和Gemini CLI`", ()))
+        items = self.items()
+        self.assertTrue(all(i["source_attribution_observed"] for i in items))
+        self.assertFalse(any(i["citation_observed"] for i in items))
+        self.assertTrue(all(i["check_status"] == "not_cited" for i in items))
+        self.assertEqual(self.store.metrics("p")["source_attributed_turns"], 1)
+
+    def test_merged_source_badge_parser(self):
+        for value, expected in (
+            ("Codex", {"Codex"}),
+            ("Codex和Gemini CLI", {"Codex", "Gemini CLI"}),
+            ("Claude Code、Codex和Gemini CLI", {"Claude Code", "Codex", "Gemini CLI"}),
+            ("Claude Code、Cursor、Codex和Gemini CLI",
+             {"Claude Code", "Cursor", "Codex", "Gemini CLI"}),
+            ("Codex和Codex", {"Codex"}),
+            (" Codex 和 Gemini CLI ", {"Codex", "Gemini CLI"}),
+            ("Research and Build", {"Research and Build"}),
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(observed_source_labels(f"完成。\n`来源：{value}`"), expected)
+
+    def test_merged_badges_match_whole_custom_labels_not_substrings(self):
+        labels = {"和平助手", "Codex", "Codex Plus", "研发、测试"}
+        self.assertEqual(observed_source_labels(
+            "`来源：和平助手、研发、测试和Codex Plus`", expected_labels=labels),
+            {"和平助手", "研发、测试", "Codex Plus"})
+        self.assertEqual(observed_source_labels(
+            "`来源：UnknownCodex`", expected_labels=labels), set())
+
     def test_badge_for_unemitted_record_does_not_count(self):
         large = {**self.record(), "content": "x" * 5000}
         self.start([large])
@@ -175,6 +212,10 @@ class ReuseTests(unittest.TestCase):
             "```markdown\n`来源：Claude Code`\n```",
             "~~~\n`来源：Claude Code`\n~~~",
             "<!--\n`来源：Claude Code`\n-->",
+            "例如 `来源：Codex和Gemini CLI` 这样的标签。",
+            "> `来源：Codex和Gemini CLI`",
+            "```markdown\n`来源：Claude Code、Codex和Gemini CLI`\n```",
+            "<!--\n`来源：Codex和Gemini CLI`\n-->",
         ):
             with self.subTest(text=text):
                 self.assertEqual(observed_source_labels(text), set())

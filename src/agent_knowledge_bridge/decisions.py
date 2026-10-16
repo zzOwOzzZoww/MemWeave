@@ -9,11 +9,18 @@ from functools import lru_cache
 import re
 import hashlib
 from agent_knowledge_bridge.knowledge_versions import blocked
+from agent_knowledge_bridge.admission import (
+    AdmissionRejected, retention, stable_user_directive,
+    explicit_retention_request, assertion_clauses, sensitive_evidence_reason,
+    has_quoted_evidence, independent_assertions, EvidenceContext,
+    task_only_assertion, canonical_quote,
+    single_sentence_directive,
+)
 
 # Bump whenever admission or retrieval boundaries change.  Existing reuse
 # traces and LFHV shadow evidence then fail closed and are recomputed under the
 # new policy instead of silently carrying forward an old decision.
-POLICY_VERSION = 'memory-decisions-v7-budgeted-recovery'
+POLICY_VERSION = 'memory-decisions-v8-experience-conditions'
 
 def record_digest(row):
     return hashlib.sha256((str(row['title']) + '\x1f' + str(row['content'])).encode()).hexdigest()
@@ -161,9 +168,27 @@ _NO_SAVE = re.compile(r'(?:不要|不用|无需|别)(?:再)?(?:记住|保存|记
 _REJECT_NO_SAVE = re.compile(r'供讨论|还没(?:有)?决定|尚未决定|只是(?:问|讨论|假设)|not decided', re.I)
 _REQUEST = re.compile(r'请记住|请保存|记住这个|记住：|记一下|记着|记住|保存|存一下|\b(?:please )?remember\b', re.I)
 _DURABLE = re.compile(r'今后|以后|往后|接下来|长期|默认|正式|决定|决策|从现在起|这套(?:习惯|规则|偏好)|\b(?:always|default|from now on|decision|policy)\b', re.I)
-_USER_SCOPE = re.compile(r'跨项目|各个项目|所有项目|我的(?:长期|个人).{0,12}(?:偏好|习惯)|\ball (?:my )?projects\b', re.I)
+_USER_SCOPE = re.compile(r'跨项目|各个项目|所有项目|我的(?:长期|个人).{0,12}(?:偏好|习惯)|\ball (?:(?:my|future) )?projects\b', re.I)
 _SPECULATION = re.compile(r'没有.{0,12}(?:证据|验证|日志)|只是猜测|未经验证|\b(?:no evidence|unverified|just a guess|only a guess)\b', re.I)
-_SENSITIVE_STORAGE = re.compile(r'(?:api[ _-]?key|密钥|密码|口令|password|token|credential|secret)', re.I)
+_LOCAL_SCOPE = re.compile(
+    r'这个项目|本项目|当前项目|仅限本|(?:不|禁止|别|不要).{0,12}跨项目|'
+    r'\b(?:this|current)\s+project\b|\bnot\s+(?:across\s+)?all\s+(?:my\s+)?projects\b', re.I)
+
+
+def _proposal_scope(quotes, role, context):
+    # A global marker must qualify every stored assertion, not another sentence
+    # or a quoted example. Mixed/ambiguous scopes always remain project-local.
+    # Do not strip a quoted/local assertion to grant global scope to the text
+    # that remains: the original quote will still be persisted in full.
+    if has_quoted_evidence(context):
+        return 'project'
+    clauses = [clause for quote in quotes for clause in assertion_clauses(quote)]
+    shared_directive_scope = bool(clauses and len(quotes) == 1
+                                  and single_sentence_directive(quotes[0])
+                                  and _USER_SCOPE.search(clauses[0]))
+    return ('user' if role == 'user' and clauses and not _LOCAL_SCOPE.search(context)
+            and (shared_directive_scope or all(_USER_SCOPE.search(c) and not _LOCAL_SCOPE.search(c) for c in clauses))
+            else 'project')
 
 def uncertain_only(turn):
     return not turn.tools and bool(_SPECULATION.search(turn.assistant_text)) and not bool(_REQUEST.search(turn.user_text))
@@ -173,6 +198,7 @@ def grounded_user_proposal(proposal, turn):
 
     Auto acceptance is deliberately narrow: the entire user statement must be
     quoted, explicitly persistent, non-interrogative, and a preference/decision.
+    A stable directive itself is authorization; it need not say "remember".
     Partial quotes remain candidates. Legacy integrations without quotes also
     remain candidates; the built-in reviewer requires quotes for ordinary items.
     """
@@ -192,19 +218,56 @@ def grounded_user_proposal(proposal, turn):
         if not isinstance(quote, str) or len(quote.strip()) < 8 or quote not in source:
             raise ValueError('Ordinary memory must quote the user verbatim')
         exact.append(quote.strip())
-    if _NO_SAVE.search(turn.user_text) or _REJECT_NO_SAVE.search(turn.user_text):
+    if _NO_SAVE.search(turn.user_text):
         raise ValueError('User did not authorize a durable assertion')
+    if role == 'user' and all(task_only_assertion(quote) for quote in exact):
+        raise AdmissionRejected('task_instruction_not_knowledge')
     instructions = instruction_text(turn.user_text)
-    # Keep the admission predicate self-contained.  The adapter also has a
-    # fast path for secret-only turns, but callers that use this contract
-    # directly must receive the same fail-closed result.
-    if _SENSITIVE_STORAGE.search(instructions):
-        raise ValueError('Sensitive credentials cannot become reusable knowledge')
+    evidence_index = EvidenceContext(source)
+    evidence_context = evidence_index.context(exact)
+    sensitive = sensitive_evidence_reason(evidence_context)
+    if sensitive:
+        raise AdmissionRejected(sensitive)
+    try:
+        category, retain_requested = retention(proposal, evidence_context, role=role,
+                                              request_evidence='\n'.join(exact))
+    except AdmissionRejected as exc:
+        if role != 'user' or exc.reason not in {'temporary_knowledge', 'uncertain_knowledge'}:
+            raise
+        if evidence_index.clipped_restriction(exact):
+            raise
+        selected = independent_assertions(proposal, source, exact, evidence_index=evidence_index)
+        if not selected:
+            raise
+        # A shortened record receives neither whole-turn authorization nor
+        # cross-project scope. The original rejected claims are not persisted.
+        return {'content': '\n'.join(selected), 'scope': 'project', 'auto_accept': False,
+                'admission_reason': 'independent_source_assertions', 'selected_quotes': selected}
+    if evidence_index.clipped_restriction(exact):
+        raise AdmissionRejected('uncertain_knowledge')
+    if role == 'user' and category == 'durable' and evidence_index.mixed_intent(exact):
+        selected = independent_assertions(proposal, source, exact, evidence_index=evidence_index)
+        if selected and selected != exact:
+            return {'content': '\n'.join(selected), 'scope': 'project', 'auto_accept': False,
+                    'admission_reason': 'independent_source_assertions', 'selected_quotes': selected}
+    if _REJECT_NO_SAVE.search(evidence_context) and not retain_requested:
+        raise ValueError('User did not authorize a durable assertion')
     explicit = (role == 'user' and len(exact) == 1 and exact[0] == turn.user_text.strip() and len(exact[0]) <= 1000
-                and bool(_REQUEST.search(instructions)) and bool(_DURABLE.search(instructions))
+                and category == 'durable'
+                and ((explicit_retention_request(turn.user_text, for_activation=True) and bool(_DURABLE.search(instructions)))
+                     or stable_user_directive(turn.user_text))
                 and not re.search(r'示例|转述|引用|这句话|假设|猜测|如果|仅当|除非|当.{0,16}时|\b(?:example|quote|hypothesis|guess|if|unless)\b', instructions, re.I)
-                and not re.search(r'(?:api[ _-]?key|密钥|密码|口令|password|token|credential|secret)', instructions, re.I)
                 and not re.search(r'[?？]|是否|要不要|\b(?:should|could|would)\b', turn.user_text, re.I)
                 and proposal.get('knowledge_type') in {'preference', 'decision'})
-    scope = 'user' if role == 'user' and _USER_SCOPE.search(turn.user_text) else 'project'
-    return {'content': '\n'.join(exact), 'scope': scope, 'auto_accept': explicit}
+    scope = _proposal_scope(exact, role, evidence_context)
+    content = '\n'.join(canonical_quote(quote) for quote in exact)
+    if category != 'durable' and retain_requested:
+        # Explicit retention is permission to review, never proof of truth or
+        # continuing validity. This warning survives later manual approval.
+        warning = ('尚未确认，不得当作事实' if category == 'uncertain'
+                   else '仅描述来源会话时的临时状态，不代表当前状态')
+        content = f'[用户要求长期保留；{warning}]\n{content}'
+    return {'content': content, 'scope': scope, 'auto_accept': explicit,
+            'admission_reason': ('stable_user_directive' if explicit else
+                                 f'explicit_retention_{category}' if retain_requested and category != 'durable'
+                                 else 'requires_review')}

@@ -579,6 +579,13 @@ class KnowledgeStore:
                     (self.clock(),),
                 )
             versions.initialize(connection)
+            # Bound the learning-only exact-body lookup without duplicating an
+            # entire (up to 8K) body in an index. Prefix/length narrow the search;
+            # the full body and all authorization boundaries are rechecked.
+            connection.execute('''CREATE INDEX IF NOT EXISTS idx_candidate_body_lookup
+                ON knowledge_records(project_key,scope,knowledge_type,
+                    length(content),substr(content,1,128),COALESCE(evidence_speaker,''),created_at,id)
+                WHERE status='candidate' AND superseded_by IS NULL''')
 
     def _subject_vocabulary(self, connection, *, project_key: str, statuses: str) -> tuple[str, ...]:
         """Return subject metadata with a write-versioned per-store cache."""
@@ -698,6 +705,7 @@ class KnowledgeStore:
         evidence_speaker: str | None = None,
         search_terms: str | None = None,
         subject_terms: list[str] | tuple[str, ...] | str | None = None,
+        deduplicate_candidate_content: bool = False,
     ) -> dict[str, Any]:
         self._validate_agent_id(source_agent)
         self._validate_project_key(project_key)
@@ -733,11 +741,26 @@ class KnowledgeStore:
                 "SELECT * FROM knowledge_records WHERE content_hash = ?",
                 (content_hash,),
             ).fetchone()
+            if existing is None and deduplicate_candidate_content:
+                # Learning-only exact-body reuse: model titles are not claim
+                # identities. Never fuzzy-merge, revive a rejected record or
+                # borrow approval from an accepted record. Keep the first
+                # title/metadata; compilation links retain every source turn.
+                existing = connection.execute('''SELECT * FROM knowledge_records
+                    WHERE project_key=? AND scope=? AND knowledge_type=?
+                    AND status='candidate' AND superseded_by IS NULL AND content=?
+                    AND length(content)=length(?) AND substr(content,1,128)=substr(?,1,128)
+                    AND COALESCE(evidence_speaker,'')=?
+                    AND (candidate_expires_at IS NULL OR candidate_expires_at>?)
+                    ORDER BY created_at,id LIMIT 1''',
+                    (project_key, scope, knowledge_type, content, content, content,
+                     evidence_speaker or '', timestamp),
+                ).fetchone()
             if existing is not None:
-                if (search_terms and search_terms != existing["search_terms"]) or (
+                if existing['title'] == title and ((search_terms and search_terms != existing["search_terms"]) or (
                     subject_terms and normalize_subject_terms(existing["subject_terms"])
                     != tuple(subject_terms)
-                ):
+                )):
                     connection.execute(
                         "UPDATE knowledge_records SET search_terms = ?, subject_terms = ?, updated_at = ? WHERE id = ?",
                         (search_terms or existing["search_terms"], subject_terms_json, timestamp, existing["id"]),

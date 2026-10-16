@@ -10,7 +10,7 @@ import hashlib
 from dataclasses import dataclass
 
 
-COMPILER_VERSION = "memweave-compiler-v4-proposal-evidence"
+COMPILER_VERSION = "memweave-compiler-v10.3-review-boundaries"
 SCHEMA_VERSION = "memory-record-v1"
 
 

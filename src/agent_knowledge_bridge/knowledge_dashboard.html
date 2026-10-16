@@ -2165,6 +2165,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="governanceControl" type="button" class="btn">AI 治理预览</button>
         <button id="providerSettings" type="button" class="btn">模型与工作区</button>
         <span class="db-status"><span class="pulse-dot"></span>SQLite WAL · FTS5</span>
         <button id="themeToggle" class="theme-toggle" title="切换深浅模式" aria-label="切换深浅模式"></button>
@@ -2607,6 +2608,10 @@
     const fragment = new URLSearchParams(location.hash.slice(1));
     const token = fragment.get('token') || '';
     const initialProject = fragment.get('project') || 'claude-codex-mvp';
+    document.getElementById('governanceControl').addEventListener('click', () => {
+      const selectedProject = document.getElementById('settingsProject')?.value || initialProject;
+      location.href = '/governance#' + new URLSearchParams({token, project: selectedProject}).toString();
+    });
     const defaultAgents = ['claude-code', 'codex'];
     const state = {
       overview: null, records: [], selected: null, selectedPendingIds: new Set(),
@@ -2827,6 +2832,10 @@
       invalid_proposal: '提案格式无效', agent_disabled: 'Agent 已停用',
       invalid_subject_terms: '主题字段无效', invalid_search_terms: '检索词超限',
       sensitive_content: '包含敏感内容', invalid_experience: '经验合约无效',
+      sensitive_storage_request: '涉及凭据保存请求',
+      temporary_knowledge: '临时信息未要求长期保留', uncertain_knowledge: '不确定内容未要求长期保留',
+      task_instruction_not_knowledge: '本轮任务指令不是长期知识',
+      invalid_retention: '保留类型无效', memory_storage_opt_out: '用户明确要求不保存',
       unsupported_experience: '经验缺少对应验证证据', proposal_limit: '超过单轮提案上限',
     })[reason] || '其它校验未通过'} ${Number(count) || 0} 条`).join('；');
     const learningLabel = item => {
@@ -3549,21 +3558,30 @@
           'P95 ' + ms(m.retrieval_p95_ms) + ' · 不含模型首 token')
       ].join('');
       const e = metrics.experience;
+      const noExperience = e && e.total === 0;
       document.getElementById('experienceMetrics').innerHTML = [
-        evidenceCard('可调用经验', e ? number(e.ready) + ' 条' : '—', e ? '待审核 ' + number(e.candidates) + ' · 总计 ' + number(e.total) : '等待学习统计'),
-        evidenceCard('跨 Agent 验证', e ? number(e.cross_agent_passed) + ' 条次' : '—', '输出经验后，另一 Agent 执行匹配检查并通过'),
-        evidenceCard('失败检查观察', e ? number(e.failure_events) + ' 条次' : '—', e ? '其中恢复 ' + number(e.recovered) + ' 条次 · 不等于因果收益' : '等待学习统计'),
-        evidenceCard('反例暂停', e ? number(e.suspended) + ' 条' : '—', '出现末次验证失败，停止推荐并等待复核', e?.suspended ? 'attention' : '')
+        evidenceCard('可调用经验', noExperience ? '暂无条目' : e ? number(e.ready) + ' 条' : '—',
+          e ? (noExperience ? '普通记忆不计入此处 · 待审核 ' + number(e.candidates) : '待审核 ' + number(e.candidates) + ' · 经验总计 ' + number(e.total)) : '等待学习统计'),
+        evidenceCard('跨 Agent 验证', noExperience ? '尚无验证记录' : e ? number(e.cross_agent_passed) + ' 条次' : '—',
+          noExperience ? '还没有经验条目可供另一 Agent 验证' : '输出经验后，另一 Agent 执行匹配检查并通过'),
+        evidenceCard('失败检查观察', noExperience ? '尚无验证记录' : e ? number(e.failure_events) + ' 条次' : '—',
+          e ? (noExperience ? '还没有经验条目进入结果检查' : '其中恢复 ' + number(e.recovered) + ' 条次 · 不等于因果收益') : '等待学习统计'),
+        evidenceCard('反例暂停', noExperience ? '尚无验证记录' : e ? number(e.suspended) + ' 条' : '—',
+          noExperience ? '出现经验证的反例后才会计入' : '出现末次验证失败，停止推荐并等待复核', e?.suspended ? 'attention' : '')
       ].join('');
       const impact = metrics.latency_impact;
+      const ordinaryCodexTiming = m.response_timing?.codex?.measured_turns || 0;
       const signed = value => typeof value === 'number' && Number.isFinite(value)
         ? (value > 0 ? '+' : value < 0 ? '−' : '') + durationLabel(Math.abs(value)) : '暂无对照样本';
       document.getElementById('turnTimingMetrics').innerHTML = [
         evidenceCard('首 token 增量 · P50', signed(impact?.ttft_delta_ms?.p50),
           'P95 ' + signed(impact?.ttft_delta_ms?.p95) + ' · 逐对相减后统计'),
-        evidenceCard('有效对照', (impact?.pairs || 0) + ' 对',
+        evidenceCard('有效对照', impact?.pairs
+          ? number(impact.pairs) + ' 对' : '尚未采集',
           impact?.baseline_mode === 'framework_absent' ? '基线：未安装 MemWeave Hook' :
-          impact?.baseline_mode === 'hook_bypass' ? '基线：Hook 保留，但跳过召回与学习' : '等待同条件的开启 / 关闭实验')
+          impact?.baseline_mode === 'hook_bypass' ? '基线：Hook 保留，但跳过召回与学习' :
+          ordinaryCodexTiming ? '已有普通 Codex 计时 ' + number(ordinaryCodexTiming) + ' 条，但不能替代开启 / 关闭对照' :
+          '尚无开启 / 关闭配对记录；未采集不代表测量结果为 0')
       ].join('');
       document.getElementById('timingImpactNote').textContent = impact?.pairs
         ? `${impact.pairs < 20 ? '样本偏少，仅供观察。' : '这是当前实验的观测差值。'}${impact.order_balanced ? '' : '尚未同时覆盖两种执行顺序。'} 实验条件由操作者确认；网络、缓存与模型负载仍可能带来波动。单轮原始计时保留在下方记录中。`

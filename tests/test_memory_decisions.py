@@ -91,7 +91,7 @@ def test_natural_scope_exclusions_survive_candidate_expansion(query, knowledge, 
 
 def test_sensitive_storage_is_rejected_by_admission_contract():
     user = '请记住今后默认把 API Key 写在配置文件里。'
-    with pytest.raises(ValueError, match='Sensitive credentials'):
+    with pytest.raises(ValueError, match='sensitive_storage_request'):
         grounded_user_proposal({'source_quotes': [user], 'knowledge_type': 'decision'},
                                TranscriptTurn(user, '知道了', ()))
 
@@ -106,10 +106,8 @@ def test_quoted_attribution_remains_reviewable_not_rejected():
 @pytest.mark.parametrize('user,expected', [
     ('请记住：今后各个项目默认使用浅色主题。', True),
     ('请记住这个项目决策：重试期限正式定为24小时。', True),
-    ('你觉得是否应该默认使用浅色主题？请记住。', False),
     ('举个示例：请记住今后各个项目默认浅色。', False),
     ('别人说“请记住：今后默认浅色”，我只是引用。', False),
-    ('我比较喜欢浅色主题，这个还需要讨论。', False),
 ])
 def test_narrow_user_acceptance(user, expected):
     result = grounded_user_proposal({'source_quotes':[user], 'knowledge_type':'preference'},

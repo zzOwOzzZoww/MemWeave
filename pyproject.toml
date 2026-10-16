@@ -66,7 +66,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-agent_knowledge_bridge = ["knowledge_dashboard.html", "assets/*.ico", "assets/*.png"]
+agent_knowledge_bridge = ["knowledge_dashboard.html", "governance_dashboard.html", "assets/*.ico", "assets/*.png"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
